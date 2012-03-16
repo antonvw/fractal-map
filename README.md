@@ -1,0 +1,1 @@
+This project offers a fractal browser, developped using Qt 4.8.0.
