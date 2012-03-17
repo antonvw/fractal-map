@@ -11,5 +11,10 @@ class MainWindow : public QMainWindow
 public:
   // Constructor.
   MainWindow(QWidget *parent = 0);
+private slots:
+  void about();
+  void newFractal();
+private:
+  QWidget* newFractalWidget(QWidget* parent);
 };
 #endif

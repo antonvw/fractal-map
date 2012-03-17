@@ -36,11 +36,7 @@ void Thread::render(
   m_passes = passes;
   m_diverge = diverge;
   
-  if (!isRunning())
-  {
-    start(LowPriority);
-  } 
-  else 
+  if (isRunning())
   {
     m_restart = true;
     m_condition.wakeOne();

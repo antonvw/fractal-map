@@ -21,7 +21,7 @@ public:
   // Destructor, takes running of finishing the thread main loop.
  ~Thread();
 
-  // Starts the thread if necessary and begins rendering the image.
+  // Begins rendering the image.
   void render(
     // using this center
     const QPointF& center,

@@ -15,12 +15,32 @@ class Fractal : public QWidget
   Q_OBJECT
 
 public:
-  // Constructor, give a parent.
-  Fractal(QMainWindow* parent);
-
-  // Adds a controlling widget,
-  // allows you to observe or change parameters.
-  QWidget* addControl(QWidget* parent);  
+  // Constructor.
+  Fractal(
+    // mainwindow (not NULL)
+    QMainWindow* mainwindow,
+    // parent (NULL allowed)
+    QWidget* parent,
+    // scale to use
+    double scale,
+    // number of colours
+    uint colours,
+    // diverge limit
+    double diverge,
+    // center
+    const QPointF& center,
+    // number of passes
+    uint passes);
+    
+  // Access to controls.
+  QLineEdit* getCenter() {return m_centerEdit;};
+  QSpinBox* getColours() {return m_coloursEdit;};
+  QLineEdit* getDiverge() {return m_divergeEdit;};
+  QSpinBox* getPasses() {return m_passesEdit;};
+  QLineEdit* getScale(){ return m_scaleEdit;};
+  
+  // Starts rendering.
+  void start();
 protected:
   void keyPressEvent(QKeyEvent *event);
   void mouseMoveEvent(QMouseEvent *event);

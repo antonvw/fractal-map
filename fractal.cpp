@@ -2,14 +2,16 @@
 #include <QtGui>
 #include "fractal.h"
 
-const double scale = 0.004;
-const double diverge = 2.0;
 const double zoomIn = 0.8;
-const double zoomOut = 1 / zoomIn;
-const int scrollStep = 20;
-const uint colours = 1024;
 
-Fractal::Fractal(QMainWindow *parent)
+Fractal::Fractal(
+  QMainWindow* mainwindow,
+  QWidget* parent,
+  double scale,
+  uint colours,
+  double diverge,
+  const QPointF& center,
+  uint passes)
   : QWidget(parent)
   , m_centerEdit(new QLineEdit())
   , m_coloursEdit(new QSpinBox())
@@ -17,13 +19,13 @@ Fractal::Fractal(QMainWindow *parent)
   , m_passesEdit(new QSpinBox())
   , m_scaleEdit(new QLineEdit())
   , m_origin(0, 0)
-  , m_center(0, 0)
+  , m_center(center)
   , m_diverge(diverge)
   , m_pixmapScale(scale)
   , m_scale(scale)
-  , m_passes(8)
+  , m_passes(passes)
   , m_updates(0)
-  , m_mainWindow(parent)
+  , m_mainWindow(mainwindow)
 {
   m_centerEdit->setText(
     QString::number(m_center.x()) + "," + QString::number(m_center.y()));
@@ -43,8 +45,6 @@ Fractal::Fractal(QMainWindow *parent)
   m_scaleEdit->setText(QString::number(m_scale));
   m_scaleEdit->setToolTip("scale");
 
-  qRegisterMetaType<QImage>("QImage");
-  
   connect(&m_thread, SIGNAL(renderedImage(QImage,double)),
     this, SLOT(updatePixmap(QImage,double)));
   connect(&m_thread, SIGNAL(renderingImage(int,int,int)),
@@ -64,23 +64,6 @@ Fractal::Fractal(QMainWindow *parent)
   setColours(colours);
   setCursor(Qt::CrossCursor);
   setFocusPolicy(Qt::StrongFocus);
-}
-
-QWidget* Fractal::addControl(QWidget* parent)
-{
-  QVBoxLayout *layout = new QVBoxLayout;
-  
-  layout->addWidget(m_coloursEdit);
-  layout->addWidget(m_passesEdit);
-  layout->addWidget(m_centerEdit);
-  layout->addWidget(m_scaleEdit);
-  layout->addWidget(m_divergeEdit);
-  layout->addStretch();
-
-  QWidget* widget = new QWidget(parent);
-  widget->setLayout(layout);
-  
-  return widget;
 }
 
 void Fractal::editedCenter(const QString& text)
@@ -146,13 +129,15 @@ void Fractal::keyPressEvent(QKeyEvent *event)
 {
   m_mainWindow->statusBar()->showMessage(QString("key: %1").arg((int)event->key()));
   
+  const int scrollStep = 20;
+  
   switch (event->key()) 
   {
     case Qt::Key_Plus:
       zoom(zoomIn);
       break;
     case Qt::Key_Minus:
-      zoom(zoomOut);
+      zoom(1 / zoomIn);
       break;
     case Qt::Key_Left:
       scroll(QPoint(-scrollStep, 0));
@@ -324,6 +309,11 @@ void Fractal::setColours(uint colours)
   }
   
   m_colours.push_back(qRgb(0, 0, 0));
+}
+
+void Fractal::start()
+{
+  m_thread.start();
 }
     
 void Fractal::updatePass(int pass, int numberOfPasses, int iterations)
