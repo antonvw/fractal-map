@@ -39,6 +39,13 @@ public:
   QSpinBox* getPasses() {return m_passesEdit;};
   QLineEdit* getScale(){ return m_scaleEdit;};
   
+  // Access to values.
+  const QPointF& center() const {return m_center;};
+  uint colours() const {return m_colours.size();}
+  double diverge() const {return m_diverge;};
+  uint passes() const {return m_passes;}
+  double scale() const {return m_scale;};
+  
   // Starts rendering.
   void start();
 protected:

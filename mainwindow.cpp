@@ -5,10 +5,11 @@
 
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
+  , m_fractal(NULL)
 {
   qRegisterMetaType<QImage>("QImage");
   
-  setCentralWidget(newFractalWidget(parent));
+  setCentralWidget(newFractalWidget(this));
   
   setWindowTitle("Fractal Art");
   
@@ -24,24 +25,36 @@ void MainWindow::about()
 
 void MainWindow::newFractal()
 {
-  QWidget* w = newFractalWidget(this);
-  w->show();
-//  QDockWidget* dock = new QDockWidget(this);
-//  dock->setWidget(newFractalWidget(this));
-//  dock->show();
-//  addDockWidget(Qt::RightDockWidgetArea, dock);
+  QMainWindow* m = new QMainWindow(this);
+  m->show();
+  m->setCentralWidget(newFractalWidget(m));
+  m->resize(550, 400);
 }
 
-QWidget* MainWindow::newFractalWidget(QWidget* parent)
+QWidget* MainWindow::newFractalWidget(QMainWindow* parent)
 {
-  Fractal* fractal = new Fractal(
-    this,
-    this,
-    0.004,
-    1024,
-    2.0,
-    QPointF(0,0),
-    8);
+  if (m_fractal != NULL)
+  {
+    m_fractal = new Fractal(
+      parent,
+      parent,
+      m_fractal->scale(),
+      m_fractal->colours(),
+      m_fractal->diverge(),
+      m_fractal->center(),
+      m_fractal->passes());
+  }
+  else
+  {
+    m_fractal = new Fractal(
+      parent,
+      parent,
+      0.004,
+      1024,
+      2.0,
+      QPointF(0,0),
+      8);
+  }
     
   QPushButton* newFractal = new QPushButton("new");
     
@@ -49,12 +62,12 @@ QWidget* MainWindow::newFractalWidget(QWidget* parent)
     
   QGridLayout *layout = new QGridLayout;
   
-  layout->addWidget(fractal, 0, 0, 1, -1);
-  layout->addWidget(fractal->getColours(), 1, 0);
-  layout->addWidget(fractal->getPasses(), 1, 1);
-  layout->addWidget(fractal->getCenter(), 1, 2);
-  layout->addWidget(fractal->getScale(), 1, 3);
-  layout->addWidget(fractal->getDiverge(), 1, 4);
+  layout->addWidget(m_fractal, 0, 0, 1, -1);
+  layout->addWidget(m_fractal->getColours(), 1, 0);
+  layout->addWidget(m_fractal->getPasses(), 1, 1);
+  layout->addWidget(m_fractal->getCenter(), 1, 2);
+  layout->addWidget(m_fractal->getScale(), 1, 3);
+  layout->addWidget(m_fractal->getDiverge(), 1, 4);
   layout->addWidget(newFractal, 1, 5);
 
   QWidget* widget = new QWidget(parent);
@@ -63,7 +76,7 @@ QWidget* MainWindow::newFractalWidget(QWidget* parent)
   QWidget* fractalAndControl = new QWidget(this);
   fractalAndControl->setLayout(layout);
   
-  fractal->start();
+  m_fractal->start();
   
   return fractalAndControl;
 }

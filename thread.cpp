@@ -62,7 +62,7 @@ void Thread::run()
 
     for (uint pass = 0; pass < passes; pass++)
     {
-      const int maxIterations = 8 << pass;
+      const uint maxIterations = 8 << pass;
       
       emit renderingImage(pass + 1, passes, maxIterations);
       
@@ -85,7 +85,7 @@ void Thread::run()
           const std::complex<double> c(ax, ay);
           std::complex<double> z;
           
-          int n = 0;
+          uint n = 0;
           
           for (n = 0; n < maxIterations && abs(z) < diverge; n++)
           {

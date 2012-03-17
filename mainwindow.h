@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 
+class Fractal;
+
 // This class offers the main window.
 class MainWindow : public QMainWindow
 {
@@ -15,6 +17,8 @@ private slots:
   void about();
   void newFractal();
 private:
-  QWidget* newFractalWidget(QWidget* parent);
+  QWidget* newFractalWidget(QMainWindow* parent);
+  
+  Fractal* m_fractal;
 };
 #endif
