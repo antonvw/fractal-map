@@ -47,6 +47,7 @@ public:
   uint colours() const {return m_colours.size();}
   double diverge() const {return m_diverge;};
   uint firstPass() const {return m_first_pass;}
+  uint pass() const {return m_pass;}
   uint passes() const {return m_passes;}
   double scale() const {return m_scale;};
   
@@ -101,6 +102,7 @@ private:
   double m_scale;
   
   uint m_first_pass;
+  uint m_pass;
   uint m_passes;
   
   long m_updates;

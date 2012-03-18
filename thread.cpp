@@ -68,12 +68,9 @@ void Thread::run()
 
       for (int y = -half.height(); y < half.height() && !m_restart; ++y) 
       {
-        if (m_stop)
-          return;
-
         const double ay = center.y() + (y * scale);
 
-        for (int x = -half.width(); x < half.width(); ++x) 
+        for (int x = -half.width(); x < half.width() && !m_restart; ++x) 
         {
           const double ax = center.x() + (x * scale);
           
@@ -84,6 +81,9 @@ void Thread::run()
           
           for (n = 0; n < maxIterations && abs(z) < diverge; n++)
           {
+            if (m_stop)
+              return;
+
             z = z * z - c;
           }
 

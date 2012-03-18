@@ -26,6 +26,7 @@ Fractal::Fractal(
   , m_pixmapScale(scale)
   , m_scale(scale)
   , m_first_pass(first_pass)
+  , m_pass(0)
   , m_passes(passes)
   , m_updates(0)
   , m_mainWindow(mainwindow)
@@ -341,6 +342,8 @@ void Fractal::stop()
     
 void Fractal::updatePass(uint pass, uint numberOfPasses, uint iterations)
 {
+  m_pass = pass;
+  
   m_mainWindow->statusBar()->showMessage(QString("pass: %1 of %2 using %3 iterations")
     .arg(pass).arg(numberOfPasses).arg(iterations));
 }

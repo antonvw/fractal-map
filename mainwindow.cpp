@@ -44,7 +44,7 @@ QWidget* MainWindow::newFractalWidget(QMainWindow* parent)
       m_fractal->colours(),
       m_fractal->diverge(),
       m_fractal->center(),
-      m_fractal->firstPass(),
+      m_fractal->pass(),
       m_fractal->passes());
   }
   else
