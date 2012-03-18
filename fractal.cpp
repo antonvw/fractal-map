@@ -26,7 +26,7 @@ Fractal::Fractal(
   , m_pixmapScale(scale)
   , m_scale(scale)
   , m_first_pass(first_pass)
-  , m_pass(0)
+  , m_pass(first_pass)
   , m_passes(passes)
   , m_updates(0)
   , m_mainWindow(mainwindow)
@@ -43,10 +43,12 @@ Fractal::Fractal(
   m_divergeEdit->setToolTip("diverge");
 
   m_first_passEdit->setMaximum(32);
+  m_first_passEdit->setMinimum(1);
   m_first_passEdit->setValue(m_first_pass);
   m_first_passEdit->setToolTip("first pass");
   
   m_passesEdit->setMaximum(32);
+  m_passesEdit->setMinimum(m_first_passEdit->value());
   m_passesEdit->setValue(m_passes);
   m_passesEdit->setToolTip("passes");
   
@@ -65,7 +67,7 @@ Fractal::Fractal(
   connect(m_divergeEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(editedDiverge(const QString&)));
   connect(m_first_passEdit, SIGNAL(valueChanged(int)),
-    this, SLOT(editediFirstPass(int)));
+    this, SLOT(editedFirstPass(int)));
   connect(m_passesEdit, SIGNAL(valueChanged(int)),
     this, SLOT(editedPasses(int)));
   connect(m_scaleEdit, SIGNAL(textEdited(const QString&)),
@@ -117,6 +119,8 @@ void Fractal::editedFirstPass(int value)
 {
   if (value > 0)
   {
+    m_passesEdit->setMinimum(value);
+    
     m_first_pass = value;
     update();
     m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
@@ -129,7 +133,7 @@ void Fractal::editedPasses(int value)
   {
     m_passes = value;
     update();
-    m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
+    m_thread.render(m_center, m_scale, size(), m_pass, m_passes, m_colours, m_diverge);
   }
 }
 
@@ -340,12 +344,12 @@ void Fractal::stop()
   m_thread.stop();
 }
     
-void Fractal::updatePass(uint pass, uint numberOfPasses, uint iterations)
+void Fractal::updatePass(uint pass, uint maxPasses, uint iterations)
 {
   m_pass = pass;
   
   m_mainWindow->statusBar()->showMessage(QString("pass: %1 of %2 using %3 iterations")
-    .arg(pass).arg(numberOfPasses).arg(iterations));
+    .arg(pass).arg(maxPasses).arg(iterations));
 }
 
 void Fractal::updatePixmap(const QImage &image, double scale)

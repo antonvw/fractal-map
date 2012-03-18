@@ -49,7 +49,7 @@ void Thread::run()
     const double scale = m_scale;
     const QPointF center = m_center;
     const uint first_pass = m_first_pass;
-    const uint passes = m_max_passes;
+    const uint max_passes = m_max_passes;
     std::vector<uint> colours(m_colours);
     const double diverge = m_diverge;
     m_mutex.unlock();
@@ -58,11 +58,11 @@ void Thread::run()
     
     QImage image(size, QImage::Format_RGB32);
 
-    for (uint pass = first_pass; pass < passes; pass++)
+    for (uint pass = first_pass; pass <= max_passes; pass++)
     {
       const uint maxIterations = 8 << pass;
       
-      emit renderingImage(pass, passes, maxIterations);
+      emit renderingImage(pass, max_passes, maxIterations);
       
       bool converge = true;
 

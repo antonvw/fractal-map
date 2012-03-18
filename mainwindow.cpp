@@ -56,7 +56,7 @@ QWidget* MainWindow::newFractalWidget(QMainWindow* parent)
       1024,
       2.0,
       QPointF(0,0),
-      0,
+      1,
       8);
   }
     
