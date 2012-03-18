@@ -34,7 +34,7 @@ Fractal::Fractal(
     QString::number(m_center.x()) + "," + QString::number(m_center.y()));
   m_centerEdit->setToolTip("center x,y");
   
-  m_coloursEdit->setMaximum(INT_MAX);
+  m_coloursEdit->setMaximum(8192);
   m_coloursEdit->setValue(colours);
   m_coloursEdit->setToolTip("colours");
   
