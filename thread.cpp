@@ -23,6 +23,7 @@ void Thread::render(
   const QPointF& center, 
   double scale,
   const QSize& size,
+  uint first_pass,
   uint passes,
   const std::vector<uint> & colours,
   const double diverge)
@@ -33,6 +34,7 @@ void Thread::render(
   m_scale = scale;
   m_size = size;
   m_colours = colours;
+  m_first_pass = first_pass;
   m_passes = passes;
   m_diverge = diverge;
   
@@ -51,6 +53,7 @@ void Thread::run()
     const QSize size = m_size;
     const double scale = m_scale;
     const QPointF center = m_center;
+    const uint first_pass = m_first_pass;
     const uint passes = m_passes;
     std::vector<uint> colours(m_colours);
     const double diverge = m_diverge;
@@ -60,7 +63,7 @@ void Thread::run()
     
     QImage image(size, QImage::Format_RGB32);
 
-    for (uint pass = 0; pass < passes; pass++)
+    for (uint pass = first_pass; pass < passes; pass++)
     {
       const uint maxIterations = 8 << pass;
       

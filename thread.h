@@ -29,6 +29,8 @@ public:
     double scale,
     // using this size
     const QSize& size,
+    // pass to start with
+    uint first_pass,
     // using max number of passes
     uint passes,
     // using these colours,
@@ -51,6 +53,7 @@ private:
   QWaitCondition m_condition;
   QPointF m_center;
   double m_scale;
+  uint m_first_pass;
   uint m_passes;
   double m_diverge;
   QSize m_size;

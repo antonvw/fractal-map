@@ -42,6 +42,7 @@ QWidget* MainWindow::newFractalWidget(QMainWindow* parent)
       m_fractal->colours(),
       m_fractal->diverge(),
       m_fractal->center(),
+      m_fractal->first_pass(),
       m_fractal->passes());
   }
   else
@@ -53,6 +54,7 @@ QWidget* MainWindow::newFractalWidget(QMainWindow* parent)
       1024,
       2.0,
       QPointF(0,0),
+      0,
       8);
   }
     
@@ -64,11 +66,12 @@ QWidget* MainWindow::newFractalWidget(QMainWindow* parent)
   
   layout->addWidget(m_fractal, 0, 0, 1, -1);
   layout->addWidget(m_fractal->getColours(), 1, 0);
-  layout->addWidget(m_fractal->getPasses(), 1, 1);
-  layout->addWidget(m_fractal->getCenter(), 1, 2);
-  layout->addWidget(m_fractal->getScale(), 1, 3);
-  layout->addWidget(m_fractal->getDiverge(), 1, 4);
-  layout->addWidget(newFractal, 1, 5);
+  layout->addWidget(m_fractal->getFirstPass(), 1, 1);
+  layout->addWidget(m_fractal->getPasses(), 1, 2);
+  layout->addWidget(m_fractal->getCenter(), 1, 3);
+  layout->addWidget(m_fractal->getScale(), 1, 4);
+  layout->addWidget(m_fractal->getDiverge(), 1, 5);
+  layout->addWidget(newFractal, 1, 6);
 
   QWidget* widget = new QWidget(parent);
   widget->setLayout(layout);

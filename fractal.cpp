@@ -11,11 +11,13 @@ Fractal::Fractal(
   uint colours,
   double diverge,
   const QPointF& center,
+  uint first_pass,
   uint passes)
   : QWidget(parent)
   , m_centerEdit(new QLineEdit())
   , m_coloursEdit(new QSpinBox())
   , m_divergeEdit(new QLineEdit())
+  , m_first_passEdit(new QSpinBox())
   , m_passesEdit(new QSpinBox())
   , m_scaleEdit(new QLineEdit())
   , m_origin(0, 0)
@@ -23,6 +25,7 @@ Fractal::Fractal(
   , m_diverge(diverge)
   , m_pixmapScale(scale)
   , m_scale(scale)
+  , m_first_pass(first_pass)
   , m_passes(passes)
   , m_updates(0)
   , m_mainWindow(mainwindow)
@@ -38,6 +41,10 @@ Fractal::Fractal(
   m_divergeEdit->setText(QString::number(m_diverge));
   m_divergeEdit->setToolTip("diverge");
 
+  m_first_passEdit->setMaximum(32);
+  m_first_passEdit->setValue(m_first_pass);
+  m_first_passEdit->setToolTip("first pass");
+  
   m_passesEdit->setMaximum(32);
   m_passesEdit->setValue(m_passes);
   m_passesEdit->setToolTip("passes");
@@ -56,6 +63,8 @@ Fractal::Fractal(
     this, SLOT(editedColours(int)));
   connect(m_divergeEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(editedDiverge(const QString&)));
+  connect(m_first_passEdit, SIGNAL(valueChanged(int)),
+    this, SLOT(editediFirstPass(int)));
   connect(m_passesEdit, SIGNAL(valueChanged(int)),
     this, SLOT(editedPasses(int)));
   connect(m_scaleEdit, SIGNAL(textEdited(const QString&)),
@@ -77,7 +86,7 @@ void Fractal::editedCenter(const QString& text)
       sl[1].toDouble());
     
     update();
-    m_thread.render(m_center, m_scale, size(), m_passes, m_colours, m_diverge);
+    m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
   }
 }
 
@@ -87,7 +96,7 @@ void Fractal::editedColours(int value)
   {
     setColours(value);
     update();
-    m_thread.render(m_center, m_scale, size(), m_passes, m_colours, m_diverge);
+    m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
   }
 }
 
@@ -100,7 +109,17 @@ void Fractal::editedDiverge(const QString& text)
   
   m_diverge = text.toDouble();
   update();
-  m_thread.render(m_center, m_scale, size(), m_passes, m_colours, m_diverge);
+  m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
+}
+
+void Fractal::editedFirstPass(int value)
+{
+  if (value > 0)
+  {
+    m_first_pass = value;
+    update();
+    m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
+  }
 }
 
 void Fractal::editedPasses(int value)
@@ -109,7 +128,7 @@ void Fractal::editedPasses(int value)
   {
     m_passes = value;
     update();
-    m_thread.render(m_center, m_scale, size(), m_passes, m_colours, m_diverge);
+    m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
   }
 }
 
@@ -122,7 +141,7 @@ void Fractal::editedScale(const QString& text)
   
   m_scale = text.toDouble();
   update();
-  m_thread.render(m_center, m_scale, size(), m_passes, m_colours, m_diverge);
+  m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
 }
 
 void Fractal::keyPressEvent(QKeyEvent *event)
@@ -234,7 +253,7 @@ void Fractal::paintEvent(QPaintEvent * /* event */)
 
 void Fractal::resizeEvent(QResizeEvent * /* event */)
 {
-  m_thread.render(m_center, m_scale, size(), m_passes, m_colours, m_diverge);
+  m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
 }
 
 uint Fractal::rgbFromWaveLength(double wave)
@@ -296,7 +315,7 @@ void Fractal::scroll(const QPoint& delta)
     QString::number(m_center.x()) + "," + QString::number(m_center.y()));
   
   update();
-  m_thread.render(m_center, m_scale, size(), m_passes, m_colours, m_diverge);
+  m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
 }
 
 void Fractal::setColours(uint colours)
@@ -352,5 +371,5 @@ void Fractal::zoom(double zoomFactor)
   m_scaleEdit->setText(QString::number(m_scale));
 
   update();
-  m_thread.render(m_center, m_scale, size(), m_passes, m_colours, m_diverge);
+  m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
 }

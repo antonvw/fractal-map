@@ -29,6 +29,8 @@ public:
     double diverge,
     // center
     const QPointF& center,
+    // first pass
+    uint first_pass,
     // number of passes
     uint passes);
     
@@ -36,6 +38,7 @@ public:
   QLineEdit* getCenter() {return m_centerEdit;};
   QSpinBox* getColours() {return m_coloursEdit;};
   QLineEdit* getDiverge() {return m_divergeEdit;};
+  QSpinBox* getFirstPass() {return m_first_passEdit;};
   QSpinBox* getPasses() {return m_passesEdit;};
   QLineEdit* getScale(){ return m_scaleEdit;};
   
@@ -43,6 +46,7 @@ public:
   const QPointF& center() const {return m_center;};
   uint colours() const {return m_colours.size();}
   double diverge() const {return m_diverge;};
+  uint first_pass() const {return m_first_pass;}
   uint passes() const {return m_passes;}
   double scale() const {return m_scale;};
   
@@ -60,6 +64,7 @@ private slots:
   void editedCenter(const QString& text);
   void editedColours(int value);
   void editedDiverge(const QString& text);
+  void editedFirstPass(int value);
   void editedPasses(int value);
   void editedScale(const QString& text);
   void updatePass(int pass, int numberOfPasses, int iterations);
@@ -75,6 +80,7 @@ private:
   QLineEdit* m_centerEdit;
   QSpinBox* m_coloursEdit;
   QLineEdit* m_divergeEdit;
+  QSpinBox* m_first_passEdit;
   QSpinBox* m_passesEdit;
   QLineEdit* m_scaleEdit;
   
@@ -91,6 +97,7 @@ private:
   double m_pixmapScale;
   double m_scale;
   
+  uint m_first_pass;
   uint m_passes;
   
   long m_updates;
