@@ -11,12 +11,7 @@ Thread::Thread(QObject *parent)
 
 Thread::~Thread()
 {
-  m_mutex.lock();
-  m_stop = true;
-  m_condition.wakeOne();
-  m_mutex.unlock();
-
-  wait();
+  stop();
 }
 
 void Thread::render(
@@ -35,7 +30,7 @@ void Thread::render(
   m_size = size;
   m_colours = colours;
   m_first_pass = first_pass;
-  m_passes = passes;
+  m_max_passes = passes;
   m_diverge = diverge;
   
   if (isRunning())
@@ -54,7 +49,7 @@ void Thread::run()
     const double scale = m_scale;
     const QPointF center = m_center;
     const uint first_pass = m_first_pass;
-    const uint passes = m_passes;
+    const uint passes = m_max_passes;
     std::vector<uint> colours(m_colours);
     const double diverge = m_diverge;
     m_mutex.unlock();
@@ -67,7 +62,7 @@ void Thread::run()
     {
       const uint maxIterations = 8 << pass;
       
-      emit renderingImage(pass + 1, passes, maxIterations);
+      emit renderingImage(pass, passes, maxIterations);
       
       bool converge = true;
 
@@ -76,9 +71,6 @@ void Thread::run()
         if (m_stop)
           return;
 
-        uint *scanLine =
-          reinterpret_cast<uint *>(image.scanLine(y + half.height()));
-          
         const double ay = center.y() + (y * scale);
 
         for (int x = -half.width(); x < half.width(); ++x) 
@@ -100,8 +92,8 @@ void Thread::run()
             converge = false;
           } 
           
-          *scanLine++ = 
-            (n < maxIterations ? colours[n % colours.size()]: colours.back());
+          image.setPixel(x + half.width(), y + half.height(),
+            (n < maxIterations ? colours[n % colours.size()]: colours.back()));
         }
       }
 
@@ -119,4 +111,14 @@ void Thread::run()
     m_restart = false;
     m_mutex.unlock();
   }
+}
+
+void Thread::stop()
+{
+  m_mutex.lock();
+  m_stop = true;
+  m_condition.wakeOne();
+  m_mutex.unlock();
+
+  wait();
 }

@@ -38,14 +38,16 @@ public:
     const std::vector<uint> & colours,
     // value that assumes function is diverging
     const double diverge);
-    
+
+  // Stops the thread.
+  void stop();
 signals:
   // If an image is available, this signal is emitted.
   void renderedImage(const QImage &image, double scale);
   
   // During rendering, this signal is emitted,
   // allowing you to observe progress.
-  void renderingImage(int pass, int total, int iterations);
+  void renderingImage(uint pass, uint total, uint iterations);
 protected:
   void run();
 private:
@@ -54,7 +56,7 @@ private:
   QPointF m_center;
   double m_scale;
   uint m_first_pass;
-  uint m_passes;
+  uint m_max_passes;
   double m_diverge;
   QSize m_size;
   bool m_restart;

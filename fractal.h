@@ -52,6 +52,9 @@ public:
   
   // Starts rendering.
   void start();
+  
+  // Stops rendering.
+  void stop();
 protected:
   void keyPressEvent(QKeyEvent *event);
   void mouseMoveEvent(QMouseEvent *event);
@@ -67,7 +70,7 @@ private slots:
   void editedFirstPass(int value);
   void editedPasses(int value);
   void editedScale(const QString& text);
-  void updatePass(int pass, int numberOfPasses, int iterations);
+  void updatePass(uint pass, uint numberOfPasses, uint iterations);
   void updatePixmap(const QImage &image, double scale);
   void zoom(double zoomFactor);
 private:

@@ -34,7 +34,7 @@ void MainWindow::newFractal()
 QWidget* MainWindow::newFractalWidget(QMainWindow* parent)
 {
   QToolBar* tb = parent->addToolBar("Control");
-    
+
   if (m_fractal != NULL)
   {
     m_fractal = new Fractal(
@@ -61,8 +61,10 @@ QWidget* MainWindow::newFractalWidget(QMainWindow* parent)
   }
     
   QPushButton* newFractal = new QPushButton("new");
+  QPushButton* stop = new QPushButton("stop");
     
   connect(newFractal, SIGNAL(clicked()), this, SLOT(newFractal()));
+  connect(stop, SIGNAL(clicked()), this, SLOT(stop()));
   
   tb->addWidget(m_fractal->getColours());
   tb->addWidget(m_fractal->getFirstPass());
@@ -70,9 +72,15 @@ QWidget* MainWindow::newFractalWidget(QMainWindow* parent)
   tb->addWidget(m_fractal->getCenter());
   tb->addWidget(m_fractal->getScale());
   tb->addWidget(m_fractal->getDiverge());
+  tb->addWidget(stop);
   tb->addWidget(newFractal);
-
-  m_fractal->start();
   
+  m_fractal->start();
+
   return m_fractal;
+}
+
+void MainWindow::stop()
+{
+  m_fractal->stop();
 }

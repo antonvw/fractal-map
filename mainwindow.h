@@ -16,6 +16,7 @@ public:
 private slots:
   void about();
   void newFractal();
+  void stop();
 private:
   QWidget* newFractalWidget(QMainWindow* parent);
   

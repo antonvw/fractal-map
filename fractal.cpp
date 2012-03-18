@@ -54,8 +54,8 @@ Fractal::Fractal(
 
   connect(&m_thread, SIGNAL(renderedImage(QImage,double)),
     this, SLOT(updatePixmap(QImage,double)));
-  connect(&m_thread, SIGNAL(renderingImage(int,int,int)),
-    this, SLOT(updatePass(int,int,int)));
+  connect(&m_thread, SIGNAL(renderingImage(uint,uint,uint)),
+    this, SLOT(updatePass(uint,uint,uint)));
     
   connect(m_centerEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(editedCenter(const QString&)));
@@ -210,7 +210,6 @@ void Fractal::paintEvent(QPaintEvent * /* event */)
 {
   if (m_pixmap.isNull()) 
   {
-    m_mainWindow->statusBar()->showMessage("building fractal image");
     return;
   }
 
@@ -335,7 +334,12 @@ void Fractal::start()
   m_thread.start();
 }
     
-void Fractal::updatePass(int pass, int numberOfPasses, int iterations)
+void Fractal::stop()
+{
+  m_thread.stop();
+}
+    
+void Fractal::updatePass(uint pass, uint numberOfPasses, uint iterations)
 {
   m_mainWindow->statusBar()->showMessage(QString("pass: %1 of %2 using %3 iterations")
     .arg(pass).arg(numberOfPasses).arg(iterations));
