@@ -46,7 +46,7 @@ public:
   const QPointF& center() const {return m_center;};
   uint colours() const {return m_colours.size();}
   double diverge() const {return m_diverge;};
-  uint first_pass() const {return m_first_pass;}
+  uint firstPass() const {return m_first_pass;}
   uint passes() const {return m_passes;}
   double scale() const {return m_scale;};
   

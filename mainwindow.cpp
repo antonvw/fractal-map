@@ -33,6 +33,8 @@ void MainWindow::newFractal()
 
 QWidget* MainWindow::newFractalWidget(QMainWindow* parent)
 {
+  QToolBar* tb = parent->addToolBar("Control");
+    
   if (m_fractal != NULL)
   {
     m_fractal = new Fractal(
@@ -42,7 +44,7 @@ QWidget* MainWindow::newFractalWidget(QMainWindow* parent)
       m_fractal->colours(),
       m_fractal->diverge(),
       m_fractal->center(),
-      m_fractal->first_pass(),
+      m_fractal->firstPass(),
       m_fractal->passes());
   }
   else
@@ -61,25 +63,16 @@ QWidget* MainWindow::newFractalWidget(QMainWindow* parent)
   QPushButton* newFractal = new QPushButton("new");
     
   connect(newFractal, SIGNAL(clicked()), this, SLOT(newFractal()));
-    
-  QGridLayout *layout = new QGridLayout;
   
-  layout->addWidget(m_fractal, 0, 0, 1, -1);
-  layout->addWidget(m_fractal->getColours(), 1, 0);
-  layout->addWidget(m_fractal->getFirstPass(), 1, 1);
-  layout->addWidget(m_fractal->getPasses(), 1, 2);
-  layout->addWidget(m_fractal->getCenter(), 1, 3);
-  layout->addWidget(m_fractal->getScale(), 1, 4);
-  layout->addWidget(m_fractal->getDiverge(), 1, 5);
-  layout->addWidget(newFractal, 1, 6);
+  tb->addWidget(m_fractal->getColours());
+  tb->addWidget(m_fractal->getFirstPass());
+  tb->addWidget(m_fractal->getPasses());
+  tb->addWidget(m_fractal->getCenter());
+  tb->addWidget(m_fractal->getScale());
+  tb->addWidget(m_fractal->getDiverge());
+  tb->addWidget(newFractal);
 
-  QWidget* widget = new QWidget(parent);
-  widget->setLayout(layout);
-  
-  QWidget* fractalAndControl = new QWidget(this);
-  fractalAndControl->setLayout(layout);
-  
   m_fractal->start();
   
-  return fractalAndControl;
+  return m_fractal;
 }
