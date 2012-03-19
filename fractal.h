@@ -84,7 +84,7 @@ private slots:
   void updatePixmap(const QImage &image, double scale);
   void zoom(double zoomFactor);
 private:
-  void render();
+  void render(int start_at = 0);
   uint rgbFromWaveLength(double wave);
   void scroll(const QPoint& delta);
   void setColours(uint colours);

@@ -3,6 +3,8 @@
 #include "mainwindow.h"
 #include "fractal.h"
 
+const QString title("Fractal Map");
+
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
   , m_fractal(NULL)
@@ -10,24 +12,23 @@ MainWindow::MainWindow(QWidget* parent)
   qRegisterMetaType<QImage>("QImage");
   
   setCentralWidget(newFractalWidget(this));
-  
-  setWindowTitle("Fractal Map");
-  
+  setWindowTitle(title);
   resize(550, 400);
 }
 
 void MainWindow::about()
 {
-  QMessageBox::about(this, tr("About Menu"),
-    "The <b>Menu</b> example shows how to create "
-       "menu-bar menus and context menus.");
+  QMessageBox::about(this, 
+    "About " + title,
+    "This application shows a fractal map.");
 }
 
 void MainWindow::newFractal()
 {
-  QMainWindow* m = new QMainWindow(this);
+  QMainWindow* m = new QMainWindow();
   m->show();
   m->setCentralWidget(newFractalWidget(m));
+  m->setWindowTitle(title);
   m->resize(550, 400);
 }
 

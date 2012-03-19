@@ -116,7 +116,7 @@ void Fractal::editedColours(int value)
   if (value > 0)
   {
     setColours(value);
-    render();
+    render(m_pass);
   }
 }
 
@@ -147,6 +147,8 @@ void Fractal::editedFractal(int index)
   if (index >= 0)
   {
     m_fractalType = index;
+    m_pass = 0;
+    
     render();
   }
 }
@@ -156,7 +158,7 @@ void Fractal::editedPasses(int value)
   if (value > 0)
   {
     m_passes = value;
-    render();
+    render(m_pass);
   }
 }
 
@@ -168,7 +170,7 @@ void Fractal::editedScale(const QString& text)
   }
   
   m_scale = text.toDouble();
-  render();
+  render(m_pass);
 }
 
 void Fractal::keyPressEvent(QKeyEvent *event)
@@ -277,7 +279,7 @@ void Fractal::paintEvent(QPaintEvent * /* event */)
   painter.drawLine(l2);
 }
 
-void Fractal::render()
+void Fractal::render(int start_at)
 {
   update();
   
@@ -285,7 +287,7 @@ void Fractal::render()
     m_center, 
     m_scale, 
     QImage(size(), QImage::Format_RGB32), 
-    m_first_pass, 
+    (start_at > 0 ? start_at: m_first_pass), 
     m_passes, 
     m_colours, 
     m_diverge,
