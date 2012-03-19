@@ -14,24 +14,95 @@ Thread::~Thread()
   stop();
 }
 
+bool Thread::fractal(double ax, double ay, uint& n, uint max, uint diverge, int type)
+{ 
+  switch (type)
+  {
+    case FRACTAL_JULIASET:
+    {
+      const std::complex<double> c(-0.4, 0.6);
+      std::complex<double> z(ax, ay);
+    
+      for (n = 0; n < max && abs(z) < diverge && !m_stop; n++)
+      {
+        z = z * z + c;
+      }
+    }
+    break;
+    
+    case FRACTAL_JULIASET_DRAGON:
+    {
+      const std::complex<double> c(-0.8, 0.156);
+      std::complex<double> z(ax, ay);
+    
+      for (n = 0; n < max && abs(z) < diverge && !m_stop; n++)
+      {
+        z = z * z + c;
+      }
+    }
+    break;
+    
+    case FRACTAL_JULIASET_GOLDEN:
+    {
+      const double phi = 1.6180339887498948482;
+      const std::complex<double> c(1 - phi, 0);
+      std::complex<double> z(ax, ay);
+    
+      for (n = 0; n < max && abs(z) < diverge && !m_stop; n++)
+      {
+        z = z * z + c;
+      }
+    }
+    break;
+    
+    case FRACTAL_JULIASET_MIS:
+    {
+      const std::complex<double> c(0, 1);
+      std::complex<double> z(ax, ay);
+    
+      for (n = 0; n < max && abs(z) < diverge && !m_stop; n++)
+      {
+        z = z * z + c;
+      }
+    }
+    break;
+    
+    case FRACTAL_MANDELBROTSET:
+    {
+      const std::complex<double> c(ax, ay);
+      std::complex<double> z;
+    
+      for (n = 0; n < max && abs(z) < diverge && !m_stop; n++)
+      {
+        z = z * z - c;
+      }
+    }
+    break;
+  }
+  
+  return !m_stop;
+}          
+
 void Thread::render(
   const QPointF& center, 
   double scale,
-  const QSize& size,
+  const QImage& image,
   uint first_pass,
   uint passes,
   const std::vector<uint> & colours,
-  const double diverge)
+  const double diverge,
+  int fractal)
 {
   QMutexLocker locker(&m_mutex);
 
   m_center = center;
   m_scale = scale;
-  m_size = size;
+  m_image = image;
   m_colours = colours;
   m_first_pass = first_pass;
   m_max_passes = passes;
   m_diverge = diverge;
+  m_fractal = fractal;
   
   if (isRunning())
   {
@@ -45,19 +116,18 @@ void Thread::run()
   forever 
   {
     m_mutex.lock();
-    const QSize size = m_size;
+    QImage image = m_image;
     const double scale = m_scale;
     const QPointF center = m_center;
     const uint first_pass = m_first_pass;
     const uint max_passes = m_max_passes;
     std::vector<uint> colours(m_colours);
     const double diverge = m_diverge;
+    const int type = m_fractal;
     m_mutex.unlock();
     
-    const QSize half = size / 2;
+    const QSize half = image.size() / 2;
     
-    QImage image(size, QImage::Format_RGB32);
-
     for (uint pass = first_pass; pass <= max_passes; pass++)
     {
       const uint maxIterations = 8 << pass;
@@ -74,17 +144,12 @@ void Thread::run()
         {
           const double ax = center.x() + (x * scale);
           
-          const std::complex<double> c(ax, ay);
-          std::complex<double> z;
-          
           uint n = 0;
-          
-          for (n = 0; n < maxIterations && abs(z) < diverge; n++)
-          {
-            if (m_stop)
-              return;
 
-            z = z * z - c;
+          if (!fractal(ax, ay, n, maxIterations, diverge, type))
+          {
+            emit renderedImage(image, scale);
+            return;
           }
 
           if (n < maxIterations) 

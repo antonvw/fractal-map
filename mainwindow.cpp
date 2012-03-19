@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget* parent)
   
   setCentralWidget(newFractalWidget(this));
   
-  setWindowTitle("Fractal Art");
+  setWindowTitle("Fractal Map");
   
   resize(550, 400);
 }
@@ -45,7 +45,9 @@ QWidget* MainWindow::newFractalWidget(QMainWindow* parent)
       m_fractal->diverge(),
       m_fractal->center(),
       m_fractal->pass(),
-      m_fractal->passes());
+      m_fractal->passes(),
+      m_fractal->pixmap().toImage(),
+      m_fractal->fractalType());
   }
   else
   {
@@ -66,6 +68,7 @@ QWidget* MainWindow::newFractalWidget(QMainWindow* parent)
   connect(newFractal, SIGNAL(clicked()), this, SLOT(newFractal()));
   connect(stop, SIGNAL(clicked()), this, SLOT(stop()));
   
+  tb->addWidget(m_fractal->getFractalType());
   tb->addWidget(m_fractal->getColours());
   tb->addWidget(m_fractal->getFirstPass());
   tb->addWidget(m_fractal->getPasses());

@@ -12,16 +12,20 @@ Fractal::Fractal(
   double diverge,
   const QPointF& center,
   uint first_pass,
-  uint passes)
+  uint passes,
+  const QImage& image,
+  int fractal_type)
   : QWidget(parent)
   , m_centerEdit(new QLineEdit())
   , m_coloursEdit(new QSpinBox())
   , m_divergeEdit(new QLineEdit())
   , m_first_passEdit(new QSpinBox())
+  , m_fractalEdit(new QComboBox())
   , m_passesEdit(new QSpinBox())
   , m_scaleEdit(new QLineEdit())
   , m_origin(0, 0)
   , m_center(center)
+  , m_fractalType(fractal_type)
   , m_diverge(diverge)
   , m_pixmapScale(scale)
   , m_scale(scale)
@@ -47,6 +51,13 @@ Fractal::Fractal(
   m_first_passEdit->setValue(m_first_pass);
   m_first_passEdit->setToolTip("first pass");
   
+  m_fractalEdit->addItem("mandelbrot set");
+  m_fractalEdit->addItem("julia set");
+  m_fractalEdit->addItem("julia set golden");
+  m_fractalEdit->addItem("julia set dragon");
+  m_fractalEdit->addItem("julia set mis");
+  m_fractalEdit->setToolTip("fractal to observe");
+  
   m_passesEdit->setMaximum(32);
   m_passesEdit->setMinimum(m_first_passEdit->value());
   m_passesEdit->setValue(m_passes);
@@ -68,6 +79,8 @@ Fractal::Fractal(
     this, SLOT(editedDiverge(const QString&)));
   connect(m_first_passEdit, SIGNAL(valueChanged(int)),
     this, SLOT(editedFirstPass(int)));
+  connect(m_fractalEdit, SIGNAL(currentIndexChanged(int)),
+    this, SLOT(editedFractal(int)));
   connect(m_passesEdit, SIGNAL(valueChanged(int)),
     this, SLOT(editedPasses(int)));
   connect(m_scaleEdit, SIGNAL(textEdited(const QString&)),
@@ -76,6 +89,12 @@ Fractal::Fractal(
   setColours(colours);
   setCursor(Qt::CrossCursor);
   setFocusPolicy(Qt::StrongFocus);
+ 
+  if (!image.isNull())
+  { 
+    m_pixmap = QPixmap::fromImage(image);
+    update();
+  }
 }
 
 void Fractal::editedCenter(const QString& text)
@@ -87,9 +106,8 @@ void Fractal::editedCenter(const QString& text)
     m_center = QPointF(
       sl[0].toDouble(),
       sl[1].toDouble());
-    
-    update();
-    m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
+      
+    render();
   }
 }
 
@@ -98,8 +116,7 @@ void Fractal::editedColours(int value)
   if (value > 0)
   {
     setColours(value);
-    update();
-    m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
+    render();
   }
 }
 
@@ -111,8 +128,7 @@ void Fractal::editedDiverge(const QString& text)
   }
   
   m_diverge = text.toDouble();
-  update();
-  m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
+  render();
 }
 
 void Fractal::editedFirstPass(int value)
@@ -122,8 +138,16 @@ void Fractal::editedFirstPass(int value)
     m_passesEdit->setMinimum(value);
     
     m_first_pass = value;
-    update();
-    m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
+    render();
+  }
+}
+
+void Fractal::editedFractal(int index)
+{
+  if (index >= 0)
+  {
+    m_fractalType = index;
+    render();
   }
 }
 
@@ -132,8 +156,7 @@ void Fractal::editedPasses(int value)
   if (value > 0)
   {
     m_passes = value;
-    update();
-    m_thread.render(m_center, m_scale, size(), m_pass, m_passes, m_colours, m_diverge);
+    render();
   }
 }
 
@@ -145,8 +168,7 @@ void Fractal::editedScale(const QString& text)
   }
   
   m_scale = text.toDouble();
-  update();
-  m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
+  render();
 }
 
 void Fractal::keyPressEvent(QKeyEvent *event)
@@ -255,9 +277,24 @@ void Fractal::paintEvent(QPaintEvent * /* event */)
   painter.drawLine(l2);
 }
 
+void Fractal::render()
+{
+  update();
+  
+  m_thread.render(
+    m_center, 
+    m_scale, 
+    QImage(size(), QImage::Format_RGB32), 
+    m_first_pass, 
+    m_passes, 
+    m_colours, 
+    m_diverge,
+    m_fractalType);
+}
+
 void Fractal::resizeEvent(QResizeEvent * /* event */)
 {
-  m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
+  render();
 }
 
 uint Fractal::rgbFromWaveLength(double wave)
@@ -318,15 +355,14 @@ void Fractal::scroll(const QPoint& delta)
   m_centerEdit->setText(
     QString::number(m_center.x()) + "," + QString::number(m_center.y()));
   
-  update();
-  m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
+  render();
 }
 
 void Fractal::setColours(uint colours)
 {
   m_colours.clear();
 
-  for (uint i = 0; i < colours; ++i)
+  for (uint i = 0; i < colours - 1; ++i)
   {
     m_colours.push_back(rgbFromWaveLength(380.0 + (i * 400.0 / colours)));
   }
@@ -348,15 +384,28 @@ void Fractal::updatePass(uint pass, uint maxPasses, uint iterations)
 {
   m_pass = pass;
   
-  m_mainWindow->statusBar()->showMessage(QString("pass: %1 of %2 using %3 iterations")
+  m_mainWindow->statusBar()->showMessage(QString("pass %1 of %2 (%3 iterations) ...")
     .arg(pass).arg(maxPasses).arg(iterations));
 }
 
 void Fractal::updatePixmap(const QImage &image, double scale)
 {
+  if (image.isNull())
+  {
+    return;
+  }
+  
   m_updates++;
   
-  m_mainWindow->statusBar()->showMessage(QString("completed: %1").arg(m_updates));  
+  if (!m_thread.isRunning())
+  {
+    m_mainWindow->statusBar()->showMessage(QString("stopped afer: %1 updates").arg(m_updates));  
+  }
+  else
+  {
+    m_mainWindow->statusBar()->showMessage(QString("completed %1 updates").arg(m_updates));  
+  }
+  
   if (!m_lastDragPos.isNull())
     return;
 
@@ -380,7 +429,6 @@ void Fractal::zoom(double zoomFactor)
   m_scale *= zoomFactor;
   m_center *= zoomFactor;
   m_scaleEdit->setText(QString::number(m_scale));
-
-  update();
-  m_thread.render(m_center, m_scale, size(), m_first_pass, m_passes, m_colours, m_diverge);
+  
+  render();
 }

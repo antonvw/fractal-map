@@ -6,6 +6,7 @@
 #include <QSpinBox>
 #include <QPointF>
 #include <QWidget>
+#include <QComboBox>
 #include <QMainWindow>
 #include "thread.h"
 
@@ -32,13 +33,18 @@ public:
     // first pass
     uint first_pass,
     // number of passes
-    uint passes);
+    uint passes,
+    // image to start with
+    const QImage& image = QImage(),
+    // which kind of fractal
+    int fractal_type = FRACTAL_MANDELBROTSET);
     
   // Access to controls.
   QLineEdit* getCenter() {return m_centerEdit;};
   QSpinBox* getColours() {return m_coloursEdit;};
   QLineEdit* getDiverge() {return m_divergeEdit;};
   QSpinBox* getFirstPass() {return m_first_passEdit;};
+  QComboBox* getFractalType() {return m_fractalEdit;};
   QSpinBox* getPasses() {return m_passesEdit;};
   QLineEdit* getScale(){ return m_scaleEdit;};
   
@@ -47,9 +53,11 @@ public:
   uint colours() const {return m_colours.size();}
   double diverge() const {return m_diverge;};
   uint firstPass() const {return m_first_pass;}
+  int fractalType() const {return m_fractalType;};
   uint pass() const {return m_pass;}
   uint passes() const {return m_passes;}
   double scale() const {return m_scale;};
+  const QPixmap& pixmap() const {return m_pixmap;};
   
   // Starts rendering.
   void start();
@@ -69,12 +77,14 @@ private slots:
   void editedColours(int value);
   void editedDiverge(const QString& text);
   void editedFirstPass(int value);
+  void editedFractal(int index);
   void editedPasses(int value);
   void editedScale(const QString& text);
   void updatePass(uint pass, uint numberOfPasses, uint iterations);
   void updatePixmap(const QImage &image, double scale);
   void zoom(double zoomFactor);
 private:
+  void render();
   uint rgbFromWaveLength(double wave);
   void scroll(const QPoint& delta);
   void setColours(uint colours);
@@ -85,6 +95,7 @@ private:
   QSpinBox* m_coloursEdit;
   QLineEdit* m_divergeEdit;
   QSpinBox* m_first_passEdit;
+  QComboBox* m_fractalEdit;
   QSpinBox* m_passesEdit;
   QLineEdit* m_scaleEdit;
   
@@ -96,6 +107,8 @@ private:
   QPointF m_center;
   
   std::vector<uint> m_colours;
+  
+  int m_fractalType;
   
   double m_diverge;
   double m_pixmapScale;
