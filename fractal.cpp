@@ -399,7 +399,7 @@ void Fractal::updatePixmap(const QImage &image, double scale)
   
   if (!m_thread.isRunning())
   {
-    m_mainWindow->statusBar()->showMessage(QString("stopped afer: %1 updates").arg(m_updates));  
+    m_mainWindow->statusBar()->showMessage(QString("stopped afer %1 updates").arg(m_updates));  
   }
   else
   {

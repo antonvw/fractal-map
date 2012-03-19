@@ -116,6 +116,13 @@ void Thread::run()
   forever 
   {
     m_mutex.lock();
+    
+    if (m_stop)
+    {
+      m_mutex.unlock();
+      return;
+    }
+    
     QImage image = m_image;
     const double scale = m_scale;
     const QPointF center = m_center;
