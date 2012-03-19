@@ -56,6 +56,7 @@ Fractal::Fractal(
   m_fractalEdit->addItem("julia set golden");
   m_fractalEdit->addItem("julia set dragon");
   m_fractalEdit->addItem("julia set mis");
+  m_fractalEdit->setCurrentIndex(m_fractalType);
   m_fractalEdit->setToolTip("fractal to observe");
   
   m_passesEdit->setMaximum(32);
