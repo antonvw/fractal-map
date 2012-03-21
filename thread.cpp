@@ -43,9 +43,14 @@ bool Thread::fractal(double ax, double ay, uint& n, uint max, uint diverge, int 
       const std::complex<double> c(-0.4, 0.6);
       std::complex<double> z(ax, ay);
     
-      for (n = 0; n < max && abs(z) < diverge && !m_stop; n++)
+      for (n = 0; n < max && !m_stop; n++)
       {
         z = z * z + c;
+        
+        if (abs(z) > diverge)
+        {
+          break;
+        }
       }
     }
     break;
@@ -55,9 +60,14 @@ bool Thread::fractal(double ax, double ay, uint& n, uint max, uint diverge, int 
       const std::complex<double> c(-0.8, 0.156);
       std::complex<double> z(ax, ay);
     
-      for (n = 0; n < max && abs(z) < diverge && !m_stop; n++)
+      for (n = 0; n < max && !m_stop; n++)
       {
         z = z * z + c;
+        
+        if (abs(z) > diverge)
+        {
+          break;
+        }
       }
     }
     break;
@@ -68,9 +78,14 @@ bool Thread::fractal(double ax, double ay, uint& n, uint max, uint diverge, int 
       const std::complex<double> c(1 - phi, 0);
       std::complex<double> z(ax, ay);
     
-      for (n = 0; n < max && abs(z) < diverge && !m_stop; n++)
+      for (n = 0; n < max && !m_stop; n++)
       {
         z = z * z + c;
+        
+        if (abs(z) > diverge)
+        {
+          break;
+        }
       }
     }
     break;
@@ -80,9 +95,14 @@ bool Thread::fractal(double ax, double ay, uint& n, uint max, uint diverge, int 
       const std::complex<double> c(0, 1);
       std::complex<double> z(ax, ay);
     
-      for (n = 0; n < max && abs(z) < diverge && !m_stop; n++)
+      for (n = 0; n < max && !m_stop; n++)
       {
         z = z * z + c;
+        
+        if (abs(z) > diverge)
+        {
+          break;
+        }
       }
     }
     break;
@@ -92,9 +112,14 @@ bool Thread::fractal(double ax, double ay, uint& n, uint max, uint diverge, int 
       const std::complex<double> c(ax, ay);
       std::complex<double> z;
     
-      for (n = 0; n < max && abs(z) < diverge && !m_stop; n++)
+      for (n = 0; n < max && !m_stop; n++)
       {
         z = z * z - c;
+        
+        if (abs(z) > diverge)
+        {
+          break;
+        }
       }
     }
     break;
@@ -172,9 +197,9 @@ void Thread::run()
     
     for (uint pass = first_pass; pass <= max_passes; pass++)
     {
-      const uint maxIterations = 8 << pass;
+      const uint max_iterations = 8 << pass;
       
-      emit renderingImage(pass, max_passes, maxIterations);
+      emit renderingImage(pass, max_passes, max_iterations);
       
       bool converge = true;
 
@@ -188,13 +213,13 @@ void Thread::run()
           
           uint n = 0;
 
-          if (!fractal(ax, ay, n, maxIterations, diverge, type))
+          if (!fractal(ax, ay, n, max_iterations, diverge, type))
           {
             emit renderedImage(image, scale);
             return;
           }
 
-          if (n < maxIterations) 
+          if (n < max_iterations) 
           {
             converge = false;
           } 
@@ -202,7 +227,7 @@ void Thread::run()
           image.setPixel(
             x + half.width(), 
             y + half.height(),
-           (n < maxIterations ? colours[n % colours.size()]: colours.back()));
+           (n < max_iterations ? colours[n % colours.size()]: colours.back()));
         }
       }
 

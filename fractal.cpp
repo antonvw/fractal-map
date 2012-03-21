@@ -17,6 +17,8 @@ Fractal::Fractal(
   , m_axesEdit(new QCheckBox("Axes"))
   , m_centerEdit(new QLineEdit())
   , m_coloursEdit(new QSpinBox())
+  , m_coloursMinWaveEdit(new QSpinBox())
+  , m_coloursMaxWaveEdit(new QSpinBox())
   , m_divergeEdit(new QLineEdit())
   , m_first_passEdit(new QSpinBox())
   , m_fractalEdit(new QComboBox())
@@ -44,6 +46,8 @@ Fractal::Fractal(QStatusBar* statusbar, const Fractal& fractal)
   , m_axesEdit(new QCheckBox())
   , m_centerEdit(new QLineEdit())
   , m_coloursEdit(new QSpinBox())
+  , m_coloursMinWaveEdit(new QSpinBox())
+  , m_coloursMaxWaveEdit(new QSpinBox())
   , m_divergeEdit(new QLineEdit())
   , m_first_passEdit(new QSpinBox())
   , m_fractalEdit(new QComboBox())
@@ -96,6 +100,8 @@ void Fractal::addControls(QToolBar* toolbar)
 {
   toolbar->addWidget(m_fractalEdit);
   toolbar->addWidget(m_coloursEdit);
+  toolbar->addWidget(m_coloursMinWaveEdit);
+  toolbar->addWidget(m_coloursMaxWaveEdit);
   toolbar->addWidget(m_first_passEdit);
   toolbar->addWidget(m_passesEdit);
   toolbar->addWidget(m_centerEdit);
@@ -117,6 +123,14 @@ void Fractal::init()
   m_coloursEdit->setMaximum(8192);
   m_coloursEdit->setValue(m_colours.size());
   m_coloursEdit->setToolTip("colours");
+  
+  m_coloursMinWaveEdit->setMaximum(380);
+  m_coloursMinWaveEdit->setValue(m_colours.size());
+  m_coloursMinWaveEdit->setToolTip("colours");
+  
+  m_coloursMaxWaveEdit->setMaximum(780);
+  m_coloursMaxWaveEdit->setValue(m_colours.size());
+  m_coloursMaxWaveEdit->setToolTip("colours");
   
   m_divergeEdit->setText(QString::number(m_diverge));
   m_divergeEdit->setValidator(new QDoubleValidator());
@@ -340,7 +354,7 @@ void Fractal::setColours(uint colours)
 {
   m_colours.clear();
   
-  const double visible_min = 380;
+  const double visible_min = 580;
   const double visible_max = 780;
 
   for (uint i = 0; i < colours - 1; ++i)

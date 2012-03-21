@@ -95,6 +95,8 @@ private:
   QSpinBox* m_first_passEdit;
   QComboBox* m_fractalEdit;
   QSpinBox* m_passesEdit;
+  QSpinBox* m_coloursMinWaveEdit;
+  QSpinBox* m_coloursMaxWaveEdit;
   QLineEdit* m_scaleEdit;
   
   QPixmap m_pixmap;
