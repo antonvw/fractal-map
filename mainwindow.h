@@ -12,14 +12,14 @@ class MainWindow : public QMainWindow
 
 public:
   // Constructor.
-  MainWindow(QWidget *parent = 0);
+  MainWindow(Fractal* fractal = NULL, QWidget *parent = 0);
 private slots:
   void about();
+  void colours();
+  void copy();
   void newFractal();
   void stop();
 private:
-  QWidget* newFractalWidget(QMainWindow* parent);
-  
   Fractal* m_fractal;
 };
 #endif

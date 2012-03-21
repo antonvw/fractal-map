@@ -6,6 +6,7 @@ TEMPLATE = app
 TARGET = 
 DEPENDPATH += .
 INCLUDEPATH += .
+RC_FILE = fractal.rc
 
 # Input
 HEADERS += fractal.h mainwindow.h thread.h

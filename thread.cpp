@@ -2,11 +2,31 @@
 #include <math.h>
 #include "thread.h"
 
+enum
+{
+  FRACTAL_MANDELBROTSET = 0,
+  FRACTAL_JULIASET,
+  FRACTAL_JULIASET_GOLDEN,
+  FRACTAL_JULIASET_DRAGON,
+  FRACTAL_JULIASET_MIS,
+};
+
+std::vector<QString> Thread::m_fractals;
+
 Thread::Thread(QObject *parent)
   : QThread(parent)
   , m_restart(false)
   , m_stop(false)
+  , m_fractal(FRACTAL_MANDELBROTSET)
 {
+  if (m_fractals.empty())
+  {
+    m_fractals.push_back("mandelbrot set");
+    m_fractals.push_back("julia set");
+    m_fractals.push_back("julia set golden");
+    m_fractals.push_back("julia set dragon");
+    m_fractals.push_back("julia set mis");
+  }
 }
 
 Thread::~Thread()
@@ -84,17 +104,33 @@ bool Thread::fractal(double ax, double ay, uint& n, uint max, uint diverge, int 
 }          
 
 void Thread::render(
+  const QString& fractal,
   const QPointF& center, 
   double scale,
   const QImage& image,
   uint first_pass,
   uint passes,
   const std::vector<uint> & colours,
-  const double diverge,
-  int fractal)
+  const double diverge)
 {
   QMutexLocker locker(&m_mutex);
 
+  bool found = false;
+  
+  for (uint i = 0; i < m_fractals.size() && !found; i++)
+  {
+    if (m_fractals[i] == fractal)
+    {
+      m_fractal = i;
+      found = true;
+    }
+  }
+  
+  if (!found)
+  {
+    return;
+  }
+  
   m_center = center;
   m_scale = scale;
   m_image = image;
@@ -102,7 +138,6 @@ void Thread::render(
   m_first_pass = first_pass;
   m_max_passes = passes;
   m_diverge = diverge;
-  m_fractal = fractal;
   
   if (isRunning())
   {
@@ -164,8 +199,10 @@ void Thread::run()
             converge = false;
           } 
           
-          image.setPixel(x + half.width(), y + half.height(),
-            (n < maxIterations ? colours[n % colours.size()]: colours.back()));
+          image.setPixel(
+            x + half.width(), 
+            y + half.height(),
+           (n < maxIterations ? colours[n % colours.size()]: colours.back()));
         }
       }
 

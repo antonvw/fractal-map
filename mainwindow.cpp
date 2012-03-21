@@ -3,58 +3,18 @@
 #include "mainwindow.h"
 #include "fractal.h"
 
-const QString title("Fractal Map");
-
-MainWindow::MainWindow(QWidget* parent)
+MainWindow::MainWindow(Fractal* fractal, QWidget* parent)
   : QMainWindow(parent)
-  , m_fractal(NULL)
 {
-  qRegisterMetaType<QImage>("QImage");
-  
-  setCentralWidget(newFractalWidget(this));
-  setWindowTitle(title);
-  resize(550, 400);
-}
-
-void MainWindow::about()
-{
-  QMessageBox::about(this, 
-    "About " + title,
-    "This application shows a fractal map.");
-}
-
-void MainWindow::newFractal()
-{
-  QMainWindow* m = new QMainWindow();
-  m->show();
-  m->setCentralWidget(newFractalWidget(m));
-  m->setWindowTitle(title);
-  m->resize(550, 400);
-}
-
-QWidget* MainWindow::newFractalWidget(QMainWindow* parent)
-{
-  QToolBar* tb = parent->addToolBar("Control");
-
-  if (m_fractal != NULL)
+  if (fractal != NULL)
   {
-    m_fractal = new Fractal(
-      parent,
-      parent,
-      m_fractal->scale(),
-      m_fractal->colours(),
-      m_fractal->diverge(),
-      m_fractal->center(),
-      m_fractal->pass(),
-      m_fractal->passes(),
-      m_fractal->pixmap().toImage(),
-      m_fractal->fractalType());
+    m_fractal = new Fractal(statusBar(), *fractal);
   }
   else
   {
     m_fractal = new Fractal(
-      parent,
-      parent,
+      statusBar(),
+      this,
       0.004,
       1024,
       2.0,
@@ -63,25 +23,58 @@ QWidget* MainWindow::newFractalWidget(QMainWindow* parent)
       8);
   }
     
-  QPushButton* newFractal = new QPushButton("new");
-  QPushButton* stop = new QPushButton("stop");
-    
-  connect(newFractal, SIGNAL(clicked()), this, SLOT(newFractal()));
-  connect(stop, SIGNAL(clicked()), this, SLOT(stop()));
+  qRegisterMetaType<QImage>("QImage");
   
-  tb->addWidget(m_fractal->getFractalType());
-  tb->addWidget(m_fractal->getColours());
-  tb->addWidget(m_fractal->getFirstPass());
-  tb->addWidget(m_fractal->getPasses());
-  tb->addWidget(m_fractal->getCenter());
-  tb->addWidget(m_fractal->getScale());
-  tb->addWidget(m_fractal->getDiverge());
-  tb->addWidget(stop);
-  tb->addWidget(newFractal);
+  QPushButton* menuButton = new QPushButton();
+  
+  QMenu *menu = new QMenu(this);
+  QAction* about = menu->addAction("About");
+  QAction* colours = menu->addAction("Colours...");
+  QAction* copy = menu->addAction("Copy");
+  QAction* newFractal = menu->addAction("New");
+  QAction* stop = menu->addAction("Stop");
+  menuButton->setMenu(menu);
+  
+  connect(about, SIGNAL(triggered()), this, SLOT(about()));    
+  connect(colours, SIGNAL(triggered()), this, SLOT(colours()));
+  connect(copy, SIGNAL(triggered()), this, SLOT(copy()));
+  connect(newFractal, SIGNAL(triggered()), this, SLOT(newFractal()));
+  connect(stop, SIGNAL(triggered()), this, SLOT(stop()));
+  connect(menu, SIGNAL(clicked()), this, SLOT(menu()));
+  
+  QToolBar* tb = addToolBar("Control");
+  m_fractal->addControls(tb);
+  tb->addWidget(menuButton);
   
   m_fractal->start();
+  
+  setCentralWidget(m_fractal);
+  setWindowTitle("Fractal Map");
+  
+  resize(550, 400);
+}
 
-  return m_fractal;
+void MainWindow::about()
+{
+  QMessageBox::about(this, 
+    "About " + windowTitle(),
+    "This application shows a fractal map.");
+}
+
+void MainWindow::colours()
+{
+  m_fractal->setColours();
+}
+
+void MainWindow::copy()
+{
+  QApplication::clipboard()->setImage(m_fractal->pixmap().toImage());
+}
+
+void MainWindow::newFractal()
+{
+  MainWindow* m = new MainWindow(m_fractal);
+  m->show();
 }
 
 void MainWindow::stop()

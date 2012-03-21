@@ -5,17 +5,16 @@
 const double zoomIn = 0.8;
 
 Fractal::Fractal(
-  QMainWindow* mainwindow,
+  QStatusBar* statusbar,
   QWidget* parent,
   double scale,
   uint colours,
   double diverge,
   const QPointF& center,
   uint first_pass,
-  uint passes,
-  const QImage& image,
-  int fractal_type)
+  uint passes)
   : QWidget(parent)
+  , m_axesEdit(new QCheckBox("Axes"))
   , m_centerEdit(new QLineEdit())
   , m_coloursEdit(new QSpinBox())
   , m_divergeEdit(new QLineEdit())
@@ -25,7 +24,7 @@ Fractal::Fractal(
   , m_scaleEdit(new QLineEdit())
   , m_origin(0, 0)
   , m_center(center)
-  , m_fractalType(fractal_type)
+  , m_fractalType(Thread::fractals().front())
   , m_diverge(diverge)
   , m_pixmapScale(scale)
   , m_scale(scale)
@@ -33,30 +32,113 @@ Fractal::Fractal(
   , m_pass(first_pass)
   , m_passes(passes)
   , m_updates(0)
-  , m_mainWindow(mainwindow)
+  , m_statusbar(statusbar)
 {
+  setMaxColours(colours);
+  
+  init();
+}
+
+Fractal::Fractal(QStatusBar* statusbar, const Fractal& fractal)
+  : QWidget(fractal.parentWidget())
+  , m_axesEdit(new QCheckBox())
+  , m_centerEdit(new QLineEdit())
+  , m_coloursEdit(new QSpinBox())
+  , m_divergeEdit(new QLineEdit())
+  , m_first_passEdit(new QSpinBox())
+  , m_fractalEdit(new QComboBox())
+  , m_passesEdit(new QSpinBox())
+  , m_scaleEdit(new QLineEdit())
+  , m_origin(fractal.m_origin)
+  , m_center(fractal.m_center)
+  , m_colours(fractal.m_colours)
+  , m_fractalType(fractal.m_fractalType)
+  , m_diverge(fractal.m_diverge)
+  , m_pixmapScale(fractal.m_scale)
+  , m_scale(fractal.m_scale)
+  , m_first_pass(fractal.m_first_pass)
+  , m_pass(fractal.m_first_pass)
+  , m_passes(fractal.m_passes)
+  , m_updates(fractal.m_updates)
+  , m_statusbar(statusbar)
+{
+  init();
+  
+  const QImage image(fractal.m_pixmap.toImage());
+  
+  if (!image.isNull())
+  { 
+    m_pixmap = QPixmap::fromImage(image);
+    update();
+  }
+}
+
+void Fractal::addAxes(QPainter& painter)
+{
+  if (!m_axesEdit->isChecked())
+  {
+    return;
+  }
+  
+  const QPoint y1 = QPoint(m_origin.x() + m_pixmap.width() / 2, 0);
+  const QPoint y2 = QPoint(m_origin.x() + m_pixmap.width() / 2, m_pixmap.height());
+  const QPoint x1 = QPoint(0, m_origin.y() + m_pixmap.height() / 2);
+  const QPoint x2 = QPoint(m_pixmap.width(), m_origin.y() + m_pixmap.height() / 2);
+  const QLine l1(y1, y2);
+  const QLine l2(x1, x2);
+  
+  painter.setPen("grey");
+  painter.drawLine(l1);
+  painter.drawLine(l2);
+}
+
+void Fractal::addControls(QToolBar* toolbar)
+{
+  toolbar->addWidget(m_fractalEdit);
+  toolbar->addWidget(m_coloursEdit);
+  toolbar->addWidget(m_first_passEdit);
+  toolbar->addWidget(m_passesEdit);
+  toolbar->addWidget(m_centerEdit);
+  toolbar->addWidget(m_scaleEdit);
+  toolbar->addWidget(m_divergeEdit);
+  toolbar->addSeparator();
+  toolbar->addWidget(m_axesEdit);
+}
+
+void Fractal::init()
+{
+  m_axesEdit->setChecked(false);
+  m_axesEdit->setToolTip("toggle axes");
+  
   m_centerEdit->setText(
     QString::number(m_center.x()) + "," + QString::number(m_center.y()));
   m_centerEdit->setToolTip("center x,y");
   
   m_coloursEdit->setMaximum(8192);
-  m_coloursEdit->setValue(colours);
+  m_coloursEdit->setValue(m_colours.size());
   m_coloursEdit->setToolTip("colours");
   
   m_divergeEdit->setText(QString::number(m_diverge));
+  m_divergeEdit->setValidator(new QDoubleValidator());
   m_divergeEdit->setToolTip("diverge");
 
   m_first_passEdit->setMaximum(32);
   m_first_passEdit->setMinimum(1);
   m_first_passEdit->setValue(m_first_pass);
   m_first_passEdit->setToolTip("first pass");
+
+  for (uint i = 0; i < Thread::fractals().size(); i++)
+  {
+    m_fractalEdit->addItem(Thread::fractals()[i]);
+  }  
   
-  m_fractalEdit->addItem("mandelbrot set");
-  m_fractalEdit->addItem("julia set");
-  m_fractalEdit->addItem("julia set golden");
-  m_fractalEdit->addItem("julia set dragon");
-  m_fractalEdit->addItem("julia set mis");
-  m_fractalEdit->setCurrentIndex(m_fractalType);
+  const int index = m_fractalEdit->findText(m_fractalType);
+  
+  if (index != -1)
+  {
+    m_fractalEdit->setCurrentIndex(index);
+  }
+  
   m_fractalEdit->setToolTip("fractal to observe");
   
   m_passesEdit->setMaximum(32);
@@ -65,6 +147,7 @@ Fractal::Fractal(
   m_passesEdit->setToolTip("passes");
   
   m_scaleEdit->setText(QString::number(m_scale));
+  m_scaleEdit->setValidator(new QDoubleValidator());
   m_scaleEdit->setToolTip("scale");
 
   connect(&m_thread, SIGNAL(renderedImage(QImage,double)),
@@ -72,111 +155,30 @@ Fractal::Fractal(
   connect(&m_thread, SIGNAL(renderingImage(uint,uint,uint)),
     this, SLOT(updatePass(uint,uint,uint)));
     
+  connect(m_axesEdit, SIGNAL(stateChaged(bool)),
+    this, SLOT(setAxes(bool)));
   connect(m_centerEdit, SIGNAL(textEdited(const QString&)),
-    this, SLOT(editedCenter(const QString&)));
+    this, SLOT(setCenter(const QString&)));
   connect(m_coloursEdit, SIGNAL(valueChanged(int)),
-    this, SLOT(editedColours(int)));
+    this, SLOT(setMaxColours(int)));
   connect(m_divergeEdit, SIGNAL(textEdited(const QString&)),
-    this, SLOT(editedDiverge(const QString&)));
+    this, SLOT(setDiverge(const QString&)));
   connect(m_first_passEdit, SIGNAL(valueChanged(int)),
-    this, SLOT(editedFirstPass(int)));
-  connect(m_fractalEdit, SIGNAL(currentIndexChanged(int)),
-    this, SLOT(editedFractal(int)));
+    this, SLOT(setFirstPass(int)));
+  connect(m_fractalEdit, SIGNAL(currentIndexChanged(const QString&)),
+    this, SLOT(setFractal(const QString&)));
   connect(m_passesEdit, SIGNAL(valueChanged(int)),
-    this, SLOT(editedPasses(int)));
+    this, SLOT(setPasses(int)));
   connect(m_scaleEdit, SIGNAL(textEdited(const QString&)),
-    this, SLOT(editedScale(const QString&)));
+    this, SLOT(setScale(const QString&)));
 
-  setColours(colours);
   setCursor(Qt::CrossCursor);
   setFocusPolicy(Qt::StrongFocus);
- 
-  if (!image.isNull())
-  { 
-    m_pixmap = QPixmap::fromImage(image);
-    update();
-  }
-}
-
-void Fractal::editedCenter(const QString& text)
-{
-  QStringList sl(text.split(","));
-  
-  if (sl.size() == 2)
-  {
-    m_center = QPointF(
-      sl[0].toDouble(),
-      sl[1].toDouble());
-      
-    render();
-  }
-}
-
-void Fractal::editedColours(int value)
-{
-  if (value > 0)
-  {
-    setColours(value);
-    render(m_pass);
-  }
-}
-
-void Fractal::editedDiverge(const QString& text)
-{
-  if (text.isEmpty())
-  {
-    return;
-  }
-  
-  m_diverge = text.toDouble();
-  render();
-}
-
-void Fractal::editedFirstPass(int value)
-{
-  if (value > 0)
-  {
-    m_passesEdit->setMinimum(value);
-    
-    m_first_pass = value;
-    render();
-  }
-}
-
-void Fractal::editedFractal(int index)
-{
-  if (index >= 0)
-  {
-    m_fractalType = index;
-    m_pass = 0;
-    
-    render();
-  }
-}
-
-void Fractal::editedPasses(int value)
-{
-  if (value > 0)
-  {
-    m_passes = value;
-    render(m_pass);
-  }
-}
-
-void Fractal::editedScale(const QString& text)
-{
-  if (text.isEmpty())
-  {
-    return;
-  }
-  
-  m_scale = text.toDouble();
-  render(m_pass);
 }
 
 void Fractal::keyPressEvent(QKeyEvent *event)
 {
-  m_mainWindow->statusBar()->showMessage(QString("key: %1").arg((int)event->key()));
+  m_statusbar->showMessage(QString("key: %1").arg((int)event->key()));
   
   const int scrollStep = 20;
   
@@ -244,40 +246,25 @@ void Fractal::paintEvent(QPaintEvent * /* event */)
   }
 
   QPainter painter(this);
-  painter.fillRect(rect(), Qt::black);
 
   if (m_scale == m_pixmapScale) 
   {
     painter.drawPixmap(m_pixmapOffset, m_pixmap);
+    addAxes(painter);
   } 
   else 
   {
     const double scaleFactor = m_pixmapScale / m_scale;
     
-    int newWidth = int(m_pixmap.width() * scaleFactor);
-    int newHeight = int(m_pixmap.height() * scaleFactor);
-    
-    QPoint point(
-      m_pixmapOffset.x() + (m_pixmap.width() - newWidth) / 2, 
-      m_pixmapOffset.y() + (m_pixmap.height() - newHeight) / 2);
-
     painter.save();
-    painter.translate(point);
+    painter.translate(m_pixmapOffset);
     painter.scale(scaleFactor, scaleFactor);
+    painter.translate(-m_pixmapOffset);
+    painter.restore();
     QRectF exposed = painter.matrix().inverted().mapRect(rect()).adjusted(-1, -1, 1, 1);
     painter.drawPixmap(exposed, m_pixmap, exposed);
-    painter.restore();
+    addAxes(painter);
   }
-  
-  const QPoint y1 = QPoint(m_origin.x() + m_pixmap.width() / 2, 0);
-  const QPoint y2 = QPoint(m_origin.x() + m_pixmap.width() / 2, m_pixmap.height());
-  const QPoint x1 = QPoint(0, m_origin.y() + m_pixmap.height() / 2);
-  const QPoint x2 = QPoint(m_pixmap.width(), m_origin.y() + m_pixmap.height() / 2);
-  const QLine l1(y1, y2);
-  const QLine l2(x1, x2);
-  painter.setPen("grey");
-  painter.drawLine(l1);
-  painter.drawLine(l2);
 }
 
 void Fractal::render(int start_at)
@@ -285,14 +272,14 @@ void Fractal::render(int start_at)
   update();
   
   m_thread.render(
+    m_fractalType,
     m_center, 
     m_scale, 
     QImage(size(), QImage::Format_RGB32), 
     (start_at > 0 ? start_at: m_first_pass), 
     m_passes, 
     m_colours, 
-    m_diverge,
-    m_fractalType);
+    m_diverge);
 }
 
 void Fractal::resizeEvent(QResizeEvent * /* event */)
@@ -300,77 +287,135 @@ void Fractal::resizeEvent(QResizeEvent * /* event */)
   render();
 }
 
-uint Fractal::rgbFromWaveLength(double wave)
-{
-  double r = 0.0;
-  double g = 0.0;
-  double b = 0.0;
-
-  if (wave >= 380.0 && wave <= 440.0) 
-  {
-    r = -1.0 * (wave - 440.0) / (440.0 - 380.0);
-    b = 1.0;
-  } 
-  else if (wave >= 440.0 && wave <= 490.0) 
-  {
-    g = (wave - 440.0) / (490.0 - 440.0);
-    b = 1.0;
-  } 
-  else if (wave >= 490.0 && wave <= 510.0) 
-  {
-    g = 1.0;
-    b = -1.0 * (wave - 510.0) / (510.0 - 490.0);
-  } 
-  else if (wave >= 510.0 && wave <= 580.0) 
-  {
-    r = (wave - 510.0) / (580.0 - 510.0);
-    g = 1.0;
-  } 
-  else if (wave >= 580.0 && wave <= 645.0) 
-  {
-    r = 1.0;
-    g = -1.0 * (wave - 645.0) / (645.0 - 580.0);
-  } 
-  else if (wave >= 645.0 && wave <= 780.0) 
-  {
-    r = 1.0;
-  }
-
-  double s = 1.0;
-  
-  if (wave > 700.0)
-    s = 0.3 + 0.7 * (780.0 - wave) / (780.0 - 700.0);
-  else if (wave <  420.0)
-    s = 0.3 + 0.7 * (wave - 380.0) / (420.0 - 380.0);
-
-  r = pow(r * s, 0.8);
-  g = pow(g * s, 0.8);
-  b = pow(b * s, 0.8);
-  
-  return qRgb(int(r * 255), int(g * 255), int(b * 255));
-}
-
 void Fractal::scroll(const QPoint& delta)
 {
   m_center -= QPointF(delta) * m_scale;
   m_origin += delta;
-  
   m_centerEdit->setText(
     QString::number(m_center.x()) + "," + QString::number(m_center.y()));
   
   render();
 }
 
+void Fractal::setAxes(bool state)
+{
+  render();
+}
+
+void Fractal::setCenter(const QString& text)
+{
+  const QStringList sl(text.split(","));
+  
+  if (sl.size() == 2)
+  {
+    m_center = QPointF(
+      sl[0].toDouble(),
+      sl[1].toDouble());
+      
+    render();
+  }
+}
+
+void Fractal::setColours()
+{
+  for (uint i = 0; i < m_colours.size(); ++i)
+  {
+    const QColor c = QColorDialog::getColor(
+      m_colours[i], 
+      this,
+      QString("Select Colour %1 of %2").arg(i + 1).arg(m_colours.size()));
+      
+    if (!c.isValid())
+    {
+      break;
+    }
+    else
+    {
+      m_colours[i] = c.rgb();
+    }
+  }
+}
+  
 void Fractal::setColours(uint colours)
 {
   m_colours.clear();
+  
+  const double visible_min = 380;
+  const double visible_max = 780;
 
   for (uint i = 0; i < colours - 1; ++i)
   {
-    m_colours.push_back(rgbFromWaveLength(380.0 + (i * 400.0 / colours)));
+    m_colours.push_back(wav2RGB(visible_min + (i * (visible_max - visible_min) / colours)));
   }
   
   m_colours.push_back(qRgb(0, 0, 0));
+}
+
+void Fractal::setDiverge(const QString& text)
+{
+  if (text.isEmpty())
+  {
+    return;
+  }
+  
+  m_diverge = text.toDouble();
+  render();
+}
+
+void Fractal::setFirstPass(int value)
+{
+  if (value > 0)
+  {
+    m_passesEdit->setMinimum(value);
+    
+    m_first_pass = value;
+    render();
+  }
+}
+
+void Fractal::setFractal(const QString& index)
+{
+  if (!index.isEmpty())
+  {
+    m_fractalType = index;
+    m_pass = 0;
+    
+    render();
+  }
+}
+
+void Fractal::setMaxColours(int value)
+{
+  if (value > 0)
+  {
+    setColours(value);
+    render(m_pass);
+  }
+}
+
+void Fractal::setPasses(int value)
+{
+  if (value > 0)
+  {
+    m_passes = value;
+    render(m_pass);
+  }
+}
+
+void Fractal::setScale(const QString& text)
+{
+  if (text.isEmpty())
+  {
+    return;
+  }
+  
+  const double scale = text.toDouble();
+  
+  if (scale != 0)
+  {
+    m_scale = scale;
+    render(m_pass);
+  }
 }
 
 void Fractal::start()
@@ -387,7 +432,7 @@ void Fractal::updatePass(uint pass, uint maxPasses, uint iterations)
 {
   m_pass = pass;
   
-  m_mainWindow->statusBar()->showMessage(QString("pass %1 of %2 (%3 iterations) ...")
+  m_statusbar->showMessage(QString("pass %1 of %2 (%3 iterations) ...")
     .arg(pass).arg(maxPasses).arg(iterations));
 }
 
@@ -402,16 +447,16 @@ void Fractal::updatePixmap(const QImage &image, double scale)
   
   if (!m_thread.isRunning())
   {
-    m_mainWindow->statusBar()->showMessage(QString("stopped afer %1 updates").arg(m_updates));  
+    m_statusbar->showMessage(QString("stopped afer %1 updates").arg(m_updates));  
   }
   else
   {
-    m_mainWindow->statusBar()->showMessage(QString("completed %1 updates").arg(m_updates));  
+    m_statusbar->showMessage(QString("completed %1 updates").arg(m_updates));  
   }
   
   if (!m_lastDragPos.isNull())
     return;
-
+    
   m_pixmap = QPixmap::fromImage(image);
   m_pixmapOffset = QPoint();
   m_lastDragPos = QPoint();
@@ -420,10 +465,70 @@ void Fractal::updatePixmap(const QImage &image, double scale)
   update();
 }
 
+// see
+// http://codingmess.blogspot.com/2009/05/conversion-of-wavelength-in-nanometers.html
+uint Fractal::wav2RGB(double w) const
+{
+  double R = 0.0;
+  double G = 0.0;
+  double B = 0.0;
+  
+  if (w >= 380 && w < 440)
+  {
+    R = -(w - 440) / (440 - 350);
+    G = 0.0;
+    B = 1.0;
+  }
+  else if (w >= 440 && w < 490)
+  {
+    R = 0.0;
+    G = (w - 440) / (490 - 440);
+    B = 1.0;
+  }
+  else if (w >= 490 && w < 510)
+  {
+    R = 0.0;
+    G = 1.0;
+    B = -(w - 510) / (510 - 490);
+  }
+  else if (w >= 510 && w < 580)
+  {
+    R = (w - 510) / (580 - 510);
+    G = 1.0;
+    B = 0.0;
+  }
+  else if (w >= 580 && w < 645)
+  {
+    R = 1.0;
+    G = -(w - 645) / (645 - 580);
+    B = 0.0;
+  }
+  else if (w >= 645 && w <= 780)
+  {
+    R = 1.0;
+    G = 0.0;
+    B = 0.0;
+  }
+
+  // intensity correction
+  double SSS = 0;
+  
+  if (w >= 380 and w < 420)
+    SSS = 0.3 + 0.7*(w - 350) / (420 - 350);
+  else if (w >= 420 and w <= 700)
+    SSS = 1.0;
+  else if (w > 700 and w <= 780)
+    SSS = 0.3 + 0.7*(780 - w) / (780 - 700);
+      
+  SSS *= 255;
+
+  return qRgb(int(SSS*R), int(SSS*G), int(SSS*B));
+}
+
 void Fractal::wheelEvent(QWheelEvent *event)
 {
-  int numDegrees = event->delta() / 8;
-  double numSteps = numDegrees / 15.0f;
+  const int numDegrees = event->delta() / 8;
+  const double numSteps = numDegrees / 15.0f;
   zoom(pow(zoomIn, numSteps));
 }
 

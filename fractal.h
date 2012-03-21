@@ -7,7 +7,9 @@
 #include <QPointF>
 #include <QWidget>
 #include <QComboBox>
-#include <QMainWindow>
+#include <QStatusBar>
+#include <QCheckBox>
+#include <QToolBar>
 #include "thread.h"
 
 // This class offers the fractal widget.
@@ -18,8 +20,8 @@ class Fractal : public QWidget
 public:
   // Constructor.
   Fractal(
-    // mainwindow (not NULL)
-    QMainWindow* mainwindow,
+    // statusbar (not NULL)
+    QStatusBar* statusbar,
     // parent (NULL allowed)
     QWidget* parent,
     // scale to use
@@ -33,31 +35,23 @@ public:
     // first pass
     uint first_pass,
     // number of passes
-    uint passes,
-    // image to start with
-    const QImage& image = QImage(),
-    // which kind of fractal
-    int fractal_type = FRACTAL_MANDELBROTSET);
+    uint passes);
     
-  // Access to controls.
-  QLineEdit* getCenter() {return m_centerEdit;};
-  QSpinBox* getColours() {return m_coloursEdit;};
-  QLineEdit* getDiverge() {return m_divergeEdit;};
-  QSpinBox* getFirstPass() {return m_first_passEdit;};
-  QComboBox* getFractalType() {return m_fractalEdit;};
-  QSpinBox* getPasses() {return m_passesEdit;};
-  QLineEdit* getScale(){ return m_scaleEdit;};
-  
-  // Access to values.
-  const QPointF& center() const {return m_center;};
-  uint colours() const {return m_colours.size();}
-  double diverge() const {return m_diverge;};
-  uint firstPass() const {return m_first_pass;}
-  int fractalType() const {return m_fractalType;};
-  uint pass() const {return m_pass;}
-  uint passes() const {return m_passes;}
-  double scale() const {return m_scale;};
+  // Copy constructor.
+  Fractal(
+    // statusbar (not NULL)
+    QStatusBar* statusbar,
+    // other fractal
+    const Fractal& fractal);
+    
+  // Adds controls to a toolbar.
+  void addControls(QToolBar* toolbar);
+
+  // Gets current pixmap.  
   const QPixmap& pixmap() const {return m_pixmap;};
+  
+  // Sets colours.
+  void setColours();
   
   // Starts rendering.
   void start();
@@ -73,24 +67,28 @@ protected:
   void resizeEvent(QResizeEvent *event);
   void wheelEvent(QWheelEvent *event);
 private slots:
-  void editedCenter(const QString& text);
-  void editedColours(int value);
-  void editedDiverge(const QString& text);
-  void editedFirstPass(int value);
-  void editedFractal(int index);
-  void editedPasses(int value);
-  void editedScale(const QString& text);
+  void setAxes(bool state);
+  void setCenter(const QString& text);
+  void setDiverge(const QString& text);
+  void setFirstPass(int value);
+  void setFractal(const QString& index);
+  void setPasses(int value);
+  void setMaxColours(int value);
+  void setScale(const QString& text);
   void updatePass(uint pass, uint numberOfPasses, uint iterations);
   void updatePixmap(const QImage &image, double scale);
   void zoom(double zoomFactor);
 private:
+  void addAxes(QPainter& painter);
+  void init();
   void render(int start_at = 0);
-  uint rgbFromWaveLength(double wave);
   void scroll(const QPoint& delta);
   void setColours(uint colours);
+  uint wav2RGB(double wave) const;
 
   Thread m_thread;
   
+  QCheckBox* m_axesEdit;
   QLineEdit* m_centerEdit;
   QSpinBox* m_coloursEdit;
   QLineEdit* m_divergeEdit;
@@ -108,7 +106,7 @@ private:
   
   std::vector<uint> m_colours;
   
-  int m_fractalType;
+  QString m_fractalType;
   
   double m_diverge;
   double m_pixmapScale;
@@ -120,6 +118,6 @@ private:
   
   long m_updates;
   
-  QMainWindow* m_mainWindow;
+  QStatusBar* m_statusbar;
 };
 #endif

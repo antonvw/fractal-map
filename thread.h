@@ -9,15 +9,6 @@
 #include <QPointF>
 #include <QWaitCondition>
 
-enum
-{
-  FRACTAL_MANDELBROTSET,
-  FRACTAL_JULIASET,
-  FRACTAL_JULIASET_GOLDEN,
-  FRACTAL_JULIASET_DRAGON,
-  FRACTAL_JULIASET_MIS
-};
-
 // This class offers a thread to render the fractal image.
 // Just call start to start the thread, after which you can render images.
 class Thread : public QThread
@@ -31,8 +22,13 @@ public:
   // Destructor, invokes stop.
  ~Thread();
 
+  // Supported fractals.
+  static std::vector<QString> & fractals() {return m_fractals;};
+  
   // Begins rendering the image (if the thread is running).
   void render(
+    // kind of fractal
+    const QString& fractal,
     // using this center
     const QPointF& center,
     // using this scale
@@ -47,9 +43,7 @@ public:
     // the last colour is used for converge
     const std::vector<uint> & colours,
     // value that assumes function is diverging
-    const double diverge,
-    // kind of fractal
-    int fractal = FRACTAL_MANDELBROTSET);
+    const double diverge);
 
   // Stops the thread (finishes the thread main loop).
   void stop();
@@ -78,5 +72,6 @@ private:
   int m_fractal;
   
   std::vector<uint> m_colours;
+  static std::vector<QString> m_fractals;
 };
 #endif
