@@ -1,18 +1,18 @@
 #include <math.h>
 #include <QtGui>
 #include "mainwindow.h"
-#include "fractal.h"
+#include "fractalwidget.h"
 
-MainWindow::MainWindow(Fractal* fractal, QWidget* parent)
+MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
   : QMainWindow(parent)
 {
   if (fractal != NULL)
   {
-    m_fractal = new Fractal(*fractal, statusBar());
+    m_fractal = new FractalWidget(*fractal, statusBar());
   }
   else
   {
-    m_fractal = new Fractal(
+    m_fractal = new FractalWidget(
       this,
       statusBar(),
       0.004,
@@ -29,19 +29,25 @@ MainWindow::MainWindow(Fractal* fractal, QWidget* parent)
   menuButton->setFixedWidth(20);
   QMenu *menu = new QMenu(this);
   QAction* about = menu->addAction("About");
+  menu->addSeparator();
   QAction* colours_begin = menu->addAction("Colours From Begin...");
   QAction* colours_end = menu->addAction("Colours From End...");
+  menu->addSeparator();
   QAction* copy = menu->addAction("Copy");
-  QAction* newFractal = menu->addAction("New");
-  QAction* stop = menu->addAction("Stop");
+  menu->addSeparator();
+  QAction* newFractalWidget = menu->addAction("New");
+  menu->addSeparator();
+  QAction* pause = new QAction("Pause", menu);
+  pause->setCheckable(true);
+  menu->addAction(pause);
   menuButton->setMenu(menu);
   
   connect(about, SIGNAL(triggered()), this, SLOT(about()));    
   connect(colours_begin, SIGNAL(triggered()), this, SLOT(colours_begin()));
   connect(colours_end, SIGNAL(triggered()), this, SLOT(colours_end()));
   connect(copy, SIGNAL(triggered()), this, SLOT(copy()));
-  connect(newFractal, SIGNAL(triggered()), this, SLOT(newFractal()));
-  connect(stop, SIGNAL(triggered()), this, SLOT(stop()));
+  connect(newFractalWidget, SIGNAL(triggered()), this, SLOT(newFractalWidget()));
+  connect(pause, SIGNAL(toggled(bool)), this, SLOT(pause(bool)));
   connect(menu, SIGNAL(clicked()), this, SLOT(menu()));
   
   QToolBar* tb = addToolBar("Control");
@@ -79,13 +85,13 @@ void MainWindow::copy()
   QApplication::clipboard()->setImage(m_fractal->pixmap().toImage());
 }
 
-void MainWindow::newFractal()
+void MainWindow::newFractalWidget()
 {
   MainWindow* m = new MainWindow(m_fractal);
   m->show();
 }
 
-void MainWindow::stop()
+void MainWindow::pause(bool checked)
 {
-  m_fractal->stop();
+  checked ? m_fractal->pause(): m_fractal->cont();
 }

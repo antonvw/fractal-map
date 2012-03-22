@@ -1,7 +1,6 @@
 #ifndef RENDERTHREAD_H
 #define RENDERTHREAD_H
 
-#include <complex>
 #include <vector>
 #include <QMutex>
 #include <QSize>
@@ -22,10 +21,20 @@ public:
   
   // Destructor, invokes stop.
  ~Thread();
+ 
+  // Continues.
+  void cont();
 
-  // Supported fractals.
-  static std::vector<QString> & fractals() {return m_fractals;};
+  // Thread is paused or restarted or stopped.  
+  bool interrupted() const {
+    return m_pause || m_restart || m_stop;};
   
+  // Pauses the thread.
+  void pause();
+  
+  // Is thread stopped.
+  bool paused() const {return m_pause;};
+
   // Begins rendering the image (if the thread is running).
   void render(
     // kind of fractal
@@ -58,9 +67,6 @@ signals:
 protected:
   void run();
 private:
-  bool fractal(double ax, double ay, uint& n, uint max, uint diverge, int type);
-  bool julia(const std::complex<double> & c, double ax, double ay, uint& n, uint max, uint diverge);
-  
   QMutex m_mutex;
   QWaitCondition m_condition;
   QPointF m_center;
@@ -69,11 +75,11 @@ private:
   uint m_max_passes;
   double m_diverge;
   bool m_restart;
+  bool m_pause;
   bool m_stop;
   QImage m_image;
-  int m_fractal;
+  QString m_name;
   
   std::vector<uint> m_colours;
-  static std::vector<QString> m_fractals;
 };
 #endif

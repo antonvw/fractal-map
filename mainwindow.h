@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 
-class Fractal;
+class FractalWidget;
 
 // This class offers the main window.
 class MainWindow : public QMainWindow
@@ -12,15 +12,15 @@ class MainWindow : public QMainWindow
 
 public:
   // Constructor.
-  MainWindow(Fractal* fractal = NULL, QWidget *parent = 0);
+  MainWindow(FractalWidget* fractal = NULL, QWidget *parent = 0);
 private slots:
   void about();
   void colours_begin();
   void colours_end();
   void copy();
-  void newFractal();
-  void stop();
+  void newFractalWidget();
+  void pause(bool);
 private:
-  Fractal* m_fractal;
+  FractalWidget* m_fractal;
 };
 #endif
