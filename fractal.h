@@ -13,8 +13,11 @@ class Fractal
 public:
   // Constructor.
   Fractal(
+    // The thread, to be able to interrupt calculation.
     Thread* thread, 
+    // The name of the fractal, see names.
     const QString& name,
+    // Diverge limit.
     uint diverge);
 
   // Do fractal calculation. 

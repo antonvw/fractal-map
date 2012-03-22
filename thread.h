@@ -1,5 +1,5 @@
-#ifndef RENDERTHREAD_H
-#define RENDERTHREAD_H
+#ifndef XTHREAD_H
+#define XTHREAD_H
 
 #include <vector>
 #include <QMutex>
