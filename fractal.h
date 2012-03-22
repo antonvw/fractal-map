@@ -6,6 +6,7 @@
 #include <QSpinBox>
 #include <QPointF>
 #include <QWidget>
+#include <QColorDialog>
 #include <QComboBox>
 #include <QStatusBar>
 #include <QCheckBox>
@@ -20,10 +21,10 @@ class Fractal : public QWidget
 public:
   // Constructor.
   Fractal(
-    // statusbar (not NULL)
-    QStatusBar* statusbar,
-    // parent (NULL allowed)
+    // parent
     QWidget* parent,
+    // statusbar
+    QStatusBar* statusbar,
     // scale to use
     double scale,
     // number of colours
@@ -39,10 +40,10 @@ public:
     
   // Copy constructor.
   Fractal(
-    // statusbar (not NULL)
-    QStatusBar* statusbar,
     // other fractal
-    const Fractal& fractal);
+    const Fractal& fractal,
+    // statusbar
+    QStatusBar* statusbar);
     
   // Adds controls to a toolbar.
   void addControls(QToolBar* toolbar);
@@ -51,7 +52,7 @@ public:
   const QPixmap& pixmap() const {return m_pixmap;};
   
   // Sets colours.
-  void setColours();
+  void setColoursDialog(bool from_start = true);
   
   // Starts rendering.
   void start();
@@ -69,11 +70,14 @@ protected:
 private slots:
   void setAxes(bool state);
   void setCenter(const QString& text);
+  void setColoursMax(int value);
+  void setColoursMinWave(int value);
+  void setColoursMaxWave(int value);
+  void setColourSelected(const QColor& color);
   void setDiverge(const QString& text);
   void setFirstPass(int value);
   void setFractal(const QString& index);
   void setPasses(int value);
-  void setMaxColours(int value);
   void setScale(const QString& text);
   void updatePass(uint pass, uint numberOfPasses, uint iterations);
   void updatePixmap(const QImage &image, double scale);
@@ -91,12 +95,12 @@ private:
   QCheckBox* m_axesEdit;
   QLineEdit* m_centerEdit;
   QSpinBox* m_coloursEdit;
+  QSpinBox* m_coloursMaxWaveEdit;
+  QSpinBox* m_coloursMinWaveEdit;
   QLineEdit* m_divergeEdit;
   QSpinBox* m_first_passEdit;
   QComboBox* m_fractalEdit;
   QSpinBox* m_passesEdit;
-  QSpinBox* m_coloursMinWaveEdit;
-  QSpinBox* m_coloursMaxWaveEdit;
   QLineEdit* m_scaleEdit;
   
   QPixmap m_pixmap;
@@ -109,17 +113,23 @@ private:
   std::vector<uint> m_colours;
   
   QString m_fractalType;
-  
+
+  double m_coloursMinWave;  
+  double m_coloursMaxWave;  
   double m_diverge;
   double m_pixmapScale;
   double m_scale;
-  
+    
+  uint m_colourIndex;
   uint m_first_pass;
   uint m_pass;
   uint m_passes;
   
   long m_updates;
   
+  bool m_colourIndexFromStart;
+  
+  QColorDialog* m_colourDialog;
   QStatusBar* m_statusbar;
 };
 #endif

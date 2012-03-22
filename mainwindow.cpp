@@ -8,13 +8,13 @@ MainWindow::MainWindow(Fractal* fractal, QWidget* parent)
 {
   if (fractal != NULL)
   {
-    m_fractal = new Fractal(statusBar(), *fractal);
+    m_fractal = new Fractal(*fractal, statusBar());
   }
   else
   {
     m_fractal = new Fractal(
-      statusBar(),
       this,
+      statusBar(),
       0.004,
       1024,
       2.0,
@@ -26,17 +26,19 @@ MainWindow::MainWindow(Fractal* fractal, QWidget* parent)
   qRegisterMetaType<QImage>("QImage");
   
   QPushButton* menuButton = new QPushButton();
-  
+  menuButton->setFixedWidth(20);
   QMenu *menu = new QMenu(this);
   QAction* about = menu->addAction("About");
-  QAction* colours = menu->addAction("Colours...");
+  QAction* colours_begin = menu->addAction("Colours From Begin...");
+  QAction* colours_end = menu->addAction("Colours From End...");
   QAction* copy = menu->addAction("Copy");
   QAction* newFractal = menu->addAction("New");
   QAction* stop = menu->addAction("Stop");
   menuButton->setMenu(menu);
   
   connect(about, SIGNAL(triggered()), this, SLOT(about()));    
-  connect(colours, SIGNAL(triggered()), this, SLOT(colours()));
+  connect(colours_begin, SIGNAL(triggered()), this, SLOT(colours_begin()));
+  connect(colours_end, SIGNAL(triggered()), this, SLOT(colours_end()));
   connect(copy, SIGNAL(triggered()), this, SLOT(copy()));
   connect(newFractal, SIGNAL(triggered()), this, SLOT(newFractal()));
   connect(stop, SIGNAL(triggered()), this, SLOT(stop()));
@@ -58,12 +60,18 @@ void MainWindow::about()
 {
   QMessageBox::about(this, 
     "About " + windowTitle(),
-    "This application shows a fractal map.");
+    QString("This application shows a fractal map.\nBuilt using Qt %1").
+      arg(QT_VERSION_STR));
 }
 
-void MainWindow::colours()
+void MainWindow::colours_begin()
 {
-  m_fractal->setColours();
+  m_fractal->setColoursDialog();
+}
+
+void MainWindow::colours_end()
+{
+  m_fractal->setColoursDialog(false);
 }
 
 void MainWindow::copy()

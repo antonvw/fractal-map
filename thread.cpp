@@ -1,13 +1,17 @@
-#include <complex>
 #include <math.h>
 #include "thread.h"
 
 enum
 {
   FRACTAL_MANDELBROTSET = 0,
-  FRACTAL_JULIASET,
-  FRACTAL_JULIASET_GOLDEN,
-  FRACTAL_JULIASET_DRAGON,
+  FRACTAL_JULIASET_1,
+  FRACTAL_JULIASET_2,
+  FRACTAL_JULIASET_3,
+  FRACTAL_JULIASET_4,
+  FRACTAL_JULIASET_5,
+  FRACTAL_JULIASET_6,
+  FRACTAL_JULIASET_7,
+  FRACTAL_JULIASET_8,
   FRACTAL_JULIASET_MIS,
 };
 
@@ -22,9 +26,14 @@ Thread::Thread(QObject *parent)
   if (m_fractals.empty())
   {
     m_fractals.push_back("mandelbrot set");
-    m_fractals.push_back("julia set");
-    m_fractals.push_back("julia set golden");
-    m_fractals.push_back("julia set dragon");
+    m_fractals.push_back("julia set 1 golden ratio");
+    m_fractals.push_back("julia set 2");
+    m_fractals.push_back("julia set 3");
+    m_fractals.push_back("julia set 4");
+    m_fractals.push_back("julia set 5");
+    m_fractals.push_back("julia set 6");
+    m_fractals.push_back("julia set 7");
+    m_fractals.push_back("julia set 8 dragon");
     m_fractals.push_back("julia set mis");
   }
 }
@@ -38,73 +47,43 @@ bool Thread::fractal(double ax, double ay, uint& n, uint max, uint diverge, int 
 { 
   switch (type)
   {
-    case FRACTAL_JULIASET:
-    {
-      const std::complex<double> c(-0.4, 0.6);
-      std::complex<double> z(ax, ay);
-    
-      for (n = 0; n < max && !m_stop; n++)
-      {
-        z = z * z + c;
-        
-        if (abs(z) > diverge)
-        {
-          break;
-        }
-      }
-    }
-    break;
-    
-    case FRACTAL_JULIASET_DRAGON:
-    {
-      const std::complex<double> c(-0.8, 0.156);
-      std::complex<double> z(ax, ay);
-    
-      for (n = 0; n < max && !m_stop; n++)
-      {
-        z = z * z + c;
-        
-        if (abs(z) > diverge)
-        {
-          break;
-        }
-      }
-    }
-    break;
-    
-    case FRACTAL_JULIASET_GOLDEN:
+    case FRACTAL_JULIASET_1:
     {
       const double phi = 1.6180339887498948482;
-      const std::complex<double> c(1 - phi, 0);
-      std::complex<double> z(ax, ay);
-    
-      for (n = 0; n < max && !m_stop; n++)
-      {
-        z = z * z + c;
-        
-        if (abs(z) > diverge)
-        {
-          break;
-        }
-      }
+      return julia(std::complex<double>(1 - phi, 0), ax, ay, n, max, diverge);
     }
+    break;
+    
+    case FRACTAL_JULIASET_2:
+      return julia(std::complex<double>(-0.4, 0.6), ax, ay, n, max, diverge);
+    break;
+    
+    case FRACTAL_JULIASET_3:
+      return julia(std::complex<double>(0.285, 0), ax, ay, n, max, diverge);
+    break;
+    
+    case FRACTAL_JULIASET_4:
+      return julia(std::complex<double>(0.285, 0.01), ax, ay, n, max, diverge);
+    break;
+    
+    case FRACTAL_JULIASET_5:
+      return julia(std::complex<double>(0.45, 0.1428), ax, ay, n, max, diverge);
+    break;
+    
+    case FRACTAL_JULIASET_6:
+      return julia(std::complex<double>(-0.70176, -0.3842), ax, ay, n, max, diverge);
+    break;
+    
+    case FRACTAL_JULIASET_7:
+      return julia(std::complex<double>(-0.835, -0.2321), ax, ay, n, max, diverge);
+    break;
+    
+    case FRACTAL_JULIASET_8:
+      return julia(std::complex<double>(-0.8, 0.156), ax, ay, n, max, diverge);
     break;
     
     case FRACTAL_JULIASET_MIS:
-    {
-      const std::complex<double> c(0, 1);
-      std::complex<double> z(ax, ay);
-    
-      for (n = 0; n < max && !m_stop; n++)
-      {
-        z = z * z + c;
-        
-        if (abs(z) > diverge)
-        {
-          break;
-        }
-      }
-    }
+      return julia(std::complex<double>(0, 1), ax, ay, n, max, diverge);
     break;
     
     case FRACTAL_MANDELBROTSET:
@@ -127,6 +106,23 @@ bool Thread::fractal(double ax, double ay, uint& n, uint max, uint diverge, int 
   
   return !m_stop;
 }          
+
+bool Thread::julia(const std::complex<double> & c, double ax, double ay, uint& n, uint max, uint diverge)
+{
+  std::complex<double> z(ax, ay);
+    
+  for (n = 0; n < max && !m_stop; n++)
+  {
+    z = z * z + c;
+        
+    if (abs(z) > diverge)
+    {
+      break;
+    }
+  }
+  
+  return !m_stop;
+}
 
 void Thread::render(
   const QString& fractal,

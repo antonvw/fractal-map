@@ -15,7 +15,8 @@ public:
   MainWindow(Fractal* fractal = NULL, QWidget *parent = 0);
 private slots:
   void about();
-  void colours();
+  void colours_begin();
+  void colours_end();
   void copy();
   void newFractal();
   void stop();

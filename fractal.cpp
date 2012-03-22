@@ -5,8 +5,8 @@
 const double zoomIn = 0.8;
 
 Fractal::Fractal(
-  QStatusBar* statusbar,
   QWidget* parent,
+  QStatusBar* statusbar,
   double scale,
   uint colours,
   double diverge,
@@ -17,8 +17,8 @@ Fractal::Fractal(
   , m_axesEdit(new QCheckBox("Axes"))
   , m_centerEdit(new QLineEdit())
   , m_coloursEdit(new QSpinBox())
-  , m_coloursMinWaveEdit(new QSpinBox())
   , m_coloursMaxWaveEdit(new QSpinBox())
+  , m_coloursMinWaveEdit(new QSpinBox())
   , m_divergeEdit(new QLineEdit())
   , m_first_passEdit(new QSpinBox())
   , m_fractalEdit(new QComboBox())
@@ -27,6 +27,8 @@ Fractal::Fractal(
   , m_origin(0, 0)
   , m_center(center)
   , m_fractalType(Thread::fractals().front())
+  , m_coloursMinWave(380)
+  , m_coloursMaxWave(780)
   , m_diverge(diverge)
   , m_pixmapScale(scale)
   , m_scale(scale)
@@ -34,20 +36,21 @@ Fractal::Fractal(
   , m_pass(first_pass)
   , m_passes(passes)
   , m_updates(0)
+  , m_colourDialog(new QColorDialog())
   , m_statusbar(statusbar)
 {
-  setMaxColours(colours);
+  setColoursMax(colours);
   
   init();
 }
 
-Fractal::Fractal(QStatusBar* statusbar, const Fractal& fractal)
+Fractal::Fractal(const Fractal& fractal, QStatusBar* statusbar)
   : QWidget(fractal.parentWidget())
   , m_axesEdit(new QCheckBox())
   , m_centerEdit(new QLineEdit())
   , m_coloursEdit(new QSpinBox())
-  , m_coloursMinWaveEdit(new QSpinBox())
   , m_coloursMaxWaveEdit(new QSpinBox())
+  , m_coloursMinWaveEdit(new QSpinBox())
   , m_divergeEdit(new QLineEdit())
   , m_first_passEdit(new QSpinBox())
   , m_fractalEdit(new QComboBox())
@@ -57,6 +60,8 @@ Fractal::Fractal(QStatusBar* statusbar, const Fractal& fractal)
   , m_center(fractal.m_center)
   , m_colours(fractal.m_colours)
   , m_fractalType(fractal.m_fractalType)
+  , m_coloursMinWave(fractal.m_coloursMinWave)
+  , m_coloursMaxWave(fractal.m_coloursMaxWave)
   , m_diverge(fractal.m_diverge)
   , m_pixmapScale(fractal.m_scale)
   , m_scale(fractal.m_scale)
@@ -64,6 +69,7 @@ Fractal::Fractal(QStatusBar* statusbar, const Fractal& fractal)
   , m_pass(fractal.m_first_pass)
   , m_passes(fractal.m_passes)
   , m_updates(fractal.m_updates)
+  , m_colourDialog(fractal.m_colourDialog)
   , m_statusbar(statusbar)
 {
   init();
@@ -99,11 +105,13 @@ void Fractal::addAxes(QPainter& painter)
 void Fractal::addControls(QToolBar* toolbar)
 {
   toolbar->addWidget(m_fractalEdit);
+  toolbar->addWidget(m_first_passEdit);
+  toolbar->addWidget(m_passesEdit);
+  toolbar->addSeparator();
   toolbar->addWidget(m_coloursEdit);
   toolbar->addWidget(m_coloursMinWaveEdit);
   toolbar->addWidget(m_coloursMaxWaveEdit);
-  toolbar->addWidget(m_first_passEdit);
-  toolbar->addWidget(m_passesEdit);
+  toolbar->addSeparator();
   toolbar->addWidget(m_centerEdit);
   toolbar->addWidget(m_scaleEdit);
   toolbar->addWidget(m_divergeEdit);
@@ -124,16 +132,19 @@ void Fractal::init()
   m_coloursEdit->setValue(m_colours.size());
   m_coloursEdit->setToolTip("colours");
   
-  m_coloursMinWaveEdit->setMaximum(380);
-  m_coloursMinWaveEdit->setValue(m_colours.size());
-  m_coloursMinWaveEdit->setToolTip("colours");
+  m_coloursMinWaveEdit->setMinimum(380);
+  m_coloursMinWaveEdit->setMaximum(780);
+  m_coloursMinWaveEdit->setToolTip("min wavelength colour");
+  m_coloursMinWaveEdit->setValue(m_coloursMinWave);
   
+  m_coloursMaxWaveEdit->setMinimum(380);
   m_coloursMaxWaveEdit->setMaximum(780);
-  m_coloursMaxWaveEdit->setValue(m_colours.size());
-  m_coloursMaxWaveEdit->setToolTip("colours");
+  m_coloursMaxWaveEdit->setToolTip("max wavelength colour");
+  m_coloursMaxWaveEdit->setValue(m_coloursMaxWave);
   
   m_divergeEdit->setText(QString::number(m_diverge));
   m_divergeEdit->setValidator(new QDoubleValidator());
+  m_divergeEdit->setFixedWidth(25);
   m_divergeEdit->setToolTip("diverge");
 
   m_first_passEdit->setMaximum(32);
@@ -158,7 +169,7 @@ void Fractal::init()
   m_passesEdit->setMaximum(32);
   m_passesEdit->setMinimum(m_first_passEdit->value());
   m_passesEdit->setValue(m_passes);
-  m_passesEdit->setToolTip("passes");
+  m_passesEdit->setToolTip("last pass");
   
   m_scaleEdit->setText(QString::number(m_scale));
   m_scaleEdit->setValidator(new QDoubleValidator());
@@ -173,8 +184,14 @@ void Fractal::init()
     this, SLOT(setAxes(bool)));
   connect(m_centerEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(setCenter(const QString&)));
+  connect(m_colourDialog, SIGNAL(colorSelected(const QColor&)),
+    this, SLOT(setColourSelected(const QColor&)));
   connect(m_coloursEdit, SIGNAL(valueChanged(int)),
-    this, SLOT(setMaxColours(int)));
+    this, SLOT(setColoursMax(int)));
+  connect(m_coloursMinWaveEdit, SIGNAL(valueChanged(int)),
+    this, SLOT(setColoursMinWave(int)));
+  connect(m_coloursMaxWaveEdit, SIGNAL(valueChanged(int)),
+    this, SLOT(setColoursMaxWave(int)));
   connect(m_divergeEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(setDiverge(const QString&)));
   connect(m_first_passEdit, SIGNAL(valueChanged(int)),
@@ -330,32 +347,47 @@ void Fractal::setCenter(const QString& text)
   }
 }
 
-void Fractal::setColours()
+void Fractal::setColourSelected(const QColor& color)
 {
-  for (uint i = 0; i < m_colours.size(); ++i)
+  if (!color.isValid())
   {
-    const QColor c = QColorDialog::getColor(
-      m_colours[i], 
-      this,
-      QString("Select Colour %1 of %2").arg(i + 1).arg(m_colours.size()));
-      
-    if (!c.isValid())
+    if (m_colourIndex > 0)
     {
-      break;
+      render();
     }
-    else
-    {
-      m_colours[i] = c.rgb();
-    }
+    
+    return;
   }
-}
   
+  m_colours[m_colourIndex] = color.rgb();
+  
+  if (m_colourIndexFromStart)
+  {
+    if (m_colourIndex < m_colours.size() - 1)
+      m_colourIndex++;
+    else
+      return;
+  }
+  else
+  {
+    if (m_colourIndex >= 1)
+      m_colourIndex--;
+    else
+      return;
+  }
+    
+  m_colourDialog->setCurrentColor(m_colours[m_colourIndex]);
+  m_colourDialog->setWindowTitle(
+    QString("Select Colour %1 of %2").arg(m_colourIndex + 1).arg(m_colours.size()));
+  m_colourDialog->show();
+}
+
 void Fractal::setColours(uint colours)
 {
   m_colours.clear();
   
-  const double visible_min = 580;
-  const double visible_max = 780;
+  const double visible_min = m_coloursMinWave;
+  const double visible_max = m_coloursMaxWave;
 
   for (uint i = 0; i < colours - 1; ++i)
   {
@@ -363,6 +395,54 @@ void Fractal::setColours(uint colours)
   }
   
   m_colours.push_back(qRgb(0, 0, 0));
+}
+
+void Fractal::setColoursDialog(bool from_start)
+{
+  m_colourIndexFromStart = from_start;
+  
+  if (from_start)
+  {
+    m_colourIndex = 0;
+  }
+  else
+  {
+    m_colourIndex = m_colours.size() - 1;
+  }
+  
+  m_colourDialog->setCurrentColor(m_colours[m_colourIndex]);
+  m_colourDialog->setWindowTitle(
+    QString("Select Colour %1 of %2").arg(m_colourIndex + 1).arg(m_colours.size()));
+  m_colourDialog->show();
+}
+  
+void Fractal::setColoursMax(int value)
+{
+  if (value > 0)
+  {
+    setColours(value);
+    render(m_pass);
+  }
+}
+
+void Fractal::setColoursMaxWave(int value)
+{
+  if (value > 0)
+  {
+    m_coloursMaxWave = value;
+    setColours(m_colours.size());
+    render(m_pass);
+  }
+}
+
+void Fractal::setColoursMinWave(int value)
+{
+  if (value > 0)
+  {
+    m_coloursMinWave = value;
+    setColours(m_colours.size());
+    render(m_pass);
+  }
 }
 
 void Fractal::setDiverge(const QString& text)
@@ -395,15 +475,6 @@ void Fractal::setFractal(const QString& index)
     m_pass = 0;
     
     render();
-  }
-}
-
-void Fractal::setMaxColours(int value)
-{
-  if (value > 0)
-  {
-    setColours(value);
-    render(m_pass);
   }
 }
 

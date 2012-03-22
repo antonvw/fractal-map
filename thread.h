@@ -1,6 +1,7 @@
 #ifndef RENDERTHREAD_H
 #define RENDERTHREAD_H
 
+#include <complex>
 #include <vector>
 #include <QMutex>
 #include <QSize>
@@ -58,6 +59,7 @@ protected:
   void run();
 private:
   bool fractal(double ax, double ay, uint& n, uint max, uint diverge, int type);
+  bool julia(const std::complex<double> & c, double ax, double ay, uint& n, uint max, uint diverge);
   
   QMutex m_mutex;
   QWaitCondition m_condition;
