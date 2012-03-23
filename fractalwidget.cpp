@@ -34,6 +34,7 @@ FractalWidget::FractalWidget(
   , m_diverge(diverge)
   , m_pixmapScale(scale)
   , m_scale(scale)
+  , m_julia(std::complex<double>(0.1, 0.6))
   , m_first_pass(first_pass)
   , m_pass(first_pass)
   , m_passes(passes)
@@ -67,6 +68,7 @@ FractalWidget::FractalWidget(const FractalWidget& fractal, QStatusBar* statusbar
   , m_diverge(fractal.m_diverge)
   , m_pixmapScale(fractal.m_scale)
   , m_scale(fractal.m_scale)
+  , m_julia(fractal.m_julia)
   , m_first_pass(fractal.m_first_pass)
   , m_pass(fractal.m_first_pass)
   , m_passes(fractal.m_passes)
@@ -508,7 +510,7 @@ void FractalWidget::setPasses(int value)
   if (value > 0)
   {
     m_passes = value;
-    render(m_pass);
+    render(m_pass + 1);
   }
 }
 

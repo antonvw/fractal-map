@@ -20,7 +20,7 @@ MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
       2.0,
       QPointF(0,0),
       1,
-      8);
+      10);
   }
     
   qRegisterMetaType<QImage>("QImage");

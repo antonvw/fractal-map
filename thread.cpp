@@ -81,7 +81,7 @@ void Thread::run()
     
     for (uint pass = first_pass; pass <= max_passes; pass++)
     {
-      const uint max_iterations = 8 << pass;
+      const uint max_iterations = 1 << pass;
       
       emit renderingImage(pass, max_passes, max_iterations);
       
