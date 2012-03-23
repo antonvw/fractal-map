@@ -7,37 +7,45 @@
 
 class Thread;
 
-// This class offers a fractal.
+// This class offers fractal calculations.
 class Fractal
 {
 public:
-  // Constructor.
+  // Default constructor.
   Fractal(
-    // The thread, to be able to interrupt calculation.
-    Thread* thread, 
-    // The name of the fractal, see names.
-    const QString& name,
-    // Diverge limit.
-    uint diverge);
-
+    // the thread, to be able to interrupt calculation
+    Thread* thread = NULL, 
+    // the name of the fractal, see names
+    const QString& name = QString(),
+    // diverge limit
+    uint diverge = 0,
+    // extra arg (for julia set)
+    const std::complex<double> & c = std::complex<double>(0, 0));
+    
   // Do fractal calculation. 
-  bool calc(double ax, double ay, uint& n, uint max);
+  // Returns true if calculation was not interrupted by thread.
+  bool calc(
+    // complex start value
+    const std::complex<double> & c,
+    // number of iterations before diverge
+    uint& n, 
+    // max iterations
+    uint max);
   
   // Is name ok.
-  bool isOk() const;
+  bool isOk() const {return m_isOk;};
   
   // Supported fractals.
   static std::vector<QString> & names();
 private:
-  bool julia(
-    const std::complex<double> & c, double ax, double ay, uint& n, uint max);
+  bool julia(const std::complex<double> & c, uint& n, uint max);
   
   static std::vector<QString> m_names;
   
   bool m_isOk;
   uint m_diverge;
-  int m_type;
-  const QString m_name;
+  QString m_name;
   Thread* m_thread;
+  std::complex<double> m_julia;
 };
 #endif

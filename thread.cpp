@@ -1,4 +1,4 @@
-#include <math.h>
+#include <complex>
 #include "thread.h"
 #include "fractal.h"
 
@@ -31,14 +31,13 @@ void Thread::pause()
 }
 
 void Thread::render(
-  const QString& fractal,
+  const Fractal& fractal,
+  const QImage& image,
   const QPointF& center, 
   double scale,
-  const QImage& image,
   uint first_pass,
   uint passes,
-  const std::vector<uint> & colours,
-  const double diverge)
+  const std::vector<uint> & colours)
 {
   QMutexLocker locker(&m_mutex);
 
@@ -48,8 +47,7 @@ void Thread::render(
   m_colours = colours;
   m_first_pass = first_pass;
   m_max_passes = passes;
-  m_diverge = diverge;
-  m_name = fractal;
+  m_fractal = fractal;
   
   if (isRunning())
   {
@@ -76,11 +74,8 @@ void Thread::run()
     const uint first_pass = m_first_pass;
     const uint max_passes = m_max_passes;
     std::vector<uint> colours(m_colours);
-    const double diverge = m_diverge;
-    const QString name(m_name);
+    Fractal fractal(m_fractal);
     m_mutex.unlock();
-    
-    Fractal fractal(this, name, diverge);
     
     const QSize half = image.size() / 2;
     
@@ -102,7 +97,7 @@ void Thread::run()
           
           uint n = 0;
 
-          if (!fractal.calc(ax, ay, n, max_iterations))
+          if (!fractal.calc(std::complex<double>(ax, ay), n, max_iterations))
           {
             if (!m_restart)
             {

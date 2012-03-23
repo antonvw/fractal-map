@@ -1,5 +1,6 @@
 #include <math.h>
 #include <QtGui>
+#include <QInputDialog>
 #include "fractalwidget.h"
 #include "fractal.h"
 
@@ -27,7 +28,7 @@ FractalWidget::FractalWidget(
   , m_scaleEdit(new QLineEdit())
   , m_origin(0, 0)
   , m_center(center)
-  , m_fractalType(Fractal::names().front())
+  , m_fractalName(Fractal::names().front())
   , m_coloursMinWave(380)
   , m_coloursMaxWave(780)
   , m_diverge(diverge)
@@ -47,7 +48,7 @@ FractalWidget::FractalWidget(
 
 FractalWidget::FractalWidget(const FractalWidget& fractal, QStatusBar* statusbar)
   : QWidget(fractal.parentWidget())
-  , m_axesEdit(new QCheckBox())
+  , m_axesEdit(new QCheckBox("Axes"))
   , m_centerEdit(new QLineEdit())
   , m_coloursEdit(new QSpinBox())
   , m_coloursMaxWaveEdit(new QSpinBox())
@@ -60,7 +61,7 @@ FractalWidget::FractalWidget(const FractalWidget& fractal, QStatusBar* statusbar
   , m_origin(fractal.m_origin)
   , m_center(fractal.m_center)
   , m_colours(fractal.m_colours)
-  , m_fractalType(fractal.m_fractalType)
+  , m_fractalName(fractal.m_fractalName)
   , m_coloursMinWave(fractal.m_coloursMinWave)
   , m_coloursMaxWave(fractal.m_coloursMaxWave)
   , m_diverge(fractal.m_diverge)
@@ -158,7 +159,7 @@ void FractalWidget::init()
     m_fractalEdit->addItem(Fractal::names()[i]);
   }  
   
-  const int index = m_fractalEdit->findText(m_fractalType);
+  const int index = m_fractalEdit->findText(m_fractalName);
   
   if (index != -1)
   {
@@ -198,7 +199,7 @@ void FractalWidget::init()
   connect(m_first_passEdit, SIGNAL(valueChanged(int)),
     this, SLOT(setFirstPass(int)));
   connect(m_fractalEdit, SIGNAL(currentIndexChanged(const QString&)),
-    this, SLOT(setFractalWidget(const QString&)));
+    this, SLOT(setFractal(const QString&)));
   connect(m_passesEdit, SIGNAL(valueChanged(int)),
     this, SLOT(setPasses(int)));
   connect(m_scaleEdit, SIGNAL(textEdited(const QString&)),
@@ -210,8 +211,6 @@ void FractalWidget::init()
 
 void FractalWidget::keyPressEvent(QKeyEvent *event)
 {
-  m_statusbar->showMessage(QString("key: %1").arg((int)event->key()));
-  
   const int scrollStep = 20;
   
   switch (event->key()) 
@@ -303,15 +302,19 @@ void FractalWidget::render(int start_at)
 {
   update();
   
-  m_thread.render(
-    m_fractalType,
-    m_center, 
-    m_scale, 
-    QImage(size(), QImage::Format_RGB32), 
-    (start_at > 0 ? start_at: m_first_pass), 
-    m_passes, 
-    m_colours, 
-    m_diverge);
+  Fractal fractal(&m_thread, m_fractalName, m_diverge, m_julia);
+  
+  if (fractal.isOk())
+  {
+    m_thread.render(
+      fractal,
+      QImage(size(), QImage::Format_RGB32), 
+      m_center, 
+      m_scale, 
+      (start_at > 0 ? start_at: m_first_pass), 
+      m_passes, 
+      m_colours);
+  }
 }
 
 void FractalWidget::resizeEvent(QResizeEvent * /* event */)
@@ -462,19 +465,40 @@ void FractalWidget::setFirstPass(int value)
   if (value > 0)
   {
     m_passesEdit->setMinimum(value);
-    
     m_first_pass = value;
     render();
   }
 }
 
-void FractalWidget::setFractalWidget(const QString& index)
+void FractalWidget::setFractal(const QString& index)
 {
   if (!index.isEmpty())
   {
-    m_fractalType = index;
+    if (index == "julia set")
+    {
+      bool isOk;
+      
+      const double julia_re = QInputDialog::getDouble(
+        this, "Julia set", "real", m_julia.real(), -2, 2, 5, &isOk);
+      
+      if (!isOk)
+      {
+        return;
+      }
+      
+      const double julia_im = QInputDialog::getDouble(
+        this, "Julia set", "imag", m_julia.imag(), -2, 2, 5, &isOk);
+      
+      if (!isOk)
+      {
+        return;
+      }
+      
+      m_julia = std::complex<double>(julia_re, julia_im);
+    }
+      
+    m_fractalName = index;
     m_pass = 0;
-    
     render();
   }
 }

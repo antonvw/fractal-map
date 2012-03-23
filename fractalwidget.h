@@ -40,7 +40,7 @@ public:
     
   // Copy constructor.
   FractalWidget(
-    // other fractal
+    // other fractal widget
     const FractalWidget& fractal,
     // statusbar
     QStatusBar* statusbar);
@@ -62,9 +62,6 @@ public:
   
   // Starts thread.
   void start() {m_thread.start();}
-  
-  // Stops thread.
-  void stop() {m_thread.stop();}     
 protected:
   void keyPressEvent(QKeyEvent *event);
   void mouseMoveEvent(QMouseEvent *event);
@@ -82,7 +79,7 @@ private slots:
   void setColourSelected(const QColor& color);
   void setDiverge(const QString& text);
   void setFirstPass(int value);
-  void setFractalWidget(const QString& index);
+  void setFractal(const QString& index);
   void setPasses(int value);
   void setScale(const QString& text);
   void updatePass(uint pass, uint numberOfPasses, uint iterations);
@@ -118,13 +115,15 @@ private:
   
   std::vector<uint> m_colours;
   
-  QString m_fractalType;
+  QString m_fractalName;
 
   double m_coloursMinWave;  
   double m_coloursMaxWave;  
   double m_diverge;
   double m_pixmapScale;
   double m_scale;
+  
+  std::complex<double> m_julia;
     
   uint m_colourIndex;
   uint m_first_pass;

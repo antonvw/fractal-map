@@ -15,8 +15,8 @@ MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
     m_fractal = new FractalWidget(
       this,
       statusBar(),
-      0.004,
-      1024,
+      0.007,
+      128,
       2.0,
       QPointF(0,0),
       1,
