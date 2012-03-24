@@ -34,6 +34,7 @@ MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
   QAction* colours_end = menu->addAction("Colours From End...");
   menu->addSeparator();
   QAction* copy = menu->addAction("Copy");
+  copy->setShortcuts(QKeySequence::Copy);
   QAction* refresh = menu->addAction("Refresh");
   refresh->setShortcuts(QKeySequence::Refresh);
   menu->addSeparator();

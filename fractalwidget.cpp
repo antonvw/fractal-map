@@ -334,7 +334,7 @@ void FractalWidget::scroll(const QPoint& delta)
   render();
 }
 
-void FractalWidget::setAxes(bool state)
+void FractalWidget::setAxes(bool /* state */)
 {
   render();
 }
