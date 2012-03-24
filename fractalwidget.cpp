@@ -615,11 +615,11 @@ uint FractalWidget::wav2RGB(double w) const
   // intensity correction
   double SSS = 0;
   
-  if (w >= 380 and w < 420)
+  if (w >= 380 && w < 420)
     SSS = 0.3 + 0.7*(w - 350) / (420 - 350);
-  else if (w >= 420 and w <= 700)
+  else if (w >= 420 && w <= 700)
     SSS = 1.0;
-  else if (w > 700 and w <= 780)
+  else if (w > 700 && w <= 780)
     SSS = 0.3 + 0.7*(780 - w) / (780 - 700);
       
   SSS *= 255;
