@@ -1,5 +1,6 @@
 #include <math.h>
 #include <QtGui>
+#include <QSettings>
 #include "mainwindow.h"
 #include "fractalwidget.h"
 
@@ -12,10 +13,12 @@ MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
   }
   else
   {
+    QSettings test("Coffee Company", "fractal-map");
+    
     m_fractalWidget = new FractalWidget(
       this,
       statusBar(),
-      0.007,
+      test.value("scale", 0.007).toDouble(),
       128,
       2.0,
       QPointF(0,0),

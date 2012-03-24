@@ -527,6 +527,7 @@ void FractalWidget::setScale(const QString& text)
   {
     m_scale = scale;
     render(m_pass);
+    QSettings().setValue("scale", m_scale);
   }
 }
 
