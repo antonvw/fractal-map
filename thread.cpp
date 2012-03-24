@@ -100,7 +100,10 @@ void Thread::run()
 
           if (!fractal.calc(std::complex<double>(ax, ay), n, max_iterations))
           {
-            emit renderedImage(image, scale);
+            if (!converge)
+            {
+              emit renderedImage(image, scale);
+            }
             
             if (m_stop)
             {
