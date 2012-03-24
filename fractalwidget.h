@@ -60,6 +60,9 @@ public:
   // Pauses thread.
   void pause() {m_thread.pause();}
   
+  // Refreshes thread.
+  void refresh() {m_thread.refresh();}
+  
   // Starts thread.
   void start() {m_thread.start();}
 protected:

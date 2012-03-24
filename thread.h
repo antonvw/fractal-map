@@ -28,7 +28,7 @@ public:
 
   // Thread is paused or restarted or stopped.  
   bool interrupted() const {
-    return m_pause || m_restart || m_stop;};
+    return m_pause || m_refresh || m_restart || m_stop;};
   
   // Pauses the thread.
   void pause();
@@ -53,6 +53,9 @@ public:
     // using these colours,
     // the last colour is used for converge
     const std::vector<uint> & colours);
+    
+  // Ask for a refresh.
+  void refresh();
 signals:
   // If an image is available, this signal is emitted.
   void renderedImage(const QImage &image, double scale);
@@ -72,8 +75,9 @@ private:
   double m_scale;
   uint m_first_pass;
   uint m_max_passes;
-  bool m_restart;
   bool m_pause;
+  bool m_refresh;
+  bool m_restart;
   bool m_stop;
   QImage m_image;
   Fractal m_fractal;

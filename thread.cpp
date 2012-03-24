@@ -4,8 +4,9 @@
 
 Thread::Thread(QObject *parent)
   : QThread(parent)
-  , m_restart(false)
   , m_pause(false)
+  , m_refresh(false)
+  , m_restart(false)
   , m_stop(false)
 {
 }
@@ -81,7 +82,7 @@ void Thread::run()
     
     for (uint pass = first_pass; pass <= max_passes; pass++)
     {
-      const uint max_iterations = 1 << pass;
+      const uint max_iterations = 16 + (8 << pass);
       
       emit renderingImage(pass, max_passes, max_iterations);
       
@@ -99,14 +100,16 @@ void Thread::run()
 
           if (!fractal.calc(std::complex<double>(ax, ay), n, max_iterations))
           {
-            if (!m_restart)
-            {
-              emit renderedImage(image, scale);
-            }
+            emit renderedImage(image, scale);
             
             if (m_stop)
             {
               return;
+            }
+            
+            if (m_refresh)
+            {
+              m_refresh = false;
             }
           }
 
@@ -136,6 +139,14 @@ void Thread::run()
     m_restart = false;
     m_mutex.unlock();
   }
+}
+
+void Thread::refresh()
+{
+  m_mutex.lock();
+  m_refresh = true;
+  m_condition.wakeOne();
+  m_mutex.unlock();
 }
 
 void Thread::stop()

@@ -8,11 +8,11 @@ MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
 {
   if (fractal != NULL)
   {
-    m_fractal = new FractalWidget(*fractal, statusBar());
+    m_fractalWidget = new FractalWidget(*fractal, statusBar());
   }
   else
   {
-    m_fractal = new FractalWidget(
+    m_fractalWidget = new FractalWidget(
       this,
       statusBar(),
       0.007,
@@ -34,8 +34,11 @@ MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
   QAction* colours_end = menu->addAction("Colours From End...");
   menu->addSeparator();
   QAction* copy = menu->addAction("Copy");
+  QAction* refresh = menu->addAction("Refresh");
+  refresh->setShortcuts(QKeySequence::Refresh);
   menu->addSeparator();
-  QAction* newFractalWidget = menu->addAction("New");
+  QAction* newAction = menu->addAction("New");
+  newAction->setShortcuts(QKeySequence::New);
   menu->addSeparator();
   QAction* pause = new QAction("Pause", menu);
   pause->setCheckable(true);
@@ -46,17 +49,18 @@ MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
   connect(colours_begin, SIGNAL(triggered()), this, SLOT(colours_begin()));
   connect(colours_end, SIGNAL(triggered()), this, SLOT(colours_end()));
   connect(copy, SIGNAL(triggered()), this, SLOT(copy()));
-  connect(newFractalWidget, SIGNAL(triggered()), this, SLOT(newFractalWidget()));
+  connect(refresh, SIGNAL(triggered()), this, SLOT(refresh()));
+  connect(newAction, SIGNAL(triggered()), this, SLOT(newFractalWidget()));
   connect(pause, SIGNAL(toggled(bool)), this, SLOT(pause(bool)));
   connect(menu, SIGNAL(clicked()), this, SLOT(menu()));
   
   QToolBar* tb = addToolBar("Control");
-  m_fractal->addControls(tb);
+  m_fractalWidget->addControls(tb);
   tb->addWidget(menuButton);
   
-  m_fractal->start();
+  m_fractalWidget->start();
   
-  setCentralWidget(m_fractal);
+  setCentralWidget(m_fractalWidget);
   setWindowTitle("Fractal Map");
   
   resize(550, 400);
@@ -72,26 +76,31 @@ void MainWindow::about()
 
 void MainWindow::colours_begin()
 {
-  m_fractal->setColoursDialog();
+  m_fractalWidget->setColoursDialog();
 }
 
 void MainWindow::colours_end()
 {
-  m_fractal->setColoursDialog(false);
+  m_fractalWidget->setColoursDialog(false);
 }
 
 void MainWindow::copy()
 {
-  QApplication::clipboard()->setImage(m_fractal->pixmap().toImage());
+  QApplication::clipboard()->setImage(m_fractalWidget->pixmap().toImage());
 }
 
 void MainWindow::newFractalWidget()
 {
-  MainWindow* m = new MainWindow(m_fractal);
+  MainWindow* m = new MainWindow(m_fractalWidget);
   m->show();
 }
 
 void MainWindow::pause(bool checked)
 {
-  checked ? m_fractal->pause(): m_fractal->cont();
+  checked ? m_fractalWidget->pause(): m_fractalWidget->cont();
+}
+
+void MainWindow::refresh()
+{
+  m_fractalWidget->refresh();
 }

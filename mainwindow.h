@@ -20,7 +20,8 @@ private slots:
   void copy();
   void newFractalWidget();
   void pause(bool);
+  void refresh();
 private:
-  FractalWidget* m_fractal;
+  FractalWidget* m_fractalWidget;
 };
 #endif
