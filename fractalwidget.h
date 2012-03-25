@@ -25,6 +25,8 @@ public:
     QWidget* parent,
     // statusbar
     QStatusBar* statusbar,
+    // fractal to use
+    const QString& fractalName,
     // scale to use
     double scale,
     // number of colours

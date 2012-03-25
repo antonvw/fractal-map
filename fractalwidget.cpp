@@ -9,6 +9,7 @@ const double zoomIn = 0.8;
 FractalWidget::FractalWidget(
   QWidget* parent,
   QStatusBar* statusbar,
+  const QString& fractalName,
   double scale,
   uint colours,
   double diverge,
@@ -28,7 +29,7 @@ FractalWidget::FractalWidget(
   , m_scaleEdit(new QLineEdit())
   , m_origin(0, 0)
   , m_center(center)
-  , m_fractalName(Fractal::names().front())
+  , m_fractalName(fractalName)
   , m_coloursMinWave(380)
   , m_coloursMaxWave(780)
   , m_diverge(diverge)
@@ -401,6 +402,7 @@ void FractalWidget::setColours(uint colours)
   }
   
   m_colours.push_back(qRgb(0, 0, 0));
+  QSettings().setValue("colours", colours);
 }
 
 void FractalWidget::setColoursDialog(bool from_start)
@@ -468,6 +470,7 @@ void FractalWidget::setFirstPass(int value)
   {
     m_passesEdit->setMinimum(value);
     m_first_pass = value;
+    QSettings().setValue("first pass", m_first_pass);
     render();
   }
 }
@@ -501,6 +504,7 @@ void FractalWidget::setFractal(const QString& index)
       
     m_fractalName = index;
     m_pass = 0;
+    QSettings().setValue("fractal", m_fractalName);
     render();
   }
 }
@@ -510,6 +514,7 @@ void FractalWidget::setPasses(int value)
   if (value > 0)
   {
     m_passes = value;
+    QSettings().setValue("last pass", m_passes);
     render(m_pass + 1);
   }
 }

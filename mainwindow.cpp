@@ -13,17 +13,18 @@ MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
   }
   else
   {
-    QSettings test("Coffee Company", "fractal-map");
+    QSettings settings;
     
     m_fractalWidget = new FractalWidget(
       this,
       statusBar(),
-      test.value("scale", 0.007).toDouble(),
-      128,
+      settings.value("fractal", "julia set 4").toString(),
+      settings.value("scale", 0.007).toDouble(),
+      settings.value("colours", 128).toInt(),
       2.0,
       QPointF(0,0),
-      1,
-      10);
+      settings.value("first pass", 1).toInt(),
+      settings.value("last pass", 10).toInt());
   }
     
   qRegisterMetaType<QImage>("QImage");

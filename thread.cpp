@@ -4,6 +4,8 @@
 
 Thread::Thread(QObject *parent)
   : QThread(parent)
+  , m_first_pass(1)
+  , m_max_passes(0)
   , m_pause(false)
   , m_refresh(false)
   , m_restart(false)
@@ -52,7 +54,9 @@ void Thread::render(
   
   if (isRunning())
   {
+    m_refresh = false;
     m_restart = true;
+    
     m_condition.wakeOne();
   }
 }
