@@ -33,6 +33,7 @@ FractalWidget::FractalWidget(
   , m_coloursMinWave(380)
   , m_coloursMaxWave(780)
   , m_diverge(diverge)
+  , m_juliaExponent(2)
   , m_pixmapScale(scale)
   , m_scale(scale)
   , m_julia(std::complex<double>(0.1, 0.6))
@@ -67,6 +68,7 @@ FractalWidget::FractalWidget(const FractalWidget& fractal, QStatusBar* statusbar
   , m_coloursMinWave(fractal.m_coloursMinWave)
   , m_coloursMaxWave(fractal.m_coloursMaxWave)
   , m_diverge(fractal.m_diverge)
+  , m_juliaExponent(fractal.m_juliaExponent)
   , m_pixmapScale(fractal.m_scale)
   , m_scale(fractal.m_scale)
   , m_julia(fractal.m_julia)
@@ -180,8 +182,8 @@ void FractalWidget::init()
   m_scaleEdit->setValidator(new QDoubleValidator());
   m_scaleEdit->setToolTip("scale");
 
-  connect(&m_thread, SIGNAL(renderedImage(QImage,double)),
-    this, SLOT(updatePixmap(QImage,double)));
+  connect(&m_thread, SIGNAL(renderedImage(QImage,double,bool)),
+    this, SLOT(updatePixmap(QImage,double,bool)));
   connect(&m_thread, SIGNAL(renderingImage(uint,uint,uint)),
     this, SLOT(updatePass(uint,uint,uint)));
     
@@ -305,7 +307,7 @@ void FractalWidget::render(int start_at)
 {
   update();
   
-  Fractal fractal(&m_thread, m_fractalName, m_diverge, m_julia);
+  Fractal fractal(&m_thread, m_fractalName, m_diverge, m_julia, m_juliaExponent);
   
   if (fractal.isOk())
   {
@@ -499,7 +501,16 @@ void FractalWidget::setFractal(const QString& index)
         return;
       }
       
+      const double julia_exp = QInputDialog::getDouble(
+        this, "Julia set", "exponent", m_juliaExponent, -10, 10, 5, &isOk);
+      
+      if (!isOk)
+      {
+        return;
+      }
+      
       m_julia = std::complex<double>(julia_re, julia_im);
+      m_juliaExponent = julia_exp;
     }
       
     m_fractalName = index;
@@ -544,24 +555,28 @@ void FractalWidget::updatePass(uint pass, uint maxPasses, uint iterations)
     .arg(pass).arg(maxPasses).arg(iterations));
 }
 
-void FractalWidget::updatePixmap(const QImage &image, double scale)
+void FractalWidget::updatePixmap(
+  const QImage &image, double scale, bool snapshot)
 {
   if (image.isNull())
   {
     return;
   }
-  
-  m_updates++;
+ 
+  if (!snapshot)
+  {
+    m_updates++;
+    m_statusbar->showMessage(QString("completed %1 updates").arg(m_updates));  
+  }
+  else
+  {
+    m_statusbar->showMessage("refreshed", 50);
+  }
   
   if (!m_thread.isRunning())
   {
     m_statusbar->showMessage(QString("stopped afer %1 updates").arg(m_updates));  
   }
-  else
-  {
-    m_statusbar->showMessage(QString("completed %1 updates").arg(m_updates));  
-  }
-  
   if (!m_lastDragPos.isNull())
     return;
     

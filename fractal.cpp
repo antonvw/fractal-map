@@ -15,6 +15,7 @@ enum
   FRACTAL_JULIASET_7,
   FRACTAL_JULIASET_8,
   FRACTAL_JULIASET_9,
+  FRACTAL_GLYNN,
 };
 
 std::vector<QString> Fractal::m_names;
@@ -23,12 +24,14 @@ Fractal::Fractal(
   Thread* thread, 
   const QString& name,
   uint diverge,
-  const std::complex<double> & c)
+  const std::complex<double> & c,
+  double exp)
   : m_isOk(false)
   , m_diverge(diverge)
   , m_name(name)
   , m_thread(thread)
   , m_julia(c)
+  , m_julia_exponent(exp)
 {
   int type = FRACTAL_MANDELBROTSET;
   
@@ -86,40 +89,59 @@ Fractal::Fractal(
     case FRACTAL_JULIASET_9:
       m_julia = std::complex<double>(0, 1);
     break;
+    
+    case FRACTAL_GLYNN:
+      m_julia = std::complex<double>(-0.2, 0);
+    break;
   }
 }
 
 bool Fractal::calc(const std::complex<double> & c, uint& n, uint max)
 { 
-  if (m_name.contains("julia"))
+  if (m_name.contains("glynn"))
   {
-    return julia(c, n, max);
+    return julia(c, 1.5, n, max);
+  } 
+  else if (m_name == "julia set")
+  {
+    return julia(c, m_julia_exponent, n, max);
   }
-  else
+  else if (m_name.contains("julia"))
   {
-    std::complex<double> z;
-    
-    for (n = 0; n < max && !m_thread->interrupted(); n++)
-    {
-      z = z * z - c;
-        
-      if (abs(z) > m_diverge)
-      {
-        break;
-      }
-    }
+    return julia(c, 2, n, max);
+  }
+  else if (m_name.contains("mandelbrot"))
+  {
+    return mandelbrotset(c, n, max);
   }
   
-  return !m_thread->interrupted();
+  return false;
 }          
 
-bool Fractal::julia(const std::complex<double> & c, uint& n, uint max)
+bool Fractal::julia(const std::complex<double> & c, double exp, uint& n, uint max)
 {
   std::complex<double> z(c);
     
   for (n = 0; n < max && !m_thread->interrupted(); n++)
   {
-    z = z * z + m_julia;
+    z = pow(z, exp) + m_julia;
+        
+    if (abs(z) > m_diverge)
+    {
+      break;
+    }
+  }
+  
+  return !m_thread->interrupted();
+}
+
+bool Fractal::mandelbrotset(const std::complex<double> & c, uint& n, uint max)
+{
+  std::complex<double> z;
+    
+  for (n = 0; n < max && !m_thread->interrupted(); n++)
+  {
+    z = z * z - c;
         
     if (abs(z) > m_diverge)
     {
@@ -145,6 +167,7 @@ std::vector<QString> & Fractal::names()
     m_names.push_back("julia set 7");
     m_names.push_back("julia set 8");
     m_names.push_back("julia set 9");
+    m_names.push_back("glynn");
   }
 
   return m_names;  

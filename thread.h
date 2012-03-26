@@ -58,7 +58,10 @@ public:
   void refresh();
 signals:
   // If an image is available, this signal is emitted.
-  void renderedImage(const QImage &image, double scale);
+  void renderedImage(
+    const QImage &image, 
+    double scale,
+    bool snapshot);
   
   // During rendering, this signal is emitted,
   // allowing you to observe progress.

@@ -19,8 +19,9 @@ public:
     const QString& name = QString(),
     // diverge limit
     uint diverge = 0,
-    // extra arg (for julia set)
-    const std::complex<double> & c = std::complex<double>(0, 0));
+    // extra args (for julia set)
+    const std::complex<double> & c = std::complex<double>(0, 0),
+    double exp = 2);
     
   // Do fractal calculation. 
   // Returns true if calculation was not interrupted by thread.
@@ -38,7 +39,8 @@ public:
   // Supported fractals.
   static std::vector<QString> & names();
 private:
-  bool julia(const std::complex<double> & c, uint& n, uint max);
+  bool julia(const std::complex<double> & c, double exp, uint& n, uint max);
+  bool mandelbrotset(const std::complex<double> & c, uint& n, uint max);
   
   static std::vector<QString> m_names;
   
@@ -47,5 +49,6 @@ private:
   QString m_name;
   Thread* m_thread;
   std::complex<double> m_julia;
+  double m_julia_exponent;
 };
 #endif

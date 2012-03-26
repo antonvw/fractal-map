@@ -88,7 +88,7 @@ private slots:
   void setPasses(int value);
   void setScale(const QString& text);
   void updatePass(uint pass, uint numberOfPasses, uint iterations);
-  void updatePixmap(const QImage &image, double scale);
+  void updatePixmap(const QImage &image, double scale, bool snapshot);
   void zoom(double zoomFactor);
 private:
   void addAxes(QPainter& painter);
@@ -125,6 +125,7 @@ private:
   double m_coloursMinWave;  
   double m_coloursMaxWave;  
   double m_diverge;
+  double m_juliaExponent;  
   double m_pixmapScale;
   double m_scale;
   

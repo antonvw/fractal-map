@@ -92,11 +92,11 @@ void Thread::run()
       
       bool converge = true;
 
-      for (int y = -half.height(); y < half.height() && !interrupted(); ++y) 
+      for (int y = -half.height(); y < half.height() && !m_restart; ++y) 
       {
         const double ay = center.y() + (y * scale);
 
-        for (int x = -half.width(); x < half.width() && !interrupted(); ++x) 
+        for (int x = -half.width(); x < half.width() && !m_restart; ++x) 
         {
           const double ax = center.x() + (x * scale);
           
@@ -104,19 +104,17 @@ void Thread::run()
 
           if (!fractal.calc(std::complex<double>(ax, ay), n, max_iterations))
           {
-            if (!converge)
+            if (m_refresh)
             {
-              emit renderedImage(image, scale);
+              emit renderedImage(image, scale, true);
+              QMutexLocker locker(&m_mutex);
+              m_image = image;
+              m_refresh = false;
             }
             
             if (m_stop)
             {
               return;
-            }
-            
-            if (m_refresh)
-            {
-              m_refresh = false;
             }
           }
 
@@ -134,7 +132,7 @@ void Thread::run()
 
       if (!converge && !m_restart)
       {
-        emit renderedImage(image, scale);
+        emit renderedImage(image, scale, false);
       }
     }
 
