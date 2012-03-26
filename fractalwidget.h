@@ -88,6 +88,8 @@ private slots:
   void setDiverge(const QString& text);
   void setFirstPass(int value);
   void setFractal(const QString& index);
+  void setJulia(const QString& text);
+  void setJuliaExponent(const QString& text);
   void setPasses(int value);
   void setScale(const QString& text);
   void updatePass(uint pass, uint numberOfPasses, uint iterations);

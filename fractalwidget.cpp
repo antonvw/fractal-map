@@ -183,6 +183,14 @@ void FractalWidget::init()
   
   m_fractalEdit->setToolTip("fractal to observe");
   
+  m_juliaEdit->setText(
+    QString::number(m_julia.real()) + "," + QString::number(m_julia.imag()));
+  m_juliaEdit->setToolTip("julia real,imag");
+  
+  m_juliaExponentEdit->setText(QString::number(m_juliaExponent));
+  m_juliaExponentEdit->setValidator(new QDoubleValidator());
+  m_juliaExponentEdit->setToolTip("julia exponent");
+
   m_passesEdit->setMaximum(32);
   m_passesEdit->setMinimum(m_first_passEdit->value());
   m_passesEdit->setValue(m_passes);
@@ -215,6 +223,10 @@ void FractalWidget::init()
     this, SLOT(setFirstPass(int)));
   connect(m_fractalEdit, SIGNAL(currentIndexChanged(const QString&)),
     this, SLOT(setFractal(const QString&)));
+  connect(m_juliaEdit, SIGNAL(textEdited(const QString&)),
+    this, SLOT(setJulia(const QString&)));
+  connect(m_juliaExponentEdit, SIGNAL(textEdited(const QString&)),
+    this, SLOT(setJuliaExponent(const QString&)));
   connect(m_passesEdit, SIGNAL(valueChanged(int)),
     this, SLOT(setPasses(int)));
   connect(m_scaleEdit, SIGNAL(textEdited(const QString&)),
@@ -491,43 +503,32 @@ void FractalWidget::setFractal(const QString& index)
 {
   if (!index.isEmpty())
   {
-    if (index == "julia set")
-    {
-      bool isOk;
-      
-      const double julia_re = QInputDialog::getDouble(
-        this, "Julia set", "real", m_julia.real(), -2, 2, 5, &isOk);
-      
-      if (!isOk)
-      {
-        return;
-      }
-      
-      const double julia_im = QInputDialog::getDouble(
-        this, "Julia set", "imag", m_julia.imag(), -2, 2, 5, &isOk);
-      
-      if (!isOk)
-      {
-        return;
-      }
-      
-      const double julia_exp = QInputDialog::getDouble(
-        this, "Julia set", "exponent", m_juliaExponent, -10, 10, 5, &isOk);
-      
-      if (!isOk)
-      {
-        return;
-      }
-      
-      m_julia = std::complex<double>(julia_re, julia_im);
-      m_juliaExponent = julia_exp;
-    }
-      
     m_fractalName = index;
     m_pass = 0;
     QSettings().setValue("fractal", m_fractalName);
     render();
   }
+}
+
+void FractalWidget::setJulia(const QString& text)
+{
+  const QStringList sl(text.split(","));
+  
+  if (sl.size() != 2)
+  {
+    return;
+  }
+      
+  m_julia = std::complex<double>(sl[0].toDouble(), sl[1].toDouble());
+  
+  render();
+}      
+
+void FractalWidget::setJuliaExponent(const QString& text)
+{
+  m_juliaExponent = text.toDouble();
+  
+  render();
 }
 
 void FractalWidget::setPasses(int value)
