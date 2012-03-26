@@ -60,7 +60,9 @@ MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
   connect(menu, SIGNAL(clicked()), this, SLOT(menu()));
   
   QToolBar* tb = addToolBar("Control");
+  QToolBar* tb_julia = addToolBar("Julia Control");
   m_fractalWidget->addControls(tb);
+  m_fractalWidget->addJuliaControls(tb_julia);
   tb->addWidget(menuButton);
   
   m_fractalWidget->start();

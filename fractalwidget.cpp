@@ -25,6 +25,8 @@ FractalWidget::FractalWidget(
   , m_divergeEdit(new QLineEdit())
   , m_first_passEdit(new QSpinBox())
   , m_fractalEdit(new QComboBox())
+  , m_juliaEdit(new QLineEdit())
+  , m_juliaExponentEdit(new QLineEdit())
   , m_passesEdit(new QSpinBox())
   , m_scaleEdit(new QLineEdit())
   , m_origin(0, 0)
@@ -59,6 +61,8 @@ FractalWidget::FractalWidget(const FractalWidget& fractal, QStatusBar* statusbar
   , m_divergeEdit(new QLineEdit())
   , m_first_passEdit(new QSpinBox())
   , m_fractalEdit(new QComboBox())
+  , m_juliaEdit(new QLineEdit())
+  , m_juliaExponentEdit(new QLineEdit())
   , m_passesEdit(new QSpinBox())
   , m_scaleEdit(new QLineEdit())
   , m_origin(fractal.m_origin)
@@ -124,6 +128,12 @@ void FractalWidget::addControls(QToolBar* toolbar)
   toolbar->addWidget(m_divergeEdit);
   toolbar->addSeparator();
   toolbar->addWidget(m_axesEdit);
+}
+
+void FractalWidget::addJuliaControls(QToolBar* toolbar)
+{
+  toolbar->addWidget(m_juliaEdit);
+  toolbar->addWidget(m_juliaExponentEdit);
 }
 
 void FractalWidget::init()

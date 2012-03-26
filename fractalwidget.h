@@ -50,6 +50,9 @@ public:
   // Adds controls to a toolbar.
   void addControls(QToolBar* toolbar);
 
+  // Adds julia specific controls to a toolbar.
+  void addJuliaControls(QToolBar* toolbar);
+
   // Continues thread.
   void cont() {m_thread.cont();}
   
@@ -108,6 +111,8 @@ private:
   QLineEdit* m_divergeEdit;
   QSpinBox* m_first_passEdit;
   QComboBox* m_fractalEdit;
+  QLineEdit* m_juliaEdit;
+  QLineEdit* m_juliaExponentEdit;
   QSpinBox* m_passesEdit;
   QLineEdit* m_scaleEdit;
   
