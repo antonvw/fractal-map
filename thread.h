@@ -73,6 +73,10 @@ signals:
   // During rendering, this signal is emitted,
   // allowing you to observe progress.
   void renderingImage(uint pass, uint max, uint iterations);
+  
+  // During rendering, this signal is emitted as well.
+  // It signals current busy on line out of maxc lines.
+  void renderingImage(uint line, uint max);
 protected:
   void run();
 private:

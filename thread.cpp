@@ -143,6 +143,8 @@ void Thread::run()
         y < half.height() && !m_restart && !m_pause; 
         ++y) 
       {
+        emit renderingImage(y + half.height(), image.height());
+        
         const double ay = center.y() + (y * scale);
 
         for (

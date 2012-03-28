@@ -42,6 +42,7 @@ FractalWidget::FractalWidget(
   , m_updates(0)
   , m_colourDialog(new QColorDialog())
   , m_juliaToolBar(NULL)
+  , m_progressBar(new QProgressBar())
   , m_statusBar(statusbar)
 {
   setColoursMax(colours);
@@ -69,6 +70,7 @@ FractalWidget::FractalWidget(
   , m_updates(0)
   , m_colourDialog(fractal.m_colourDialog)
   , m_juliaToolBar(fractal.m_juliaToolBar)
+  , m_progressBar(fractal.m_progressBar)
   , m_statusBar(statusbar)
 {
   init();
@@ -214,6 +216,8 @@ void FractalWidget::init()
     this, SLOT(updatePixmap(QImage,uint,uint,double,bool)));
   connect(&m_thread, SIGNAL(renderingImage(uint,uint,uint)),
     this, SLOT(updatePass(uint,uint,uint)));
+  connect(&m_thread, SIGNAL(renderingImage(uint,uint)),
+    this, SLOT(updatePass(uint,uint)));
     
   connect(m_axesEdit, SIGNAL(stateChaged(bool)),
     this, SLOT(setAxes(bool)));
@@ -245,6 +249,7 @@ void FractalWidget::init()
   setCursor(Qt::CrossCursor);
   setFocusPolicy(Qt::StrongFocus);
   
+  m_statusBar->addPermanentWidget(m_progressBar);
   m_statusBar->addPermanentWidget(m_passesLabel);
   m_statusBar->addPermanentWidget(m_updatesLabel);
 }
@@ -346,6 +351,10 @@ void FractalWidget::paintEvent(QPaintEvent * /* event */)
 void FractalWidget::render(int start_at)
 {
   update();
+  
+  m_progressBar->setMinimum(0);
+  m_progressBar->setMaximum(size().height());
+  m_progressBar->show();
   
   Fractal fractal(&m_thread, 
     m_fractalName.toStdString(), m_diverge, m_julia, m_juliaExponent);
@@ -601,6 +610,11 @@ void FractalWidget::setScale(const QString& text)
   }
 }
 
+void FractalWidget::updatePass(uint line, uint max)
+{
+  m_progressBar->setValue(line);
+}
+
 void FractalWidget::updatePass(uint pass, uint max, uint iterations)
 {
   m_pass = pass;
@@ -623,6 +637,7 @@ void FractalWidget::updatePixmap(
      
     if (pass == max)
     {
+      m_progressBar->hide();
       m_statusBar->showMessage("ready");  
     }
   }

@@ -15,6 +15,7 @@
 #include <QLineEdit>
 #include <QPixmap>
 #include <QPointF>
+#include <QProgressBar>
 #include <QSpinBox>
 #include <QStatusBar>
 #include <QToolBar>
@@ -105,8 +106,10 @@ private slots:
   void setJuliaExponent(const QString& text);
   void setPasses(int value);
   void setScale(const QString& text);
+  void updatePass(uint line, uint max);
   void updatePass(uint pass, uint numberOfPasses, uint iterations);
-  void updatePixmap(const QImage &image, uint pass, uint max, double scale, bool snapshot);
+  void updatePixmap(
+    const QImage &image, uint pass, uint max, double scale, bool snapshot);
   void zoom(double zoomFactor);
 private:
   void addAxes(QPainter& painter);
@@ -165,6 +168,7 @@ private:
   
   QColorDialog* m_colourDialog;
   QToolBar* m_juliaToolBar;
+  QProgressBar* m_progressBar;
   QStatusBar* m_statusBar;
 };
 #endif
