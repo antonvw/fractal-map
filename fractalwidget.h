@@ -132,6 +132,7 @@ private:
   QSpinBox* m_passesEdit;
   QLineEdit* m_scaleEdit;
   
+  QLabel* m_passesLabel;
   QLabel* m_updatesLabel;
   
   QPixmap m_pixmap;

@@ -205,7 +205,10 @@ void FractalWidget::init()
   m_scaleEdit->setValidator(new QDoubleValidator());
   m_scaleEdit->setToolTip("scale");
 
+  m_passesLabel = new QLabel();
+  m_passesLabel->setToolTip("current pass out of max passes");
   m_updatesLabel = new QLabel();
+  m_updatesLabel->setToolTip("total images rendered");
   
   connect(&m_thread, SIGNAL(renderedImage(QImage,uint,uint,double,bool)),
     this, SLOT(updatePixmap(QImage,uint,uint,double,bool)));
@@ -242,6 +245,7 @@ void FractalWidget::init()
   setCursor(Qt::CrossCursor);
   setFocusPolicy(Qt::StrongFocus);
   
+  m_statusBar->addPermanentWidget(m_passesLabel);
   m_statusBar->addPermanentWidget(m_updatesLabel);
 }
 
@@ -368,6 +372,7 @@ void FractalWidget::save()
 {
   QSettings settings;
   
+  settings.setValue("center", m_center);
   settings.setValue("colours", m_colours.size());
   settings.setValue("first pass", m_firstPass);
   settings.setValue("fractal", m_fractalName);
@@ -592,16 +597,18 @@ void FractalWidget::setScale(const QString& text)
   if (scale != 0)
   {
     m_scale = scale;
-    render(m_pass);
+    render();
   }
 }
 
-void FractalWidget::updatePass(uint pass, uint maxPasses, uint iterations)
+void FractalWidget::updatePass(uint pass, uint max, uint iterations)
 {
   m_pass = pass;
   
-  m_statusBar->showMessage(QString("pass %1 of %2 (%3 iterations) ...")
-    .arg(pass).arg(maxPasses).arg(iterations));
+  m_passesLabel->setText(QString::number(pass) + "," + QString::number(max));
+  
+  m_statusBar->showMessage(QString("executing %1 iterations ...")
+    .arg(iterations));
 }
 
 void FractalWidget::updatePixmap(
@@ -612,6 +619,8 @@ void FractalWidget::updatePixmap(
     
   if (!snapshot)
   {
+    m_passesLabel->setText(QString::number(pass) + "," + QString::number(max));
+     
     if (pass == max)
     {
       m_statusBar->showMessage("ready");  

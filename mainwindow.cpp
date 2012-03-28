@@ -28,7 +28,7 @@ MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
       settings.value("scale", 0.007).toDouble(),
       settings.value("colours", 128).toInt(),
       2.0,
-      QPointF(0,0),
+      settings.value("center", QPointF(0,0)).toPointF(),
       settings.value("first pass", 1).toInt(),
       settings.value("last pass", 10).toInt(),
       settings.value("julia real", 0.9).toDouble(),
