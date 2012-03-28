@@ -1,4 +1,10 @@
-#include <math.h>
+////////////////////////////////////////////////////////////////////////////////
+// Name:      mainwindow.cpp
+// Purpose:   Implementation of class MainWindow
+// Author:    Anton van Wezenbeek
+// Copyright: (c) 2012 Anton van Wezenbeek
+////////////////////////////////////////////////////////////////////////////////
+
 #include <QtGui>
 #include <QSettings>
 #include "mainwindow.h"
@@ -24,7 +30,10 @@ MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
       2.0,
       QPointF(0,0),
       settings.value("first pass", 1).toInt(),
-      settings.value("last pass", 10).toInt());
+      settings.value("last pass", 10).toInt(),
+      settings.value("julia real", 0.9).toDouble(),
+      settings.value("julia imag", 1.1).toDouble(),
+      settings.value("julia exponent", 2).toDouble());
   }
     
   qRegisterMetaType<QImage>("QImage");
@@ -51,14 +60,15 @@ MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
   menuButton->setMenu(menu);
   
   connect(about, SIGNAL(triggered()), this, SLOT(about()));    
-  connect(colours_begin, SIGNAL(triggered()), this, SLOT(colours_begin()));
-  connect(colours_end, SIGNAL(triggered()), this, SLOT(colours_end()));
-  connect(copy, SIGNAL(triggered()), this, SLOT(copy()));
-  connect(refresh, SIGNAL(triggered()), this, SLOT(refresh()));
+  connect(colours_begin, SIGNAL(triggered()), m_fractalWidget, SLOT(setColoursDialogBegin()));
+  connect(colours_end, SIGNAL(triggered()), m_fractalWidget, SLOT(setColoursDialogEnd()));
+  connect(copy, SIGNAL(triggered()), m_fractalWidget, SLOT(copy()));
+  connect(refresh, SIGNAL(triggered()), m_fractalWidget, SLOT(refresh()));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFractalWidget()));
-  connect(pause, SIGNAL(toggled(bool)), this, SLOT(pause(bool)));
+  connect(pause, SIGNAL(toggled(bool)), m_fractalWidget, SLOT(pause(bool)));
   connect(menu, SIGNAL(clicked()), this, SLOT(menu()));
-  
+  connect(qApp, SIGNAL(lastWindowClosed()), m_fractalWidget, SLOT(save()));
+
   QToolBar* tb = addToolBar("Control");
   QToolBar* tb_julia = new QToolBar("Julia Control");
   addToolBar(Qt::BottomToolBarArea, tb_julia);
@@ -66,12 +76,12 @@ MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
   m_fractalWidget->addJuliaControls(tb_julia);
   tb->addWidget(menuButton);
   
-  m_fractalWidget->start();
-  
   setCentralWidget(m_fractalWidget);
   setWindowTitle("Fractal Map");
   
   resize(550, 400);
+  
+  m_fractalWidget->start();
 }
 
 void MainWindow::about()
@@ -82,33 +92,8 @@ void MainWindow::about()
       arg(QT_VERSION_STR));
 }
 
-void MainWindow::colours_begin()
-{
-  m_fractalWidget->setColoursDialog();
-}
-
-void MainWindow::colours_end()
-{
-  m_fractalWidget->setColoursDialog(false);
-}
-
-void MainWindow::copy()
-{
-  QApplication::clipboard()->setImage(m_fractalWidget->pixmap().toImage());
-}
-
 void MainWindow::newFractalWidget()
 {
   MainWindow* m = new MainWindow(m_fractalWidget);
   m->show();
-}
-
-void MainWindow::pause(bool checked)
-{
-  checked ? m_fractalWidget->pause(): m_fractalWidget->cont();
-}
-
-void MainWindow::refresh()
-{
-  m_fractalWidget->refresh();
 }

@@ -1,16 +1,24 @@
-#ifndef FRACTALWIDGET_H
-#define FRACTALWIDGET_H
+////////////////////////////////////////////////////////////////////////////////
+// Name:      fractalwidget.h
+// Purpose:   Declaration of class FractalWidget
+// Author:    Anton van Wezenbeek
+// Copyright: (c) 2012 Anton van Wezenbeek
+////////////////////////////////////////////////////////////////////////////////
 
-#include <QPixmap>
-#include <QLineEdit>
-#include <QSpinBox>
-#include <QPointF>
-#include <QWidget>
+#ifndef _FRACTALWIDGET_H
+#define _FRACTALWIDGET_H
+
+#include <QCheckBox>
 #include <QColorDialog>
 #include <QComboBox>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPixmap>
+#include <QPointF>
+#include <QSpinBox>
 #include <QStatusBar>
-#include <QCheckBox>
 #include <QToolBar>
+#include <QWidget>
 #include "thread.h"
 
 // This class offers the fractal widget.
@@ -38,7 +46,11 @@ public:
     // first pass
     uint first_pass,
     // number of passes
-    uint passes);
+    uint passes,
+    // extra julia args
+    double julia_real,
+    double julia_imag,
+    double julia_exponent);
     
   // Copy constructor.
   FractalWidget(
@@ -52,23 +64,24 @@ public:
 
   // Adds julia specific controls to a toolbar.
   void addJuliaControls(QToolBar* toolbar);
-
-  // Continues thread.
-  void cont() {m_thread.cont();}
+public slots:
+  // Copies pixmap to clipboard.
+  void copy();
   
-  // Gets current pixmap.  
-  const QPixmap& pixmap() const {return m_pixmap;};
+  // Pauses or continues the rendering process.
+  void pause(bool checked) {checked ? m_thread.pause(): m_thread.cont();}
   
-  // Sets colours.
-  void setColoursDialog(bool from_start = true);
-  
-  // Pauses thread.
-  void pause() {m_thread.pause();}
-  
-  // Refreshes thread.
+  // Refreshes the fractal image.
   void refresh() {m_thread.refresh();}
   
-  // Starts thread.
+  // Saves settings.
+  void save();
+  
+  // Sets colours.
+  void setColoursDialogBegin() {setColoursDialog(true);};
+  void setColoursDialogEnd() {setColoursDialog(false);};
+  
+  // Starts rendering the fractal.
   void start() {m_thread.start();}
 protected:
   void keyPressEvent(QKeyEvent *event);
@@ -93,7 +106,7 @@ private slots:
   void setPasses(int value);
   void setScale(const QString& text);
   void updatePass(uint pass, uint numberOfPasses, uint iterations);
-  void updatePixmap(const QImage &image, double scale, bool snapshot);
+  void updatePixmap(const QImage &image, uint pass, uint max, double scale, bool snapshot);
   void zoom(double zoomFactor);
 private:
   void addAxes(QPainter& painter);
@@ -101,6 +114,7 @@ private:
   void render(int start_at = 0);
   void scroll(const QPoint& delta);
   void setColours(uint colours);
+  void setColoursDialog(bool from_start);
   uint wav2RGB(double wave) const;
 
   Thread m_thread;
@@ -111,12 +125,14 @@ private:
   QSpinBox* m_coloursMaxWaveEdit;
   QSpinBox* m_coloursMinWaveEdit;
   QLineEdit* m_divergeEdit;
-  QSpinBox* m_first_passEdit;
+  QSpinBox* m_firstPassEdit;
   QComboBox* m_fractalEdit;
   QLineEdit* m_juliaEdit;
   QLineEdit* m_juliaExponentEdit;
   QSpinBox* m_passesEdit;
   QLineEdit* m_scaleEdit;
+  
+  QLabel* m_updatesLabel;
   
   QPixmap m_pixmap;
   
@@ -139,15 +155,15 @@ private:
   std::complex<double> m_julia;
     
   uint m_colourIndex;
-  uint m_first_pass;
+  uint m_firstPass;
   uint m_pass;
   uint m_passes;
-  
-  long m_updates;
+  uint m_updates;
   
   bool m_colourIndexFromStart;
   
   QColorDialog* m_colourDialog;
-  QStatusBar* m_statusbar;
+  QToolBar* m_juliaToolBar;
+  QStatusBar* m_statusBar;
 };
 #endif

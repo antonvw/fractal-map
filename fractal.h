@@ -1,9 +1,16 @@
-#ifndef FRACTAL_H
-#define FRACTAL_H
+////////////////////////////////////////////////////////////////////////////////
+// Name:      fractal.h
+// Purpose:   Declaration of class Fractal
+// Author:    Anton van Wezenbeek
+// Copyright: (c) 2012 Anton van Wezenbeek
+////////////////////////////////////////////////////////////////////////////////
+
+#ifndef _FRACTAL_H
+#define _FRACTAL_H
 
 #include <complex>
+#include <string>
 #include <vector>
-#include <QString>
 
 class Thread;
 
@@ -16,9 +23,9 @@ public:
     // the thread, to be able to interrupt calculation
     Thread* thread = NULL, 
     // the name of the fractal, see names
-    const QString& name = QString(),
+    const std::string& name = std::string(),
     // diverge limit
-    uint diverge = 0,
+    unsigned int diverge = 0,
     // extra args (for julia set)
     const std::complex<double> & c = std::complex<double>(0, 0),
     double exp = 2);
@@ -29,24 +36,31 @@ public:
     // complex start value
     const std::complex<double> & c,
     // number of iterations before diverge
-    uint& n, 
+    unsigned int& n, 
     // max iterations
-    uint max);
+    unsigned int max) const;
   
   // Is name ok.
   bool isOk() const {return m_isOk;};
   
   // Supported fractals.
-  static std::vector<QString> & names();
+  static std::vector<std::string> & names();
 private:
-  bool julia(const std::complex<double> & c, double exp, uint& n, uint max);
-  bool mandelbrotset(const std::complex<double> & c, uint& n, uint max);
+  bool juliaset(
+    const std::complex<double> & c, 
+    double exp, 
+    unsigned int& n, 
+    unsigned int max) const;
+  bool mandelbrotset(
+    const std::complex<double> & c, 
+    unsigned int& n, 
+    unsigned int max) const;
   
-  static std::vector<QString> m_names;
+  static std::vector<std::string> m_names;
   
   bool m_isOk;
-  uint m_diverge;
-  QString m_name;
+  unsigned int m_diverge;
+  std::string m_name;
   Thread* m_thread;
   std::complex<double> m_julia;
   double m_julia_exponent;

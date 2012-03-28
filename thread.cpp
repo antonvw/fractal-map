@@ -1,4 +1,10 @@
-#include <complex>
+////////////////////////////////////////////////////////////////////////////////
+// Name:      thread.cpp
+// Purpose:   Implementation of class Thread
+// Author:    Anton van Wezenbeek
+// Copyright: (c) 2012 Anton van Wezenbeek
+////////////////////////////////////////////////////////////////////////////////
+
 #include "thread.h"
 #include "fractal.h"
 
@@ -33,6 +39,44 @@ void Thread::pause()
   m_mutex.unlock();
 }
 
+bool Thread::render(
+  const Fractal& fractal,
+  const std::complex<double> & c, 
+  QImage& image,
+  const std::vector<uint> & colours,
+  const QPoint& p,
+  uint max,
+  bool& converge)
+{
+  uint n = 0;
+
+  if (!fractal.calc(c, n, max))
+  {
+    if (m_refresh && !image.isNull())
+    {
+      emit renderedImage(image, 0, 0, 0, true);
+      QMutexLocker locker(&m_mutex);
+      m_image = image;
+      m_refresh = false;
+    }
+    
+    if (m_stop)
+    {
+      return false;
+    }
+  }
+
+  if (n < max) 
+  {
+    converge = false;
+  } 
+  
+  image.setPixel(p,
+   (n < max ? colours[n % colours.size()]: colours.back()));
+   
+  return true;
+}
+
 void Thread::render(
   const Fractal& fractal,
   const QImage& image,
@@ -51,12 +95,11 @@ void Thread::render(
   m_first_pass = first_pass;
   m_max_passes = passes;
   m_fractal = fractal;
+  m_refresh = false;
   
   if (isRunning())
   {
-    m_refresh = false;
     m_restart = true;
-    
     m_condition.wakeOne();
   }
 }
@@ -79,12 +122,15 @@ void Thread::run()
     const uint first_pass = m_first_pass;
     const uint max_passes = m_max_passes;
     std::vector<uint> colours(m_colours);
-    Fractal fractal(m_fractal);
+    const Fractal fractal(m_fractal);
     m_mutex.unlock();
     
     const QSize half = image.size() / 2;
     
-    for (uint pass = first_pass; pass <= max_passes; pass++)
+    for (
+      uint pass = first_pass; 
+      pass <= max_passes && !m_restart && !m_pause; 
+      pass++)
     {
       const uint max_iterations = 16 + (8 << pass);
       
@@ -92,47 +138,37 @@ void Thread::run()
       
       bool converge = true;
 
-      for (int y = -half.height(); y < half.height() && !m_restart; ++y) 
+      for (
+        int y = -half.height(); 
+        y < half.height() && !m_restart && !m_pause; 
+        ++y) 
       {
         const double ay = center.y() + (y * scale);
 
-        for (int x = -half.width(); x < half.width() && !m_restart; ++x) 
+        for (
+          int x = -half.width(); 
+          x < half.width() && !m_restart && !m_pause; 
+          ++x) 
         {
           const double ax = center.x() + (x * scale);
           
-          uint n = 0;
-
-          if (!fractal.calc(std::complex<double>(ax, ay), n, max_iterations))
+          if (!render(
+            fractal, 
+            std::complex<double>(ax, ay), 
+            image, 
+            colours, 
+            QPoint(x + half.width(), y + half.height()),
+            max_iterations, 
+            converge))
           {
-            if (m_refresh)
-            {
-              emit renderedImage(image, scale, true);
-              QMutexLocker locker(&m_mutex);
-              m_image = image;
-              m_refresh = false;
-            }
-            
-            if (m_stop)
-            {
-              return;
-            }
+            return;
           }
-
-          if (n < max_iterations) 
-          {
-            converge = false;
-          } 
-          
-          image.setPixel(
-            x + half.width(), 
-            y + half.height(),
-           (n < max_iterations ? colours[n % colours.size()]: colours.back()));
         }
       }
 
-      if (!converge && !m_restart)
+      if (!converge && !m_restart && !image.isNull())
       {
-        emit renderedImage(image, scale, false);
+        emit renderedImage(image, pass, max_passes, scale, false);
       }
     }
 

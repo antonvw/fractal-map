@@ -1,4 +1,10 @@
-#include <math.h>
+////////////////////////////////////////////////////////////////////////////////
+// Name:      fractal.cpp
+// Purpose:   Implementation of class Fractal
+// Author:    Anton van Wezenbeek
+// Copyright: (c) 2012 Anton van Wezenbeek
+////////////////////////////////////////////////////////////////////////////////
+
 #include "fractal.h"
 #include "thread.h"
 
@@ -18,12 +24,12 @@ enum
   FRACTAL_GLYNN,
 };
 
-std::vector<QString> Fractal::m_names;
+std::vector<std::string> Fractal::m_names;
 
 Fractal::Fractal(
   Thread* thread, 
-  const QString& name,
-  uint diverge,
+  const std::string& name,
+  unsigned int diverge,
   const std::complex<double> & c,
   double exp)
   : m_isOk(false)
@@ -35,7 +41,7 @@ Fractal::Fractal(
 {
   int type = FRACTAL_MANDELBROTSET;
   
-  for (uint i = 0; i < m_names.size() && !m_isOk; i++)
+  for (unsigned int i = 0; i < m_names.size() && !m_isOk; i++)
   {
     if (m_names[i] == name)
     {
@@ -96,21 +102,24 @@ Fractal::Fractal(
   }
 }
 
-bool Fractal::calc(const std::complex<double> & c, uint& n, uint max)
+bool Fractal::calc(
+  const std::complex<double> & c, 
+  unsigned int& n, 
+  unsigned int max) const
 { 
-  if (m_name.contains("glynn"))
+  if (m_name.find("glynn") != std::string::npos)
   {
-    return julia(c, 1.5, n, max);
+    return juliaset(c, 1.5, n, max);
   } 
   else if (m_name == "julia set")
   {
-    return julia(c, m_julia_exponent, n, max);
+    return juliaset(c, m_julia_exponent, n, max);
   }
-  else if (m_name.contains("julia"))
+  else if (m_name.find("julia") != std::string::npos)
   {
-    return julia(c, 2, n, max);
+    return juliaset(c, 2, n, max);
   }
-  else if (m_name.contains("mandelbrot"))
+  else if (m_name.find("mandelbrot") != std::string::npos)
   {
     return mandelbrotset(c, n, max);
   }
@@ -118,7 +127,10 @@ bool Fractal::calc(const std::complex<double> & c, uint& n, uint max)
   return false;
 }          
 
-bool Fractal::julia(const std::complex<double> & c, double exp, uint& n, uint max)
+bool Fractal::juliaset(
+  const std::complex<double> & c, double exp, 
+  unsigned int& n, 
+  unsigned int max) const
 {
   std::complex<double> z(c);
     
@@ -135,7 +147,10 @@ bool Fractal::julia(const std::complex<double> & c, double exp, uint& n, uint ma
   return !m_thread->interrupted();
 }
 
-bool Fractal::mandelbrotset(const std::complex<double> & c, uint& n, uint max)
+bool Fractal::mandelbrotset(
+  const std::complex<double> & c, 
+  unsigned int& n, 
+  unsigned int max) const
 {
   std::complex<double> z;
     
@@ -152,7 +167,7 @@ bool Fractal::mandelbrotset(const std::complex<double> & c, uint& n, uint max)
   return !m_thread->interrupted();
 }
 
-std::vector<QString> & Fractal::names()
+std::vector<std::string> & Fractal::names()
 {
   if (m_names.empty())
   {
