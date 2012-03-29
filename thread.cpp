@@ -16,6 +16,7 @@ Thread::Thread(QObject *parent)
   , m_pause(false)
   , m_refresh(false)
   , m_restart(false)
+  , m_skip(false)
   , m_stop(false)
 {
 }
@@ -145,6 +146,11 @@ void Thread::run()
       pass <= max_passes && !m_restart && !m_pause; 
       pass++)
     {
+      if (m_skip)
+      {
+        m_skip = false;
+      }
+      
       const uint max_iterations = 16 + (8 << pass);
       
       emit renderingImage(pass, max_passes, max_iterations);
@@ -153,7 +159,7 @@ void Thread::run()
 
       for (
         int y = -half.height(); 
-        y < half.height() && !m_restart && !m_pause; 
+        y < half.height() && !m_restart && !m_pause && !m_skip; 
         ++y) 
       {
         const int halfy = y + half.height();
@@ -163,7 +169,7 @@ void Thread::run()
 
         for (
           int x = -half.width(); 
-          x < half.width() && !m_restart && !m_pause; 
+          x < half.width() && !m_restart && !m_pause && !m_skip; 
           ++x) 
         {
           const double ax = center.x() + (x * scale);
@@ -198,6 +204,13 @@ void Thread::run()
     m_restart = false;
     m_mutex.unlock();
   }
+}
+
+void Thread::skip()
+{
+  QMutexLocker locker(&m_mutex);
+  m_skip = true;
+  m_condition.wakeOne();
 }
 
 void Thread::stop()

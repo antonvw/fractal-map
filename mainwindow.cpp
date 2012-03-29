@@ -50,9 +50,11 @@ MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
   copy->setShortcuts(QKeySequence::Copy);
   QAction* refresh = menu->addAction("Refresh");
   refresh->setShortcuts(QKeySequence::Refresh);
+  QAction* skip = menu->addAction("Skip");
+  skip->setShortcut(QKeySequence("Ctrl+S"));
   menu->addSeparator();
   QAction* newAction = menu->addAction("New");
-  newAction->setShortcuts(QKeySequence::New);
+  newAction->setShortcut(QKeySequence::New);
   menu->addSeparator();
   QAction* pause = new QAction("Pause", menu);
   pause->setCheckable(true);
@@ -63,11 +65,12 @@ MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
   connect(colours_begin, SIGNAL(triggered()), m_fractalWidget, SLOT(setColoursDialogBegin()));
   connect(colours_end, SIGNAL(triggered()), m_fractalWidget, SLOT(setColoursDialogEnd()));
   connect(copy, SIGNAL(triggered()), m_fractalWidget, SLOT(copy()));
-  connect(refresh, SIGNAL(triggered()), m_fractalWidget, SLOT(refresh()));
+  connect(menu, SIGNAL(clicked()), this, SLOT(menu()));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFractalWidget()));
   connect(pause, SIGNAL(toggled(bool)), m_fractalWidget, SLOT(pause(bool)));
-  connect(menu, SIGNAL(clicked()), this, SLOT(menu()));
   connect(qApp, SIGNAL(lastWindowClosed()), m_fractalWidget, SLOT(save()));
+  connect(refresh, SIGNAL(triggered()), m_fractalWidget, SLOT(refresh()));
+  connect(skip, SIGNAL(triggered()), m_fractalWidget, SLOT(skip()));
 
   QToolBar* tb = addToolBar("Control");
   QToolBar* tb_julia = new QToolBar("Julia Control");

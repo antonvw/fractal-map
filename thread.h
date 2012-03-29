@@ -33,7 +33,7 @@ public:
  
   // Thread is interrupted.
   bool interrupted() const {
-    return m_pause || m_refresh || m_restart || m_stop;};
+    return m_pause || m_refresh || m_restart || m_skip || m_stop;};
   
   // Pauses or continues the thread.
   void pause(bool checked);
@@ -59,6 +59,9 @@ public:
     
   // Ask for a refresh.
   void refresh();
+  
+  // Skip current pass.
+  void skip();
 signals:
   // If an image is available, this signal is emitted.
   void renderedImage(
@@ -101,6 +104,7 @@ private:
   bool m_pause;
   bool m_refresh;
   bool m_restart;
+  bool m_skip;
   bool m_stop;
   
   Fractal m_fractal;

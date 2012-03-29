@@ -81,6 +81,9 @@ public slots:
   // Sets colours.
   void setColoursDialogBegin() {setColoursDialog(true);};
   void setColoursDialogEnd() {setColoursDialog(false);};
+
+  // Skips current rendering pass.  
+  void skip() {m_thread.skip();};
   
   // Starts rendering the fractal.
   void start() {m_thread.start();}
