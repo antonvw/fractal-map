@@ -20,14 +20,15 @@ class Fractal
 public:
   // Default constructor.
   Fractal(
-    // the thread, to be able to interrupt calculation
-    Thread* thread = NULL, 
     // the name of the fractal, see names
     const std::string& name = std::string(),
+    // the thread, to be able to interrupt calculation
+    Thread* thread = NULL, 
     // diverge limit
     unsigned int diverge = 0,
-    // extra args (for julia set)
+    // complex arg (for julia set)
     const std::complex<double> & c = std::complex<double>(0, 0),
+    // exponent (for julia set)
     double exp = 2);
     
   // Do fractal calculation. 

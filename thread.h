@@ -28,21 +28,19 @@ public:
   // Constructor.
   Thread(QObject* parent = 0);
   
-  // Destructor, invokes stop.
+  // Destructor, stops rendering.
  ~Thread();
  
-  // Continues.
-  void cont();
-
   // Thread is interrupted.
   bool interrupted() const {
     return m_pause || m_refresh || m_restart || m_stop;};
   
-  // Pauses the thread.
-  void pause();
+  // Pauses or continues the thread.
+  void pause(bool checked);
   
   // Begins rendering the fractal into an image (if the thread is running).
-  void render(
+  // Returns false if parameters conflict.
+  bool render(
     // using this fractal
     const Fractal& fractal,
     // using this image
@@ -65,8 +63,7 @@ signals:
   // If an image is available, this signal is emitted.
   void renderedImage(
     const QImage &image, 
-    uint pass,
-    uint max,
+    bool ready,
     double scale,
     bool snapshot);
   
@@ -75,7 +72,7 @@ signals:
   void renderingImage(uint pass, uint max, uint iterations);
   
   // During rendering, this signal is emitted as well.
-  // It signals current busy on line out of maxc lines.
+  // It signals current busy on line out of max lines.
   void renderingImage(uint line, uint max);
 protected:
   void run();

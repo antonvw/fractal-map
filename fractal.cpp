@@ -27,8 +27,8 @@ enum
 std::vector<std::string> Fractal::m_names;
 
 Fractal::Fractal(
-  Thread* thread, 
   const std::string& name,
+  Thread* thread, 
   unsigned int diverge,
   const std::complex<double> & c,
   double exp)

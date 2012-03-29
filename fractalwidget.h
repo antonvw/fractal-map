@@ -70,7 +70,7 @@ public slots:
   void copy();
   
   // Pauses or continues the rendering process.
-  void pause(bool checked) {checked ? m_thread.pause(): m_thread.cont();}
+  void pause(bool checked) {m_thread.pause(checked);}
   
   // Refreshes the fractal image.
   void refresh() {m_thread.refresh();}
@@ -109,7 +109,7 @@ private slots:
   void updatePass(uint line, uint max);
   void updatePass(uint pass, uint numberOfPasses, uint iterations);
   void updatePixmap(
-    const QImage &image, uint pass, uint max, double scale, bool snapshot);
+    const QImage &image, bool ready, double scale, bool snapshot);
   void zoom(double zoomFactor);
 private:
   void addAxes(QPainter& painter);

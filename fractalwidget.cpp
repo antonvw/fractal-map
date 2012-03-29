@@ -70,7 +70,7 @@ FractalWidget::FractalWidget(
   , m_updates(0)
   , m_colourDialog(fractal.m_colourDialog)
   , m_juliaToolBar(fractal.m_juliaToolBar)
-  , m_progressBar(fractal.m_progressBar)
+  , m_progressBar(new QProgressBar())
   , m_statusBar(statusbar)
 {
   init();
@@ -127,6 +127,11 @@ void FractalWidget::addJuliaControls(QToolBar* toolbar)
   
   m_juliaToolBar = toolbar;
   m_juliaToolBar->setEnabled(m_fractalName == "julia set");
+}
+
+void FractalWidget::copy()
+{
+  QApplication::clipboard()->setImage(m_pixmap.toImage());
 }
 
 void FractalWidget::init()
@@ -212,8 +217,8 @@ void FractalWidget::init()
   m_updatesLabel = new QLabel();
   m_updatesLabel->setToolTip("total images rendered");
   
-  connect(&m_thread, SIGNAL(renderedImage(QImage,uint,uint,double,bool)),
-    this, SLOT(updatePixmap(QImage,uint,uint,double,bool)));
+  connect(&m_thread, SIGNAL(renderedImage(QImage,bool,double,bool)),
+    this, SLOT(updatePixmap(QImage,bool,double,bool)));
   connect(&m_thread, SIGNAL(renderingImage(uint,uint,uint)),
     this, SLOT(updatePass(uint,uint,uint)));
   connect(&m_thread, SIGNAL(renderingImage(uint,uint)),
@@ -252,11 +257,6 @@ void FractalWidget::init()
   m_statusBar->addPermanentWidget(m_progressBar);
   m_statusBar->addPermanentWidget(m_passesLabel);
   m_statusBar->addPermanentWidget(m_updatesLabel);
-}
-
-void FractalWidget::copy()
-{
-  QApplication::clipboard()->setImage(m_pixmap.toImage());
 }
 
 void FractalWidget::keyPressEvent(QKeyEvent *event)
@@ -352,23 +352,26 @@ void FractalWidget::render(int start_at)
 {
   update();
   
-  m_progressBar->setMinimum(0);
-  m_progressBar->setMaximum(size().height());
-  m_progressBar->show();
-  
-  Fractal fractal(&m_thread, 
-    m_fractalName.toStdString(), m_diverge, m_julia, m_juliaExponent);
+  const Fractal fractal( 
+    m_fractalName.toStdString(), 
+    &m_thread,
+    m_diverge, m_julia, m_juliaExponent);
   
   if (fractal.isOk())
   {
-    m_thread.render(
+    if (m_thread.render(
       fractal,
       QImage(size(), QImage::Format_RGB32), 
       m_center, 
       m_scale, 
       (start_at > 0 ? start_at: m_firstPass), 
       m_passes, 
-      m_colours);
+      m_colours))
+    {
+      m_progressBar->setMinimum(0);
+      m_progressBar->setMaximum(size().height());
+      m_progressBar->show();
+    }
   }
 }
 
@@ -435,26 +438,43 @@ void FractalWidget::setColourSelected(const QColor& color)
   
   m_colours[m_colourIndex] = color.rgb();
   
+  bool finished = false;
+  
   if (m_colourIndexFromStart)
   {
     if (m_colourIndex < m_colours.size() - 1)
+    {
       m_colourIndex++;
+    }
     else
-      return;
+    {
+      finished = true;
+    }
   }
   else
   {
     if (m_colourIndex >= 1)
+    {
       m_colourIndex--;
+    }
     else
-      return;
+    {
+      finished = true;
+    }
   }
-    
-  m_colourDialog->setCurrentColor(m_colours[m_colourIndex]);
-  m_colourDialog->setWindowTitle(
-    QString("Select Colour %1 of %2")
-      .arg(m_colourIndex + 1).arg(m_colours.size()));
-  m_colourDialog->show();
+  
+  if (finished)
+  {
+    render();
+  }
+  else
+  {
+    m_colourDialog->setCurrentColor(m_colours[m_colourIndex]);
+    m_colourDialog->setWindowTitle(
+      QString("Select Colour %1 of %2")
+        .arg(m_colourIndex + 1).arg(m_colours.size()));
+    m_colourDialog->show();
+  }
 }
 
 void FractalWidget::setColours(uint colours)
@@ -610,7 +630,7 @@ void FractalWidget::setScale(const QString& text)
   }
 }
 
-void FractalWidget::updatePass(uint line, uint max)
+void FractalWidget::updatePass(uint line, uint /*max */)
 {
   m_progressBar->setValue(line);
 }
@@ -618,24 +638,20 @@ void FractalWidget::updatePass(uint line, uint max)
 void FractalWidget::updatePass(uint pass, uint max, uint iterations)
 {
   m_pass = pass;
-  
   m_passesLabel->setText(QString::number(pass) + "," + QString::number(max));
-  
-  m_statusBar->showMessage(QString("executing %1 iterations ...")
+  m_statusBar->showMessage(QString("executing %1 iterations")
     .arg(iterations));
 }
 
 void FractalWidget::updatePixmap(
-  const QImage &image, uint pass, uint max, double scale, bool snapshot)
+  const QImage &image, bool ready, double scale, bool snapshot)
 {
   m_updates++;
   m_updatesLabel->setText(QString::number(m_updates));
     
   if (!snapshot)
   {
-    m_passesLabel->setText(QString::number(pass) + "," + QString::number(max));
-     
-    if (pass == max)
+    if (ready)
     {
       m_progressBar->hide();
       m_statusBar->showMessage("ready");  
@@ -646,18 +662,17 @@ void FractalWidget::updatePixmap(
     m_statusBar->showMessage("refreshed", 50);
   }
   
-  if (!m_thread.isRunning())
-  {
-    m_statusBar->showMessage("stopped");
-  }
-  
   if (!m_lastDragPos.isNull())
     return;
     
   m_pixmap = QPixmap::fromImage(image);
-  m_pixmapOffset = QPoint();
-  m_lastDragPos = QPoint();
-  m_pixmapScale = scale;
+  
+  if (!snapshot)
+  {
+    m_pixmapOffset = QPoint();
+    m_lastDragPos = QPoint();
+    m_pixmapScale = scale;
+  }
   
   update();
 }

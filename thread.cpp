@@ -10,6 +10,7 @@
 
 Thread::Thread(QObject *parent)
   : QThread(parent)
+  , m_scale(1)
   , m_first_pass(1)
   , m_max_passes(0)
   , m_pause(false)
@@ -24,19 +25,18 @@ Thread::~Thread()
   stop();
 }
 
-void Thread::cont()
+void Thread::pause(bool checked)
 {
   QMutexLocker locker(&m_mutex);
-  
-  m_pause = false;
+  m_pause = checked;
+  m_condition.wakeOne();
 }
 
-void Thread::pause()
+void Thread::refresh()
 {
-  m_mutex.lock();
-  m_pause = true;
+  QMutexLocker locker(&m_mutex);
+  m_refresh = true;
   m_condition.wakeOne();
-  m_mutex.unlock();
 }
 
 bool Thread::render(
@@ -54,7 +54,7 @@ bool Thread::render(
   {
     if (m_refresh && !image.isNull())
     {
-      emit renderedImage(image, 0, 0, 0, true);
+      emit renderedImage(image, false, 0, true);
       QMutexLocker locker(&m_mutex);
       m_image = image;
       m_refresh = false;
@@ -63,6 +63,12 @@ bool Thread::render(
     if (m_stop)
     {
       return false;
+    }
+    
+    if (m_pause)
+    {
+      QMutexLocker locker(&m_mutex);
+      m_condition.wait(&m_mutex);
     }
   }
 
@@ -77,7 +83,7 @@ bool Thread::render(
   return true;
 }
 
-void Thread::render(
+bool Thread::render(
   const Fractal& fractal,
   const QImage& image,
   const QPointF& center, 
@@ -87,6 +93,11 @@ void Thread::render(
   const std::vector<uint> & colours)
 {
   QMutexLocker locker(&m_mutex);
+  
+  if (first_pass > passes || colours.empty() || scale == 0)
+  {
+    return false;
+  }
 
   m_center = center;
   m_scale = scale;
@@ -102,6 +113,8 @@ void Thread::render(
     m_restart = true;
     m_condition.wakeOne();
   }
+  
+  return true;
 }
 
 void Thread::run()
@@ -143,9 +156,10 @@ void Thread::run()
         y < half.height() && !m_restart && !m_pause; 
         ++y) 
       {
-        emit renderingImage(y + half.height(), image.height());
-        
+        const int halfy = y + half.height();
         const double ay = center.y() + (y * scale);
+        
+        emit renderingImage(halfy, image.height());
 
         for (
           int x = -half.width(); 
@@ -159,7 +173,7 @@ void Thread::run()
             std::complex<double>(ax, ay), 
             image, 
             colours, 
-            QPoint(x + half.width(), y + half.height()),
+            QPoint(x + half.width(), halfy),
             max_iterations, 
             converge))
           {
@@ -168,28 +182,22 @@ void Thread::run()
         }
       }
 
-      if (!converge && !m_restart && !image.isNull())
+      if (!converge && !m_restart && !m_pause && !image.isNull())
       {
-        emit renderedImage(image, pass, max_passes, scale, false);
+        emit renderedImage(image, pass == max_passes, scale, false);
       }
     }
 
     m_mutex.lock();
     
     if (!m_restart)
+    {
       m_condition.wait(&m_mutex);
-
+    }
+      
     m_restart = false;
     m_mutex.unlock();
   }
-}
-
-void Thread::refresh()
-{
-  m_mutex.lock();
-  m_refresh = true;
-  m_condition.wakeOne();
-  m_mutex.unlock();
 }
 
 void Thread::stop()
