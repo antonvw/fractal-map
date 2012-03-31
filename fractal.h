@@ -22,8 +22,8 @@ public:
   Fractal(
     // the name of the fractal, see names
     const std::string& name = std::string(),
-    // the thread, to be able to interrupt calculation
-    FractalRenderer* thread = NULL, 
+    // the renderer, to be able to interrupt calculation
+    FractalRenderer* renderer = NULL, 
     // diverge limit
     unsigned int diverge = 0,
     // complex arg (for julia set)
@@ -32,7 +32,7 @@ public:
     double exp = 2);
     
   // Do fractal calculation. 
-  // Returns true if calculation was not interrupted by thread.
+  // Returns true if calculation was not interrupted by renderer.
   bool calc(
     // complex start value
     const std::complex<double> & c,
@@ -62,7 +62,7 @@ private:
   bool m_isOk;
   unsigned int m_diverge;
   std::string m_name;
-  FractalRenderer* m_thread;
+  FractalRenderer* m_renderer;
   std::complex<double> m_julia;
   double m_julia_exponent;
 };

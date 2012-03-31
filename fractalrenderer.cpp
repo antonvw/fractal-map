@@ -168,6 +168,10 @@ void FractalRenderer::run()
       {
         inc = 2;
       }
+      else if (pass == first_pass)
+      {
+        inc = 9;
+      }
       else
       {
         inc = 7;
@@ -207,7 +211,7 @@ void FractalRenderer::run()
         }
       }
 
-      if (!end())
+      if (!end() || m_state == RENDERING_RESTART)
       {
         if (pass == max_passes)
         {

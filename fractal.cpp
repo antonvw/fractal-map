@@ -28,14 +28,14 @@ std::vector<std::string> Fractal::m_names;
 
 Fractal::Fractal(
   const std::string& name,
-  FractalRenderer* thread, 
+  FractalRenderer* renderer, 
   unsigned int diverge,
   const std::complex<double> & c,
   double exp)
   : m_isOk(false)
   , m_diverge(diverge)
   , m_name(name)
-  , m_thread(thread)
+  , m_renderer(renderer)
   , m_julia(c)
   , m_julia_exponent(exp)
 {
@@ -134,7 +134,7 @@ bool Fractal::juliaset(
 {
   std::complex<double> z(c);
     
-  for (n = 0; n < max && !m_thread->interrupted(); n++)
+  for (n = 0; n < max && !m_renderer->interrupted(); n++)
   {
     z = pow(z, exp) + m_julia;
         
@@ -144,7 +144,7 @@ bool Fractal::juliaset(
     }
   }
   
-  return !m_thread->interrupted();
+  return !m_renderer->interrupted();
 }
 
 bool Fractal::mandelbrotset(
@@ -154,7 +154,7 @@ bool Fractal::mandelbrotset(
 {
   std::complex<double> z;
     
-  for (n = 0; n < max && !m_thread->interrupted(); n++)
+  for (n = 0; n < max && !m_renderer->interrupted(); n++)
   {
     z = z * z - c;
         
@@ -164,7 +164,7 @@ bool Fractal::mandelbrotset(
     }
   }
   
-  return !m_thread->interrupted();
+  return !m_renderer->interrupted();
 }
 
 std::vector<std::string> & Fractal::names()
