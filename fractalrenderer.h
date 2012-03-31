@@ -21,13 +21,14 @@
 enum RenderingState
 {
   RENDERING_INIT,
-  RENDERING_IN_PROGRESS,
-  RENDERING_PAUSED,
   RENDERING_READY,
+  RENDERING_ACTIVE,
+  RENDERING_PAUSED,
+  RENDERING_STOPPED,
+  // these are not real states, in fact state remains active
   RENDERING_RESTART,
   RENDERING_SKIP,
   RENDERING_SNAPSHOT,
-  RENDERING_STOPPED,
 };
 
 // This class offers a thread to render the fractal image.

@@ -30,7 +30,7 @@ bool FractalRenderer::end() const
 void FractalRenderer::pause(bool checked)
 {
   QMutexLocker locker(&m_mutex);
-  m_state = (checked ? RENDERING_PAUSED: RENDERING_IN_PROGRESS);
+  m_state = (checked ? RENDERING_PAUSED: RENDERING_ACTIVE);
   m_condition.wakeOne();
 }
 
@@ -78,7 +78,7 @@ bool FractalRenderer::render(
       emit rendered(image, 0, m_state);
       QMutexLocker locker(&m_mutex);
       m_image = image;
-      m_state = RENDERING_IN_PROGRESS;
+      m_state = RENDERING_ACTIVE;
       }
       break;
     
@@ -155,7 +155,7 @@ void FractalRenderer::run()
     {
       if (m_state == RENDERING_SKIP)
       {
-        m_state = RENDERING_IN_PROGRESS;
+        m_state = RENDERING_ACTIVE;
       }
       
       int inc;
@@ -228,7 +228,7 @@ void FractalRenderer::run()
         m_condition.wait(&m_mutex);
         break;
       default: 
-        m_state = RENDERING_IN_PROGRESS;
+        m_state = RENDERING_ACTIVE;
         break;
     }
         

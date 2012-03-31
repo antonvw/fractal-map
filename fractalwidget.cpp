@@ -654,7 +654,7 @@ void FractalWidget::updatePixmap(
     
   switch (state)
   {
-  case RENDERING_IN_PROGRESS:
+  case RENDERING_ACTIVE:
     m_pixmapOffset = QPoint();
     m_lastDragPos = QPoint();
     m_pixmapScale = scale;
