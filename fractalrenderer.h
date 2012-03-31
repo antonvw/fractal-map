@@ -43,7 +43,7 @@ public:
   // Destructor, stops rendering.
  ~FractalRenderer();
  
-  // FractalRenderer is interrupted.
+  // Process is interrupted.
   bool interrupted() const {
     return 
       m_state == RENDERING_PAUSED || 
@@ -81,18 +81,18 @@ public slots:
   void skip();
 signals:
   // If an image is available, this signal is emitted.
-  void renderedImage(
+  void rendered(
     const QImage &image, 
     double scale,
     int state);
   
   // During rendering, this signal is emitted,
   // allowing you to observe progress.
-  void renderingImage(uint pass, uint max, uint iterations);
+  void rendering(uint pass, uint max, uint iterations);
   
   // During rendering, this signal is emitted as well.
   // It signals current busy on line out of max lines.
-  void renderingImage(uint line, uint max);
+  void rendering(uint line, uint max);
 protected:
   void run();
 private:

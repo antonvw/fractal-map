@@ -217,11 +217,11 @@ void FractalWidget::init()
   m_updatesLabel = new QLabel();
   m_updatesLabel->setToolTip("total images rendered");
   
-  connect(&m_renderer, SIGNAL(renderedImage(QImage,double,int)),
+  connect(&m_renderer, SIGNAL(rendered(QImage,double,int)),
     this, SLOT(updatePixmap(QImage,double,int)));
-  connect(&m_renderer, SIGNAL(renderingImage(uint,uint,uint)),
+  connect(&m_renderer, SIGNAL(rendering(uint,uint,uint)),
     this, SLOT(updatePass(uint,uint,uint)));
-  connect(&m_renderer, SIGNAL(renderingImage(uint,uint)),
+  connect(&m_renderer, SIGNAL(rendering(uint,uint)),
     this, SLOT(updatePass(uint,uint)));
     
   connect(m_axesEdit, SIGNAL(stateChaged(bool)),

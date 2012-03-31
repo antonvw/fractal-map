@@ -75,7 +75,7 @@ bool FractalRenderer::render(
       break;
     case RENDERING_SNAPSHOT:
       {
-      emit renderedImage(image, 0, m_state);
+      emit rendered(image, 0, m_state);
       QMutexLocker locker(&m_mutex);
       m_image = image;
       m_state = RENDERING_IN_PROGRESS;
@@ -125,6 +125,8 @@ bool FractalRenderer::render(
 
 void FractalRenderer::run()
 {
+  m_state = RENDERING_READY;
+  
   forever 
   {
     m_mutex.lock();
@@ -173,14 +175,14 @@ void FractalRenderer::run()
       
       const uint max_iterations = 16 + (8 << pass);
       
-      emit renderingImage(pass, max_passes, max_iterations);
+      emit rendering(pass, max_passes, max_iterations);
       
       for (
         int y = 0; 
         y < image.height() && !end();
         y+= inc)
       {
-        emit renderingImage(y, image.height());
+        emit rendering(y, image.height());
 
         const double cy = center.y() + ((y - half.height())* scale);
         
@@ -212,7 +214,7 @@ void FractalRenderer::run()
           m_state = RENDERING_READY;
         }
          
-        emit renderedImage(image, scale, m_state);
+        emit rendered(image, scale, m_state);
       }
     }
 
