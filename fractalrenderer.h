@@ -52,7 +52,14 @@ public:
       m_state == RENDERING_SKIP || 
       m_state == RENDERING_SNAPSHOT || 
       m_state == RENDERING_STOPPED;};
+      
+public slots:
+  // Pauses or continues the thread.
+  void pause(bool checked);
   
+  // Ask for a refresh.
+  void refresh();
+    
   // Begins rendering the fractal into an image (if the thread is running).
   // Returns false if parameters conflict.
   bool render(
@@ -71,12 +78,6 @@ public:
     // using these colours,
     // the last colour is used for converge
     const std::vector<uint> & colours);
-public slots:
-  // Pauses or continues the thread.
-  void pause(bool checked);
-  
-  // Ask for a refresh.
-  void refresh();
     
   // Skip current pass.
   void skip();
