@@ -10,7 +10,7 @@
 #include "fractalwidget.h"
 #include "fractal.h"
 
-const double zoomIn = 0.8;
+const double zoomIn = 0.9;
 
 FractalWidget::FractalWidget(
   QWidget* parent,
@@ -217,8 +217,8 @@ void FractalWidget::init()
   m_updatesLabel = new QLabel();
   m_updatesLabel->setToolTip("total images rendered");
   
-  connect(&m_thread, SIGNAL(renderedImage(QImage,bool,double,bool)),
-    this, SLOT(updatePixmap(QImage,bool,double,bool)));
+  connect(&m_thread, SIGNAL(renderedImage(QImage,double,int)),
+    this, SLOT(updatePixmap(QImage,double,int)));
   connect(&m_thread, SIGNAL(renderingImage(uint,uint,uint)),
     this, SLOT(updatePass(uint,uint,uint)));
   connect(&m_thread, SIGNAL(renderingImage(uint,uint)),
@@ -644,35 +644,33 @@ void FractalWidget::updatePass(uint pass, uint max, uint iterations)
 }
 
 void FractalWidget::updatePixmap(
-  const QImage &image, bool ready, double scale, bool snapshot)
+  const QImage &image, double scale, int state)
 {
   m_updates++;
   m_updatesLabel->setText(QString::number(m_updates));
     
-  if (!snapshot)
-  {
-    if (ready)
-    {
-      m_progressBar->hide();
-      m_statusBar->showMessage("ready");  
-    }
-  }
-  else
-  {
-    m_statusBar->showMessage("refreshed", 50);
-  }
-  
   if (!m_lastDragPos.isNull())
     return;
     
-  m_pixmap = QPixmap::fromImage(image);
-  
-  if (!snapshot)
+  switch (state)
   {
+  case RENDERING_IN_PROGRESS:
     m_pixmapOffset = QPoint();
     m_lastDragPos = QPoint();
     m_pixmapScale = scale;
+    break;
+  
+  case RENDERING_READY:
+    m_progressBar->hide();
+    m_statusBar->showMessage("ready");  
+    break;
+    
+  case RENDERING_SNAPSHOT:
+    m_statusBar->showMessage("refreshed", 50);
+    break;
   }
+    
+  m_pixmap = QPixmap::fromImage(image);
   
   update();
 }

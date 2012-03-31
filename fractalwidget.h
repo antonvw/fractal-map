@@ -65,15 +65,12 @@ public:
 
   // Adds julia specific controls to a toolbar.
   void addJuliaControls(QToolBar* toolbar);
+  
+  // Access to renderer.
+  Thread* renderer() {return &m_thread;};
 public slots:
   // Copies pixmap to clipboard.
   void copy();
-  
-  // Pauses or continues the rendering process.
-  void pause(bool checked) {m_thread.pause(checked);}
-  
-  // Refreshes the fractal image.
-  void refresh() {m_thread.refresh();}
   
   // Saves settings.
   void save();
@@ -81,12 +78,6 @@ public slots:
   // Sets colours.
   void setColoursDialogBegin() {setColoursDialog(true);};
   void setColoursDialogEnd() {setColoursDialog(false);};
-
-  // Skips current rendering pass.  
-  void skip() {m_thread.skip();};
-  
-  // Starts rendering the fractal.
-  void start() {m_thread.start();}
 protected:
   void keyPressEvent(QKeyEvent *event);
   void mouseMoveEvent(QMouseEvent *event);
@@ -112,7 +103,7 @@ private slots:
   void updatePass(uint line, uint max);
   void updatePass(uint pass, uint numberOfPasses, uint iterations);
   void updatePixmap(
-    const QImage &image, bool ready, double scale, bool snapshot);
+    const QImage &image, double scale, int state);
   void zoom(double zoomFactor);
 private:
   void addAxes(QPainter& painter);

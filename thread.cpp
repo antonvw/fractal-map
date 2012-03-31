@@ -13,11 +13,7 @@ Thread::Thread(QObject *parent)
   , m_scale(1)
   , m_first_pass(1)
   , m_max_passes(0)
-  , m_pause(false)
-  , m_refresh(false)
-  , m_restart(false)
-  , m_skip(false)
-  , m_stop(false)
+  , m_state(RENDERING_INIT)
 {
 }
 
@@ -26,60 +22,70 @@ Thread::~Thread()
   stop();
 }
 
+bool Thread::end() const
+{
+  return m_state == RENDERING_RESTART || m_state == RENDERING_PAUSED || m_state == RENDERING_SKIP;
+}
+
 void Thread::pause(bool checked)
 {
   QMutexLocker locker(&m_mutex);
-  m_pause = checked;
+  m_state = (checked ? RENDERING_PAUSED: RENDERING_IN_PROGRESS);
   m_condition.wakeOne();
 }
 
 void Thread::refresh()
 {
   QMutexLocker locker(&m_mutex);
-  m_refresh = true;
+  m_state = RENDERING_SNAPSHOT;
   m_condition.wakeOne();
 }
 
 bool Thread::render(
   const Fractal& fractal,
   const std::complex<double> & c, 
-  QImage& image,
-  const std::vector<uint> & colours,
-  const QPoint& p,
   uint max,
-  bool& converge)
+  QImage& image,
+  const QPoint& p,
+  int inc,
+  const std::vector<uint> & colours)
 {
   uint n = 0;
 
-  if (!fractal.calc(c, n, max))
+  const bool result = fractal.calc(c, n, max);
+  
+  for (int i = 0; i < inc; i++)
   {
-    if (m_refresh && !image.isNull())
+    for (int j = 0; j < inc; j++)
     {
-      emit renderedImage(image, false, 0, true);
-      QMutexLocker locker(&m_mutex);
-      m_image = image;
-      m_refresh = false;
-    }
-    
-    if (m_stop)
-    {
-      return false;
-    }
-    
-    if (m_pause)
-    {
-      QMutexLocker locker(&m_mutex);
-      m_condition.wait(&m_mutex);
+      image.setPixel(p + QPoint(i, j),
+       (n < max ? colours[n % colours.size()]: colours.back()));
     }
   }
-
-  if (n < max) 
-  {
-    converge = false;
-  } 
   
-  image.setPixel(p,
-   (n < max ? colours[n % colours.size()]: colours.back()));
+  if (!result)
+  {
+    switch (m_state)
+    {
+    case RENDERING_PAUSED:
+      {
+      QMutexLocker locker(&m_mutex);
+      m_condition.wait(&m_mutex);
+      }
+      break;
+    case RENDERING_SNAPSHOT:
+      {
+      emit renderedImage(image, 0, m_state);
+      QMutexLocker locker(&m_mutex);
+      m_image = image;
+      m_state = RENDERING_IN_PROGRESS;
+      }
+      break;
+    
+    case RENDERING_STOPPED: return false; 
+      break;
+    }
+  }
    
   return true;
 }
@@ -95,7 +101,7 @@ bool Thread::render(
 {
   QMutexLocker locker(&m_mutex);
   
-  if (first_pass > passes || colours.empty() || scale == 0)
+  if (first_pass > passes || colours.empty() || scale == 0 || m_state == RENDERING_PAUSED)
   {
     return false;
   }
@@ -107,11 +113,10 @@ bool Thread::render(
   m_first_pass = first_pass;
   m_max_passes = passes;
   m_fractal = fractal;
-  m_refresh = false;
   
   if (isRunning())
   {
-    m_restart = true;
+    m_state = RENDERING_RESTART;
     m_condition.wakeOne();
   }
   
@@ -124,7 +129,7 @@ void Thread::run()
   {
     m_mutex.lock();
     
-    if (m_stop)
+    if (m_state == RENDERING_STOPPED)
     {
       m_mutex.unlock();
       return;
@@ -143,65 +148,74 @@ void Thread::run()
     
     for (
       uint pass = first_pass; 
-      pass <= max_passes && !m_restart && !m_pause; 
+      pass <= max_passes && m_state != RENDERING_RESTART && m_state != RENDERING_PAUSED; 
       pass++)
     {
-      if (m_skip)
+      if (m_state == RENDERING_SKIP)
       {
-        m_skip = false;
+        m_state = RENDERING_IN_PROGRESS;
       }
       
+      const int inc = (pass < max_passes ? 7: 1);
       const uint max_iterations = 16 + (8 << pass);
       
       emit renderingImage(pass, max_passes, max_iterations);
       
-      bool converge = true;
-
       for (
-        int y = -half.height(); 
-        y < half.height() && !m_restart && !m_pause && !m_skip; 
-        ++y) 
+        int y = 0; 
+        y < image.height() && !end();
+        y+= inc)
       {
-        const int halfy = y + half.height();
-        const double ay = center.y() + (y * scale);
-        
-        emit renderingImage(halfy, image.height());
+        emit renderingImage(y, image.height());
 
+        const double cy = center.y() + ((y - half.height())* scale);
+        
         for (
-          int x = -half.width(); 
-          x < half.width() && !m_restart && !m_pause && !m_skip; 
-          ++x) 
+          int x = 0; 
+          x < image.width() && !end();
+          x+= inc) 
         {
-          const double ax = center.x() + (x * scale);
+          const double cx = center.x() + ((x - half.width())* scale);
           
           if (!render(
             fractal, 
-            std::complex<double>(ax, ay), 
-            image, 
-            colours, 
-            QPoint(x + half.width(), halfy),
+            std::complex<double>(cx, cy), 
             max_iterations, 
-            converge))
+            image, 
+            QPoint(x, y),
+            inc,
+            colours))
           {
             return;
           }
         }
       }
 
-      if (!converge && !m_restart && !m_pause && !image.isNull())
+      if (!end())
       {
-        emit renderedImage(image, pass == max_passes, scale, false);
+        if (pass == max_passes)
+        {
+          m_state = RENDERING_READY;
+        }
+         
+        emit renderedImage(image, scale, m_state);
       }
     }
 
     m_mutex.lock();
     
-    if (!m_restart)
+    switch (m_state)
     {
-      m_condition.wait(&m_mutex);
+      case RENDERING_PAUSED:
+        break;
+      case RENDERING_READY:
+        m_condition.wait(&m_mutex);
+        break;
+      default: 
+        m_state = RENDERING_IN_PROGRESS;
+        break;
     }
-      
-    m_restart = false;
+        
     m_mutex.unlock();
   }
 }
@@ -209,14 +223,14 @@ void Thread::run()
 void Thread::skip()
 {
   QMutexLocker locker(&m_mutex);
-  m_skip = true;
+  m_state = RENDERING_SKIP;
   m_condition.wakeOne();
 }
 
 void Thread::stop()
 {
   m_mutex.lock();
-  m_stop = true;
+  m_state = RENDERING_STOPPED;
   m_condition.wakeOne();
   m_mutex.unlock();
 

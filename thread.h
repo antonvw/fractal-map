@@ -18,6 +18,18 @@
 #include <QWaitCondition>
 #include "fractal.h"
 
+enum RenderingState
+{
+  RENDERING_INIT,
+  RENDERING_IN_PROGRESS,
+  RENDERING_PAUSED,
+  RENDERING_READY,
+  RENDERING_RESTART,
+  RENDERING_SKIP,
+  RENDERING_SNAPSHOT,
+  RENDERING_STOPPED,
+};
+
 // This class offers a thread to render the fractal image.
 // Just call start to start the thread, after which you can render images.
 class Thread : public QThread
@@ -33,10 +45,12 @@ public:
  
   // Thread is interrupted.
   bool interrupted() const {
-    return m_pause || m_refresh || m_restart || m_skip || m_stop;};
-  
-  // Pauses or continues the thread.
-  void pause(bool checked);
+    return 
+      m_state == RENDERING_PAUSED || 
+      m_state == RENDERING_RESTART || 
+      m_state == RENDERING_SKIP || 
+      m_state == RENDERING_SNAPSHOT || 
+      m_state == RENDERING_STOPPED;};
   
   // Begins rendering the fractal into an image (if the thread is running).
   // Returns false if parameters conflict.
@@ -56,19 +70,21 @@ public:
     // using these colours,
     // the last colour is used for converge
     const std::vector<uint> & colours);
-    
+public slots:
+  // Pauses or continues the thread.
+  void pause(bool checked);
+  
   // Ask for a refresh.
   void refresh();
-  
+    
   // Skip current pass.
   void skip();
 signals:
   // If an image is available, this signal is emitted.
   void renderedImage(
     const QImage &image, 
-    bool ready,
     double scale,
-    bool snapshot);
+    int state);
   
   // During rendering, this signal is emitted,
   // allowing you to observe progress.
@@ -83,11 +99,13 @@ private:
   bool render(
     const Fractal& fractal,
     const std::complex<double> & c, 
-    QImage& image, 
-    const std::vector<uint> & colours,
-    const QPoint& p, 
     uint max, 
-    bool& converge);
+    QImage& image, 
+    const QPoint& p, 
+    int inc,
+    const std::vector<uint> & colours);
+  // End current state.
+  bool end() const;
   // Stops the thread (finishes the thread main loop).
   void stop();
   
@@ -101,11 +119,7 @@ private:
   uint m_first_pass;
   uint m_max_passes;
   
-  bool m_pause;
-  bool m_refresh;
-  bool m_restart;
-  bool m_skip;
-  bool m_stop;
+  int m_state;
   
   Fractal m_fractal;
   
