@@ -217,11 +217,11 @@ void FractalWidget::init()
   m_updatesLabel = new QLabel();
   m_updatesLabel->setToolTip("total images rendered");
   
-  connect(&m_thread, SIGNAL(renderedImage(QImage,double,int)),
+  connect(&m_renderer, SIGNAL(renderedImage(QImage,double,int)),
     this, SLOT(updatePixmap(QImage,double,int)));
-  connect(&m_thread, SIGNAL(renderingImage(uint,uint,uint)),
+  connect(&m_renderer, SIGNAL(renderingImage(uint,uint,uint)),
     this, SLOT(updatePass(uint,uint,uint)));
-  connect(&m_thread, SIGNAL(renderingImage(uint,uint)),
+  connect(&m_renderer, SIGNAL(renderingImage(uint,uint)),
     this, SLOT(updatePass(uint,uint)));
     
   connect(m_axesEdit, SIGNAL(stateChaged(bool)),
@@ -354,12 +354,12 @@ void FractalWidget::render(int start_at)
   
   const Fractal fractal( 
     m_fractalName.toStdString(), 
-    &m_thread,
+    &m_renderer,
     m_diverge, m_julia, m_juliaExponent);
   
   if (fractal.isOk())
   {
-    if (m_thread.render(
+    if (m_renderer.render(
       fractal,
       QImage(size(), QImage::Format_RGB32), 
       m_center, 

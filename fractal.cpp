@@ -6,7 +6,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "fractal.h"
-#include "thread.h"
+#include "fractalrenderer.h"
 
 enum
 {
@@ -28,7 +28,7 @@ std::vector<std::string> Fractal::m_names;
 
 Fractal::Fractal(
   const std::string& name,
-  Thread* thread, 
+  FractalRenderer* thread, 
   unsigned int diverge,
   const std::complex<double> & c,
   double exp)

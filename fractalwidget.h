@@ -20,7 +20,7 @@
 #include <QStatusBar>
 #include <QToolBar>
 #include <QWidget>
-#include "thread.h"
+#include "fractalrenderer.h"
 
 // This class offers the fractal widget.
 class FractalWidget : public QWidget
@@ -67,7 +67,7 @@ public:
   void addJuliaControls(QToolBar* toolbar);
   
   // Access to renderer.
-  Thread* renderer() {return &m_thread;};
+  FractalRenderer* renderer() {return &m_renderer;};
 public slots:
   // Copies pixmap to clipboard.
   void copy();
@@ -114,7 +114,7 @@ private:
   void setColoursDialog(bool from_start);
   uint wav2RGB(double wave) const;
 
-  Thread m_thread;
+  FractalRenderer m_renderer;
   
   QCheckBox* m_axesEdit;
   QLineEdit* m_centerEdit;

@@ -1,14 +1,14 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Name:      thread.cpp
-// Purpose:   Implementation of class Thread
+// Name:      fractalrenderer.cpp
+// Purpose:   Implementation of class FractalRenderer
 // Author:    Anton van Wezenbeek
 // Copyright: (c) 2012 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "thread.h"
+#include "fractalrenderer.h"
 #include "fractal.h"
 
-Thread::Thread(QObject *parent)
+FractalRenderer::FractalRenderer(QObject *parent)
   : QThread(parent)
   , m_scale(1)
   , m_first_pass(1)
@@ -17,31 +17,31 @@ Thread::Thread(QObject *parent)
 {
 }
 
-Thread::~Thread()
+FractalRenderer::~FractalRenderer()
 {
   stop();
 }
 
-bool Thread::end() const
+bool FractalRenderer::end() const
 {
   return m_state == RENDERING_RESTART || m_state == RENDERING_PAUSED || m_state == RENDERING_SKIP;
 }
 
-void Thread::pause(bool checked)
+void FractalRenderer::pause(bool checked)
 {
   QMutexLocker locker(&m_mutex);
   m_state = (checked ? RENDERING_PAUSED: RENDERING_IN_PROGRESS);
   m_condition.wakeOne();
 }
 
-void Thread::refresh()
+void FractalRenderer::refresh()
 {
   QMutexLocker locker(&m_mutex);
   m_state = RENDERING_SNAPSHOT;
   m_condition.wakeOne();
 }
 
-bool Thread::render(
+bool FractalRenderer::render(
   const Fractal& fractal,
   const std::complex<double> & c, 
   uint max,
@@ -90,7 +90,7 @@ bool Thread::render(
   return true;
 }
 
-bool Thread::render(
+bool FractalRenderer::render(
   const Fractal& fractal,
   const QImage& image,
   const QPointF& center, 
@@ -123,7 +123,7 @@ bool Thread::render(
   return true;
 }
 
-void Thread::run()
+void FractalRenderer::run()
 {
   forever 
   {
@@ -156,7 +156,21 @@ void Thread::run()
         m_state = RENDERING_IN_PROGRESS;
       }
       
-      const int inc = (pass < max_passes ? 7: 1);
+      int inc;
+      
+      if (pass == max_passes)
+      { 
+        inc = 1;
+      }
+      else if (pass == max_passes - 1)
+      {
+        inc = 2;
+      }
+      else
+      {
+        inc = 7;
+      }
+      
       const uint max_iterations = 16 + (8 << pass);
       
       emit renderingImage(pass, max_passes, max_iterations);
@@ -220,14 +234,14 @@ void Thread::run()
   }
 }
 
-void Thread::skip()
+void FractalRenderer::skip()
 {
   QMutexLocker locker(&m_mutex);
   m_state = RENDERING_SKIP;
   m_condition.wakeOne();
 }
 
-void Thread::stop()
+void FractalRenderer::stop()
 {
   m_mutex.lock();
   m_state = RENDERING_STOPPED;

@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-class Thread;
+class FractalRenderer;
 
 // This class offers fractal calculations.
 class Fractal
@@ -23,7 +23,7 @@ public:
     // the name of the fractal, see names
     const std::string& name = std::string(),
     // the thread, to be able to interrupt calculation
-    Thread* thread = NULL, 
+    FractalRenderer* thread = NULL, 
     // diverge limit
     unsigned int diverge = 0,
     // complex arg (for julia set)
@@ -62,7 +62,7 @@ private:
   bool m_isOk;
   unsigned int m_diverge;
   std::string m_name;
-  Thread* m_thread;
+  FractalRenderer* m_thread;
   std::complex<double> m_julia;
   double m_julia_exponent;
 };

@@ -1,12 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Name:      thread.h
-// Purpose:   Declaration of class Thread
+// Name:      fractalrenderer.h
+// Purpose:   Declaration of class FractalRenderer
 // Author:    Anton van Wezenbeek
 // Copyright: (c) 2012 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef _THREAD_H
-#define _THREAD_H
+#ifndef _FRACTALRENDERER_H
+#define _FRACTALRENDERER_H
 
 #include <complex>
 #include <vector>
@@ -32,18 +32,18 @@ enum RenderingState
 
 // This class offers a thread to render the fractal image.
 // Just call start to start the thread, after which you can render images.
-class Thread : public QThread
+class FractalRenderer : public QThread
 {
   Q_OBJECT
 
 public:
   // Constructor.
-  Thread(QObject* parent = 0);
+  FractalRenderer(QObject* parent = 0);
   
   // Destructor, stops rendering.
- ~Thread();
+ ~FractalRenderer();
  
-  // Thread is interrupted.
+  // FractalRenderer is interrupted.
   bool interrupted() const {
     return 
       m_state == RENDERING_PAUSED || 
