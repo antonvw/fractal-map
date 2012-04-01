@@ -22,6 +22,30 @@ FractalRenderer::~FractalRenderer()
   stop();
 }
 
+int FractalRenderer::calcStep(uint pass, uint first_pass, uint max_passes) const
+{
+  int step;
+  
+  if (pass == max_passes)
+  { 
+    step = 1;
+  }
+  else if (pass == max_passes - 1)
+  {
+    step = 2;
+  }
+  else if (pass == first_pass)
+  {
+    step = 9;
+  }
+  else
+  {
+    step = 7;
+  }
+
+  return step;
+}
+
 bool FractalRenderer::end() const
 {
   return m_state == RENDERING_START || m_state == RENDERING_PAUSED || m_state == RENDERING_SKIP;
@@ -160,25 +184,7 @@ void FractalRenderer::run()
         m_state = RENDERING_ACTIVE;
       }
       
-      int inc;
-      
-      if (pass == max_passes)
-      { 
-        inc = 1;
-      }
-      else if (pass == max_passes - 1)
-      {
-        inc = 2;
-      }
-      else if (pass == first_pass)
-      {
-        inc = 9;
-      }
-      else
-      {
-        inc = 7;
-      }
-      
+      const int inc = calcStep(pass, first_pass, max_passes);
       const uint max_iterations = 16 + (8 << pass);
       
       emit rendering(pass, max_passes, max_iterations);

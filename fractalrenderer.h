@@ -101,6 +101,9 @@ signals:
 protected:
   void run();
 private:
+  int calcStep(uint pass, uint first_pass, uint max_passes) const;
+  // End current state.
+  bool end() const;
   bool render(
     const Fractal& fractal,
     const std::complex<double> & c, 
@@ -109,8 +112,6 @@ private:
     const QPoint& p, 
     int inc,
     const std::vector<uint> & colours);
-  // End current state.
-  bool end() const;
   // Stops the thread (finishes the thread main loop).
   void stop();
   
