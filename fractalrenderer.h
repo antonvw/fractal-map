@@ -26,13 +26,13 @@ enum RenderingState
   RENDERING_PAUSED,
   RENDERING_STOPPED,
   // these are not real states, in fact state remains active
-  RENDERING_RESTART,
+  RENDERING_START,
   RENDERING_SKIP,
   RENDERING_SNAPSHOT,
 };
 
-// This class offers a thread to render the fractal image.
-// Just call start to start the thread, after which you can render images.
+// This class renders the fractal image.
+// Just call start to start the process, after which you can render images.
 class FractalRenderer : public QThread
 {
   Q_OBJECT
@@ -48,7 +48,7 @@ public:
   bool interrupted() const {
     return 
       m_state == RENDERING_PAUSED || 
-      m_state == RENDERING_RESTART || 
+      m_state == RENDERING_START || 
       m_state == RENDERING_SKIP || 
       m_state == RENDERING_SNAPSHOT || 
       m_state == RENDERING_STOPPED;};
@@ -81,6 +81,9 @@ public slots:
     
   // Skip current pass.
   void skip();
+  
+  // Start process.
+  void start();
 signals:
   // If an image is available, this signal is emitted.
   void rendered(
