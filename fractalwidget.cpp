@@ -7,10 +7,12 @@
 
 #include <math.h>
 #include <QtGui>
+#include <QRegExpValidator>
 #include "fractalwidget.h"
 #include "fractal.h"
 
 const double zoomIn = 0.9;
+const QString point_regexp("-?[0-9.]+[0-9]*,-?[0-9.]+[0-9]*");
 
 FractalWidget::FractalWidget(
   QWidget* parent,
@@ -144,6 +146,7 @@ void FractalWidget::init()
   m_centerEdit->setText(
     QString::number(m_center.x()) + "," + QString::number(m_center.y()));
   m_centerEdit->setToolTip("center x,y");
+  m_centerEdit->setValidator(new QRegExpValidator(QRegExp(point_regexp)));
   
   m_coloursEdit = new QSpinBox();
   m_coloursEdit->setMaximum(8192);
@@ -195,6 +198,7 @@ void FractalWidget::init()
   m_juliaEdit->setText(
     QString::number(m_julia.real()) + "," + QString::number(m_julia.imag()));
   m_juliaEdit->setToolTip("julia real,imag");
+  m_juliaEdit->setValidator(new QRegExpValidator(QRegExp(point_regexp)));
   
   m_juliaExponentEdit = new QLineEdit();
   m_juliaExponentEdit->setText(QString::number(m_juliaExponent));
