@@ -23,7 +23,7 @@ public:
     // the name of the fractal, see names
     const std::string& name = std::string(),
     // diverge limit
-    int diverge = 0,
+    double diverge = 2,
     // complex arg (for julia set)
     const std::complex<double> & c = std::complex<double>(0, 0),
     // exponent (for julia set)
@@ -63,7 +63,7 @@ protected:
     int& n, 
     int max) const;
   
-  int m_diverge;
+  double m_diverge;
   std::complex<double> m_julia;
   double m_juliaExponent;
 private:  

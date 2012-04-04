@@ -20,7 +20,7 @@ FractalWidget::FractalWidget(
   const QString& fractalName,
   double scale,
   int colours,
-  int diverge,
+  double diverge,
   const QPointF& center,
   int first_pass,
   int passes,

@@ -42,7 +42,7 @@ public:
     // number of colours
     int colours,
     // diverge limit
-    int diverge,
+    double diverge,
     // center
     const QPointF& center,
     // first pass

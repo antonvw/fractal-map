@@ -28,7 +28,7 @@ std::vector<std::string> Fractal::m_names;
 
 Fractal::Fractal(
   const std::string& name,
-  int diverge,
+  double diverge,
   const std::complex<double> & c,
   double exp)
   : m_diverge(diverge)
