@@ -14,6 +14,7 @@ FractalRenderer::FractalRenderer(QObject *parent)
   , m_first_pass(1)
   , m_max_passes(0)
   , m_state(RENDERING_INIT)
+  , m_oldState(RENDERING_INIT)
 {
 }
 
@@ -22,7 +23,8 @@ FractalRenderer::~FractalRenderer()
   stop();
 }
 
-int FractalRenderer::calcStep(uint pass, uint first_pass, uint max_passes) const
+int FractalRenderer::calcStep(
+  int pass, int first_pass, int max_passes) const
 {
   int step;
   
@@ -48,33 +50,45 @@ int FractalRenderer::calcStep(uint pass, uint first_pass, uint max_passes) const
 
 bool FractalRenderer::end() const
 {
-  return m_state == RENDERING_START || m_state == RENDERING_PAUSED || m_state == RENDERING_SKIP;
+  return 
+    m_state == RENDERING_START || 
+    m_state == RENDERING_PAUSED || 
+    m_state == RENDERING_SKIP;
 }
 
 void FractalRenderer::pause(bool checked)
 {
   QMutexLocker locker(&m_mutex);
-  m_state = (checked ? RENDERING_PAUSED: RENDERING_ACTIVE);
+  
+  if (m_state != RENDERING_PAUSED)
+  {
+    m_oldState = m_state;
+  }
+  
+  m_state = (checked ? RENDERING_PAUSED: m_oldState);
   m_condition.wakeOne();
 }
 
 void FractalRenderer::refresh()
 {
-  QMutexLocker locker(&m_mutex);
-  m_state = RENDERING_SNAPSHOT;
-  m_condition.wakeOne();
+  if (m_state == RENDERING_ACTIVE)
+  {
+    QMutexLocker locker(&m_mutex);
+    m_state = RENDERING_SNAPSHOT;
+    m_condition.wakeOne();
+  }
 }
 
 bool FractalRenderer::render(
   const Fractal& fractal,
   const std::complex<double> & c, 
-  uint max,
+  int max,
   QImage& image,
   const QPoint& p,
   int inc,
   const std::vector<uint> & colours)
 {
-  uint n = 0;
+  int n = 0;
 
   const bool result = fractal.calc(c, n, max);
   
@@ -119,11 +133,12 @@ bool FractalRenderer::render(
   const QImage& image,
   const QPointF& center, 
   double scale,
-  uint first_pass,
-  uint passes,
+  int first_pass,
+  int passes,
   const std::vector<uint> & colours)
 {
   if (
+    !fractal.isOk() ||
     !isRunning() || 
     first_pass > passes || 
     colours.empty() || 
@@ -144,6 +159,7 @@ bool FractalRenderer::render(
   m_first_pass = first_pass;
   m_max_passes = passes;
   m_fractal = fractal;
+  m_fractal.setRenderer(this);
   m_condition.wakeOne();
   
   return true;
@@ -156,18 +172,11 @@ void FractalRenderer::run()
   forever 
   {
     m_mutex.lock();
-    
-    if (m_state == RENDERING_STOPPED)
-    {
-      m_mutex.unlock();
-      return;
-    }
-    
     QImage image = m_image;
     const double scale = m_scale;
     const QPointF center = m_center;
-    const uint first_pass = m_first_pass;
-    const uint max_passes = m_max_passes;
+    const int first_pass = m_first_pass;
+    const int max_passes = m_max_passes;
     std::vector<uint> colours(m_colours);
     const Fractal fractal(m_fractal);
     m_mutex.unlock();
@@ -175,17 +184,12 @@ void FractalRenderer::run()
     const QSize half = image.size() / 2;
     
     for (
-      uint pass = first_pass; 
-      pass <= max_passes && m_state != RENDERING_START && m_state != RENDERING_PAUSED; 
+      int pass = first_pass; 
+      pass <= max_passes && m_state == RENDERING_ACTIVE; 
       pass++)
     {
-      if (m_state == RENDERING_SKIP)
-      {
-        m_state = RENDERING_ACTIVE;
-      }
-      
       const int inc = calcStep(pass, first_pass, max_passes);
-      const uint max_iterations = 16 + (8 << pass);
+      const int max_iterations = 16 + (8 << pass);
       
       emit rendering(pass, max_passes, max_iterations);
       
@@ -223,7 +227,11 @@ void FractalRenderer::run()
       {
         if (pass == max_passes)
         {
-          m_state = RENDERING_READY;
+          switch (m_state)
+          {
+            case RENDERING_START: break;
+            default : m_state = RENDERING_READY;
+          }
         }
          
         emit rendered(image, scale, m_state);
@@ -239,6 +247,9 @@ void FractalRenderer::run()
       case RENDERING_READY:
         m_condition.wait(&m_mutex);
         break;
+      case RENDERING_STOPPED:
+        m_mutex.unlock();
+        return;
       default: 
         m_state = RENDERING_ACTIVE;
         break;
@@ -250,9 +261,12 @@ void FractalRenderer::run()
 
 void FractalRenderer::skip()
 {
-  QMutexLocker locker(&m_mutex);
-  m_state = RENDERING_SKIP;
-  m_condition.wakeOne();
+  if (m_state == RENDERING_ACTIVE)
+  {
+    QMutexLocker locker(&m_mutex);
+    m_state = RENDERING_SKIP;
+    m_condition.wakeOne();
+  }
 }
 
 void FractalRenderer::start()

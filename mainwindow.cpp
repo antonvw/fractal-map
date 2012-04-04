@@ -10,12 +10,17 @@
 #include "mainwindow.h"
 #include "fractalwidget.h"
 
-MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
+MainWindow::MainWindow(QWidget* parent, FractalWidget* fw)
   : QMainWindow(parent)
 {
-  if (fractal != NULL)
+  if (fw != NULL)
   {
-    m_fractalWidget = new FractalWidget(*fractal, statusBar());
+    m_fractalWidget = new FractalWidget(*fw, statusBar());
+    
+    if (parent != NULL)
+    {
+      resize(parent->size());
+    }
   }
   else
   {
@@ -27,13 +32,15 @@ MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
       settings.value("fractal", "julia set 4").toString(),
       settings.value("scale", 0.007).toDouble(),
       settings.value("colours", 128).toInt(),
-      2.0,
+      2,
       settings.value("center", QPointF(0,0)).toPointF(),
       settings.value("first pass", 1).toInt(),
       settings.value("last pass", 10).toInt(),
       settings.value("julia real", 0.9).toDouble(),
       settings.value("julia imag", 1.1).toDouble(),
       settings.value("julia exponent", 2).toDouble());
+      
+    restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
   }
     
   qRegisterMetaType<QImage>("QImage");
@@ -79,10 +86,10 @@ MainWindow::MainWindow(FractalWidget* fractal, QWidget* parent)
   m_fractalWidget->addJuliaControls(tb_julia);
   tb->addWidget(menuButton);
   
+  restoreState(QSettings().value("mainWindowState").toByteArray());
+  
   setCentralWidget(m_fractalWidget);
   setWindowTitle("Fractal Map");
-  
-  resize(550, 400);
   
   m_fractalWidget->renderer()->start();
 }
@@ -95,8 +102,15 @@ void MainWindow::about()
       arg(QT_VERSION_STR));
 }
 
+void MainWindow::closeEvent(QCloseEvent *event) 
+{
+  QSettings settings;
+  settings.setValue("mainWindowGeometry", saveGeometry());
+  settings.setValue("mainWindowState", saveState());
+}
+    
 void MainWindow::newFractalWidget()
 {
-  MainWindow* m = new MainWindow(m_fractalWidget);
+  MainWindow* m = new MainWindow(this, m_fractalWidget);
   m->show();
 }

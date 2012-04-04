@@ -19,25 +19,25 @@ FractalWidget::FractalWidget(
   QStatusBar* statusbar,
   const QString& fractalName,
   double scale,
-  uint colours,
-  double diverge,
+  int colours,
+  int diverge,
   const QPointF& center,
-  uint first_pass,
-  uint passes,
+  int first_pass,
+  int passes,
   double julia_real,
   double julia_imag,
   double julia_exponent)
   : QWidget(parent)
+  , Fractal(fractalName.toStdString(), 
+      diverge,
+      std::complex<double>(julia_real, julia_imag),
+      julia_exponent)
   , m_origin(0, 0)
   , m_center(center)
-  , m_fractalName(fractalName)
   , m_coloursMinWave(380)
   , m_coloursMaxWave(780)
-  , m_diverge(diverge)
-  , m_juliaExponent(julia_exponent)
   , m_pixmapScale(scale)
   , m_scale(scale)
-  , m_julia(std::complex<double>(julia_real, julia_imag))
   , m_firstPass(first_pass)
   , m_pass(first_pass)
   , m_passes(passes)
@@ -53,31 +53,28 @@ FractalWidget::FractalWidget(
 }
 
 FractalWidget::FractalWidget(
-  const FractalWidget& fractal, QStatusBar* statusbar)
-  : QWidget(fractal.parentWidget())
-  , m_origin(fractal.m_origin)
-  , m_center(fractal.m_center)
-  , m_colours(fractal.m_colours)
-  , m_fractalName(fractal.m_fractalName)
-  , m_coloursMinWave(fractal.m_coloursMinWave)
-  , m_coloursMaxWave(fractal.m_coloursMaxWave)
-  , m_diverge(fractal.m_diverge)
-  , m_juliaExponent(fractal.m_juliaExponent)
-  , m_pixmapScale(fractal.m_scale)
-  , m_scale(fractal.m_scale)
-  , m_julia(fractal.m_julia)
-  , m_firstPass(fractal.m_firstPass)
-  , m_pass(fractal.m_firstPass)
-  , m_passes(fractal.m_passes)
+  const FractalWidget& fw, QStatusBar* statusbar)
+  : QWidget(fw.parentWidget())
+  , Fractal(fw)
+  , m_origin(fw.m_origin)
+  , m_center(fw.m_center)
+  , m_colours(fw.m_colours)
+  , m_coloursMinWave(fw.m_coloursMinWave)
+  , m_coloursMaxWave(fw.m_coloursMaxWave)
+  , m_pixmapScale(fw.m_scale)
+  , m_scale(fw.m_scale)
+  , m_firstPass(fw.m_firstPass)
+  , m_pass(fw.m_firstPass)
+  , m_passes(fw.m_passes)
   , m_updates(0)
-  , m_colourDialog(fractal.m_colourDialog)
-  , m_juliaToolBar(fractal.m_juliaToolBar)
+  , m_colourDialog(fw.m_colourDialog)
+  , m_juliaToolBar(fw.m_juliaToolBar)
   , m_progressBar(new QProgressBar())
   , m_statusBar(statusbar)
 {
   init();
   
-  const QImage image(fractal.m_pixmap.toImage());
+  const QImage image(fw.m_pixmap.toImage());
   
   if (!image.isNull())
   { 
@@ -128,7 +125,7 @@ void FractalWidget::addJuliaControls(QToolBar* toolbar)
   toolbar->addWidget(m_juliaExponentEdit);
   
   m_juliaToolBar = toolbar;
-  m_juliaToolBar->setEnabled(m_fractalName == "julia set");
+  m_juliaToolBar->setEnabled(name() == "julia set");
 }
 
 void FractalWidget::copy()
@@ -185,7 +182,7 @@ void FractalWidget::init()
       QString::fromStdString(Fractal::names()[i]));
   }  
   
-  const int index = m_fractalEdit->findText(m_fractalName);
+  const int index = m_fractalEdit->findText(QString::fromStdString(name()));
   
   if (index != -1)
   {
@@ -223,10 +220,10 @@ void FractalWidget::init()
   
   connect(&m_renderer, SIGNAL(rendered(QImage,double,int)),
     this, SLOT(updatePixmap(QImage,double,int)));
-  connect(&m_renderer, SIGNAL(rendering(uint,uint,uint)),
-    this, SLOT(updatePass(uint,uint,uint)));
-  connect(&m_renderer, SIGNAL(rendering(uint,uint)),
-    this, SLOT(updatePass(uint,uint)));
+  connect(&m_renderer, SIGNAL(rendering(int,int,int)),
+    this, SLOT(updatePass(int,int,int)));
+  connect(&m_renderer, SIGNAL(rendering(int,int)),
+    this, SLOT(updatePass(int,int)));
     
   connect(m_axesEdit, SIGNAL(stateChaged(bool)),
     this, SLOT(setAxes(bool)));
@@ -356,26 +353,18 @@ void FractalWidget::render(int start_at)
 {
   update();
   
-  const Fractal fractal( 
-    m_fractalName.toStdString(), 
-    &m_renderer,
-    m_diverge, m_julia, m_juliaExponent);
-  
-  if (fractal.isOk())
+  if (m_renderer.render(
+    *this,
+    QImage(size(), QImage::Format_RGB32), 
+    m_center, 
+    m_scale, 
+    (start_at > 0 ? start_at: m_firstPass), 
+    m_passes, 
+    m_colours))
   {
-    if (m_renderer.render(
-      fractal,
-      QImage(size(), QImage::Format_RGB32), 
-      m_center, 
-      m_scale, 
-      (start_at > 0 ? start_at: m_firstPass), 
-      m_passes, 
-      m_colours))
-    {
-      m_progressBar->setMinimum(0);
-      m_progressBar->setMaximum(size().height());
-      m_progressBar->show();
-    }
+    m_progressBar->setMinimum(0);
+    m_progressBar->setMaximum(size().height());
+    m_progressBar->show();
   }
 }
 
@@ -391,7 +380,7 @@ void FractalWidget::save()
   settings.setValue("center", m_center);
   settings.setValue("colours", m_colours.size());
   settings.setValue("first pass", m_firstPass);
-  settings.setValue("fractal", m_fractalName);
+  settings.setValue("fractal", QString::fromStdString(name()));
   settings.setValue("julia exponent", m_juliaExponent);
   settings.setValue("julia real", m_julia.real());
   settings.setValue("julia imag", m_julia.imag());
@@ -446,7 +435,7 @@ void FractalWidget::setColourSelected(const QColor& color)
   
   if (m_colourIndexFromStart)
   {
-    if (m_colourIndex < m_colours.size() - 1)
+    if ((unsigned int)m_colourIndex < m_colours.size() - 1)
     {
       m_colourIndex++;
     }
@@ -481,14 +470,14 @@ void FractalWidget::setColourSelected(const QColor& color)
   }
 }
 
-void FractalWidget::setColours(uint colours)
+void FractalWidget::setColours(int colours)
 {
   m_colours.clear();
   
   const double visible_min = m_coloursMinWave;
   const double visible_max = m_coloursMaxWave;
 
-  for (uint i = 0; i < colours - 1; ++i)
+  for (int i = 0; i < colours - 1; ++i)
   {
     m_colours.push_back(
       wav2RGB(visible_min + (i * (visible_max - visible_min) / colours)));
@@ -571,11 +560,11 @@ void FractalWidget::setFractal(const QString& index)
 {
   if (!index.isEmpty())
   {
-    m_fractalName = index;
+    setName(index.toStdString());
     
     if (m_juliaToolBar != NULL)
     {
-      m_juliaToolBar->setEnabled(m_fractalName == "julia set");
+      m_juliaToolBar->setEnabled(name() == "julia set");
     }
     
     m_pass = 0;
@@ -634,12 +623,12 @@ void FractalWidget::setScale(const QString& text)
   }
 }
 
-void FractalWidget::updatePass(uint line, uint /*max */)
+void FractalWidget::updatePass(int line, int /*max */)
 {
   m_progressBar->setValue(line);
 }
 
-void FractalWidget::updatePass(uint pass, uint max, uint iterations)
+void FractalWidget::updatePass(int pass, int max, int iterations)
 {
   m_pass = pass;
   m_passesLabel->setText(QString::number(pass) + "," + QString::number(max));

@@ -21,9 +21,10 @@
 #include <QToolBar>
 #include <QWidget>
 #include "fractalrenderer.h"
+#include "fractal.h"
 
 // This class offers the fractal widget.
-class FractalWidget : public QWidget
+class FractalWidget : public QWidget, public Fractal
 {
   Q_OBJECT
 
@@ -39,15 +40,15 @@ public:
     // scale to use
     double scale,
     // number of colours
-    uint colours,
+    int colours,
     // diverge limit
-    double diverge,
+    int diverge,
     // center
     const QPointF& center,
     // first pass
-    uint first_pass,
+    int first_pass,
     // number of passes
-    uint passes,
+    int passes,
     // extra julia args
     double julia_real,
     double julia_imag,
@@ -100,8 +101,8 @@ private slots:
   void setJuliaExponent(const QString& text);
   void setPasses(int value);
   void setScale(const QString& text);
-  void updatePass(uint line, uint max);
-  void updatePass(uint pass, uint numberOfPasses, uint iterations);
+  void updatePass(int line, int max);
+  void updatePass(int pass, int numberOfPasses, int iterations);
   void updatePixmap(
     const QImage &image, double scale, int state);
   void zoom(double zoomFactor);
@@ -110,7 +111,7 @@ private:
   void init();
   void render(int start_at = 0);
   void scroll(const QPoint& delta);
-  void setColours(uint colours);
+  void setColours(int colours);
   void setColoursDialog(bool from_start);
   uint wav2RGB(double wave) const;
 
@@ -141,22 +142,16 @@ private:
   
   std::vector<uint> m_colours;
   
-  QString m_fractalName;
-
   double m_coloursMinWave;  
   double m_coloursMaxWave;  
-  double m_diverge;
-  double m_juliaExponent;  
   double m_pixmapScale;
   double m_scale;
   
-  std::complex<double> m_julia;
-    
-  uint m_colourIndex;
-  uint m_firstPass;
-  uint m_pass;
-  uint m_passes;
-  uint m_updates;
+  int m_colourIndex;
+  int m_firstPass;
+  int m_pass;
+  int m_passes;
+  int m_updates;
   
   bool m_colourIndexFromStart;
   

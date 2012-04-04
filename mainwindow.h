@@ -20,11 +20,12 @@ class MainWindow : public QMainWindow
 
 public:
   // Constructor.
-  MainWindow(FractalWidget* fractal = NULL, QWidget *parent = 0);
+  MainWindow(QWidget* parent = NULL, FractalWidget* fractalwidget = NULL);
 private slots:
   void about();
   void newFractalWidget();
 private:
+  void closeEvent(QCloseEvent *event); 
   FractalWidget* m_fractalWidget;
 };
 #endif

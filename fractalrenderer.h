@@ -54,13 +54,13 @@ public:
       m_state == RENDERING_STOPPED;};
       
 public slots:
-  // Pauses or continues the thread.
+  // Pauses or continues rendering.
   void pause(bool checked);
   
   // Ask for a refresh.
   void refresh();
     
-  // Begins rendering the fractal into an image (if the thread is running).
+  // Begins rendering the fractal into an image (if the process is started).
   // Returns false if parameters conflict.
   bool render(
     // using this fractal
@@ -72,9 +72,9 @@ public slots:
     // using this scale
     double scale,
     // pass to start with
-    uint pass,
+    int pass,
     // using max number of passes
-    uint max,
+    int max,
     // using these colours,
     // the last colour is used for converge
     const std::vector<uint> & colours);
@@ -93,26 +93,26 @@ signals:
   
   // During rendering, this signal is emitted,
   // allowing you to observe progress.
-  void rendering(uint pass, uint max, uint iterations);
+  void rendering(int pass, int max, int iterations);
   
   // During rendering, this signal is emitted as well.
   // It signals current busy on line out of max lines.
-  void rendering(uint line, uint max);
+  void rendering(int line, int max);
 protected:
   void run();
 private:
-  int calcStep(uint pass, uint first_pass, uint max_passes) const;
+  int calcStep(int pass, int first_pass, int max_passes) const;
   // End current state.
   bool end() const;
   bool render(
     const Fractal& fractal,
     const std::complex<double> & c, 
-    uint max, 
+    int max, 
     QImage& image, 
     const QPoint& p, 
     int inc,
     const std::vector<uint> & colours);
-  // Stops the thread (finishes the thread main loop).
+  // Stops rendering.
   void stop();
   
   QImage m_image;
@@ -122,10 +122,11 @@ private:
   
   double m_scale;
   
-  uint m_first_pass;
-  uint m_max_passes;
+  int m_first_pass;
+  int m_max_passes;
   
   int m_state;
+  int m_oldState;
   
   Fractal m_fractal;
   

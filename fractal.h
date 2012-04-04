@@ -22,10 +22,8 @@ public:
   Fractal(
     // the name of the fractal, see names
     const std::string& name = std::string(),
-    // the renderer, to be able to interrupt calculation
-    FractalRenderer* renderer = NULL, 
     // diverge limit
-    unsigned int diverge = 0,
+    int diverge = 0,
     // complex arg (for julia set)
     const std::complex<double> & c = std::complex<double>(0, 0),
     // exponent (for julia set)
@@ -37,33 +35,40 @@ public:
     // complex start value
     const std::complex<double> & c,
     // number of iterations before diverge
-    unsigned int& n, 
+    int& n, 
     // max iterations
-    unsigned int max) const;
+    int max) const;
+    
+  // Is this fractal ok?
+  bool isOk() const;
   
-  // Is name ok.
-  bool isOk() const {return m_isOk;};
+  const std::string& name() const {return m_name;};
   
+  // Update name.
+  bool setName(const std::string& name);
+
+  // Sets the renderer.
+  void setRenderer(FractalRenderer* renderer) {m_renderer = renderer;};
+    
   // Supported fractals.
   static std::vector<std::string> & names();
-private:
+protected:
   bool juliaset(
     const std::complex<double> & c, 
     double exp, 
-    unsigned int& n, 
-    unsigned int max) const;
+    int& n, 
+    int max) const;
   bool mandelbrotset(
     const std::complex<double> & c, 
-    unsigned int& n, 
-    unsigned int max) const;
+    int& n, 
+    int max) const;
   
-  static std::vector<std::string> m_names;
-  
-  bool m_isOk;
-  unsigned int m_diverge;
-  std::string m_name;
-  FractalRenderer* m_renderer;
+  int m_diverge;
   std::complex<double> m_julia;
-  double m_julia_exponent;
+  double m_juliaExponent;
+private:  
+  FractalRenderer* m_renderer;
+  std::string m_name;
+  static std::vector<std::string> m_names;
 };
 #endif

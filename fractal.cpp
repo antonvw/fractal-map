@@ -28,32 +28,132 @@ std::vector<std::string> Fractal::m_names;
 
 Fractal::Fractal(
   const std::string& name,
-  FractalRenderer* renderer, 
-  unsigned int diverge,
+  int diverge,
   const std::complex<double> & c,
   double exp)
-  : m_isOk(false)
-  , m_diverge(diverge)
-  , m_name(name)
-  , m_renderer(renderer)
+  : m_diverge(diverge)
   , m_julia(c)
-  , m_julia_exponent(exp)
+  , m_juliaExponent(exp)
+  , m_renderer(NULL)
+{
+  setName(name);
+}
+
+bool Fractal::calc(
+  const std::complex<double> & c, 
+  int& n, 
+  int max) const
+{ 
+  if (m_name.find("glynn") != std::string::npos)
+  {
+    return juliaset(c, 1.5, n, max);
+  } 
+  else if (m_name == "julia set")
+  {
+    return juliaset(c, m_juliaExponent, n, max);
+  }
+  else if (m_name.find("julia") != std::string::npos)
+  {
+    return juliaset(c, 2, n, max);
+  }
+  else if (m_name.find("mandelbrot") != std::string::npos)
+  {
+    return mandelbrotset(c, n, max);
+  }
+  
+  return false;
+}
+
+bool Fractal::isOk() const
+{
+  return !m_name.empty();
+}
+
+bool Fractal::juliaset(
+  const std::complex<double> & c, double exp, 
+  int& n, 
+  int max) const
+{
+  std::complex<double> z(c);
+    
+  for (
+    n = 0; 
+    n < max && !m_renderer->interrupted(); 
+    n++)
+  {
+    z = pow(z, exp) + m_julia;
+        
+    if (abs(z) > m_diverge)
+    {
+      break;
+    }
+  }
+  
+  return !m_renderer->interrupted();
+}
+
+bool Fractal::mandelbrotset(
+  const std::complex<double> & c, 
+  int& n, 
+  int max) const
+{
+  std::complex<double> z;
+    
+  for (n = 0; n < max && !m_renderer->interrupted(); n++)
+  {
+    z = z * z - c;
+        
+    if (abs(z) > m_diverge)
+    {
+      break;
+    }
+  }
+  
+  return !m_renderer->interrupted();
+}
+
+std::vector<std::string> & Fractal::names()
+{
+  if (m_names.empty())
+  {
+    m_names.push_back("mandelbrot set");
+    m_names.push_back("julia set");
+    m_names.push_back("julia set 1");
+    m_names.push_back("julia set 2");
+    m_names.push_back("julia set 3");
+    m_names.push_back("julia set 4");
+    m_names.push_back("julia set 5");
+    m_names.push_back("julia set 6");
+    m_names.push_back("julia set 7");
+    m_names.push_back("julia set 8");
+    m_names.push_back("julia set 9");
+    m_names.push_back("glynn");
+  }
+
+  return m_names;  
+}
+
+bool Fractal::setName(const std::string& name)
 {
   int type = FRACTAL_MANDELBROTSET;
   
-  for (unsigned int i = 0; i < m_names.size() && !m_isOk; i++)
+  bool isOk = false;
+  
+  for (unsigned int i = 0; i < names().size() && !isOk; i++)
   {
     if (m_names[i] == name)
     {
       type = i;
-      m_isOk = true;
+      isOk = true;
     }
   }
   
-  if (!m_isOk)
+  if (!isOk)
   {
-    return;
+    return false;
   }
+  
+  m_name = name;
   
   switch (type)
   {
@@ -100,90 +200,6 @@ Fractal::Fractal(
       m_julia = std::complex<double>(-0.2, 0);
     break;
   }
-}
-
-bool Fractal::calc(
-  const std::complex<double> & c, 
-  unsigned int& n, 
-  unsigned int max) const
-{ 
-  if (m_name.find("glynn") != std::string::npos)
-  {
-    return juliaset(c, 1.5, n, max);
-  } 
-  else if (m_name == "julia set")
-  {
-    return juliaset(c, m_julia_exponent, n, max);
-  }
-  else if (m_name.find("julia") != std::string::npos)
-  {
-    return juliaset(c, 2, n, max);
-  }
-  else if (m_name.find("mandelbrot") != std::string::npos)
-  {
-    return mandelbrotset(c, n, max);
-  }
   
-  return false;
-}          
-
-bool Fractal::juliaset(
-  const std::complex<double> & c, double exp, 
-  unsigned int& n, 
-  unsigned int max) const
-{
-  std::complex<double> z(c);
-    
-  for (n = 0; n < max && !m_renderer->interrupted(); n++)
-  {
-    z = pow(z, exp) + m_julia;
-        
-    if (abs(z) > m_diverge)
-    {
-      break;
-    }
-  }
-  
-  return !m_renderer->interrupted();
-}
-
-bool Fractal::mandelbrotset(
-  const std::complex<double> & c, 
-  unsigned int& n, 
-  unsigned int max) const
-{
-  std::complex<double> z;
-    
-  for (n = 0; n < max && !m_renderer->interrupted(); n++)
-  {
-    z = z * z - c;
-        
-    if (abs(z) > m_diverge)
-    {
-      break;
-    }
-  }
-  
-  return !m_renderer->interrupted();
-}
-
-std::vector<std::string> & Fractal::names()
-{
-  if (m_names.empty())
-  {
-    m_names.push_back("mandelbrot set");
-    m_names.push_back("julia set");
-    m_names.push_back("julia set 1");
-    m_names.push_back("julia set 2");
-    m_names.push_back("julia set 3");
-    m_names.push_back("julia set 4");
-    m_names.push_back("julia set 5");
-    m_names.push_back("julia set 6");
-    m_names.push_back("julia set 7");
-    m_names.push_back("julia set 8");
-    m_names.push_back("julia set 9");
-    m_names.push_back("glynn");
-  }
-
-  return m_names;  
+  return true;
 }
