@@ -42,6 +42,7 @@ public:
   // Is this fractal ok?
   bool isOk() const;
   
+  // Gets the name.
   const std::string& name() const {return m_name;};
   
   // Update name.
