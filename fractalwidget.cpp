@@ -473,12 +473,9 @@ void FractalWidget::setColourSelected(const QColor& color)
     }
   }
   
-  if (finished)
+  if (!finished)
   {
     render();
-  }
-  else
-  {
     m_colourDialog->setCurrentColor(m_colours[m_colourIndex]);
     m_colourDialog->setWindowTitle(
       QString("Select Colour %1 of %2")
