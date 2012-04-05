@@ -13,6 +13,7 @@
 
 const double zoomIn = 0.9;
 const QString point_regexp("-?[0-9.]+[0-9]*,-?[0-9.]+[0-9]*");
+const QString size_regexp("[0-9]+,[0-9]+");
 
 FractalWidget::FractalWidget(
   QWidget* parent,
@@ -46,6 +47,7 @@ FractalWidget::FractalWidget(
   , m_juliaToolBar(NULL)
   , m_progressBar(new QProgressBar())
   , m_statusBar(statusbar)
+  , m_toolBar(NULL)
 {
   setColoursMax(colours);
   
@@ -105,6 +107,8 @@ void FractalWidget::addAxes(QPainter& painter)
 void FractalWidget::addControls(QToolBar* toolbar)
 {
   toolbar->addWidget(m_fractalEdit);
+  toolbar->addWidget(m_sizeEdit);
+  toolbar->addSeparator();
   toolbar->addWidget(m_firstPassEdit);
   toolbar->addWidget(m_passesEdit);
   toolbar->addSeparator();
@@ -117,6 +121,8 @@ void FractalWidget::addControls(QToolBar* toolbar)
   toolbar->addWidget(m_divergeEdit);
   toolbar->addSeparator();
   toolbar->addWidget(m_axesEdit);
+  
+  m_toolBar = toolbar;
 }
 
 void FractalWidget::addJuliaControls(QToolBar* toolbar)
@@ -131,6 +137,7 @@ void FractalWidget::addJuliaControls(QToolBar* toolbar)
 void FractalWidget::copy()
 {
   QApplication::clipboard()->setImage(m_pixmap.toImage());
+  m_statusBar->showMessage("copied to clipboard", 50);
 }
 
 void FractalWidget::init()
@@ -213,6 +220,10 @@ void FractalWidget::init()
   m_scaleEdit->setValidator(new QDoubleValidator());
   m_scaleEdit->setToolTip("scale");
 
+  m_sizeEdit = new QLineEdit();
+  m_sizeEdit->setToolTip("fractal size");
+  m_sizeEdit->setValidator(new QRegExpValidator(QRegExp(size_regexp)));
+  
   m_passesLabel = new QLabel();
   m_passesLabel->setToolTip("current pass out of max passes");
   m_updatesLabel = new QLabel();
@@ -227,8 +238,8 @@ void FractalWidget::init()
     
   connect(m_axesEdit, SIGNAL(stateChaged(bool)),
     this, SLOT(setAxes(bool)));
-  connect(m_centerEdit, SIGNAL(textEdited(const QString&)),
-    this, SLOT(setCenter(const QString&)));
+  connect(m_centerEdit, SIGNAL(returnPressed()),
+    this, SLOT(setCenter()));
   connect(m_colourDialog, SIGNAL(colorSelected(const QColor&)),
     this, SLOT(setColourSelected(const QColor&)));
   connect(m_coloursEdit, SIGNAL(valueChanged(int)),
@@ -243,14 +254,16 @@ void FractalWidget::init()
     this, SLOT(setFirstPass(int)));
   connect(m_fractalEdit, SIGNAL(currentIndexChanged(const QString&)),
     this, SLOT(setFractal(const QString&)));
-  connect(m_juliaEdit, SIGNAL(textEdited(const QString&)),
-    this, SLOT(setJulia(const QString&)));
+  connect(m_juliaEdit, SIGNAL(returnPressed()),
+    this, SLOT(setJulia()));
   connect(m_juliaExponentEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(setJuliaExponent(const QString&)));
   connect(m_passesEdit, SIGNAL(valueChanged(int)),
     this, SLOT(setPasses(int)));
   connect(m_scaleEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(setScale(const QString&)));
+  connect(m_sizeEdit, SIGNAL(returnPressed()),
+    this, SLOT(setSize()));
 
   setCursor(Qt::CrossCursor);
   setFocusPolicy(Qt::StrongFocus);
@@ -371,6 +384,9 @@ void FractalWidget::render(int start_at)
 void FractalWidget::resizeEvent(QResizeEvent * /* event */)
 {
   render();
+  
+  m_sizeEdit->setText(
+    QString::number(size().width()) + "," + QString::number(size().height()));
 }
 
 void FractalWidget::save()
@@ -386,6 +402,7 @@ void FractalWidget::save()
   settings.setValue("julia imag", m_julia.imag());
   settings.setValue("last pass", m_passes);
   settings.setValue("scale", m_scale);
+  settings.setValue("diverge", m_diverge);
 }
 
 void FractalWidget::scroll(const QPoint& delta)
@@ -403,9 +420,9 @@ void FractalWidget::setAxes(bool /* state */)
   render();
 }
 
-void FractalWidget::setCenter(const QString& text)
+void FractalWidget::setCenter()
 {
-  const QStringList sl(text.split(","));
+  const QStringList sl(m_centerEdit->text().split(","));
   
   if (sl.size() == 2)
   {
@@ -572,9 +589,9 @@ void FractalWidget::setFractal(const QString& index)
   }
 }
 
-void FractalWidget::setJulia(const QString& text)
+void FractalWidget::setJulia()
 {
-  const QStringList sl(text.split(","));
+  const QStringList sl(m_juliaEdit->text().split(","));
   
   if (sl.size() != 2)
   {
@@ -623,6 +640,36 @@ void FractalWidget::setScale(const QString& text)
   }
 }
 
+void FractalWidget::setSize()
+{
+  const QStringList sl(m_sizeEdit->text().split(","));
+  
+  int height = 0;
+  
+  if (m_toolBar != NULL)
+  {
+    if (m_toolBar->isVisible() && !m_toolBar->isFloating())
+    {
+      height += m_toolBar->height();
+    }
+  }
+  
+  if (m_juliaToolBar != NULL)
+  {
+    if (m_juliaToolBar->isVisible() && !m_juliaToolBar->isFloating())
+    {
+      height += m_juliaToolBar->height();
+    }
+  }
+  
+  if (sl.size() == 2)
+  {
+    parentWidget()->resize(QSize(
+      sl[0].toInt(), 
+      sl[1].toInt() + m_statusBar->height() + height));
+  }
+}
+
 void FractalWidget::updatePass(int line, int /*max */)
 {
   m_progressBar->setValue(line);
@@ -634,6 +681,7 @@ void FractalWidget::updatePass(int pass, int max, int iterations)
   m_passesLabel->setText(QString::number(pass) + "," + QString::number(max));
   m_statusBar->showMessage(QString("executing %1 iterations")
     .arg(iterations));
+  m_time.start();    
 }
 
 void FractalWidget::updatePixmap(
@@ -655,7 +703,8 @@ void FractalWidget::updatePixmap(
   
   case RENDERING_READY:
     m_progressBar->hide();
-    m_statusBar->showMessage("ready");  
+    m_statusBar->showMessage("ready");
+    m_statusBar->setToolTip(QString::number((double)m_time.elapsed() / 1000 ));
     break;
     
   case RENDERING_SNAPSHOT:

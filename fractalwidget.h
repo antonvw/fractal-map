@@ -18,6 +18,7 @@
 #include <QProgressBar>
 #include <QSpinBox>
 #include <QStatusBar>
+#include <QTime>
 #include <QToolBar>
 #include <QWidget>
 #include "fractalrenderer.h"
@@ -89,7 +90,7 @@ protected:
   void wheelEvent(QWheelEvent *event);
 private slots:
   void setAxes(bool state);
-  void setCenter(const QString& text);
+  void setCenter();
   void setColoursMax(int value);
   void setColoursMinWave(int value);
   void setColoursMaxWave(int value);
@@ -97,10 +98,11 @@ private slots:
   void setDiverge(const QString& text);
   void setFirstPass(int value);
   void setFractal(const QString& index);
-  void setJulia(const QString& text);
+  void setJulia();
   void setJuliaExponent(const QString& text);
   void setPasses(int value);
   void setScale(const QString& text);
+  void setSize();
   void updatePass(int line, int max);
   void updatePass(int pass, int numberOfPasses, int iterations);
   void updatePixmap(
@@ -129,6 +131,7 @@ private:
   QLineEdit* m_juliaExponentEdit;
   QSpinBox* m_passesEdit;
   QLineEdit* m_scaleEdit;
+  QLineEdit* m_sizeEdit;
   
   QLabel* m_passesLabel;
   QLabel* m_updatesLabel;
@@ -139,6 +142,8 @@ private:
   QPoint m_origin;
   QPoint m_pixmapOffset;
   QPointF m_center;
+  
+  QTime m_time;
   
   std::vector<uint> m_colours;
   
@@ -159,5 +164,6 @@ private:
   QToolBar* m_juliaToolBar;
   QProgressBar* m_progressBar;
   QStatusBar* m_statusBar;
+  QToolBar* m_toolBar;
 };
 #endif

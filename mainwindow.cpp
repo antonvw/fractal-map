@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget* parent, FractalWidget* fw)
       settings.value("fractal", "julia set 4").toString(),
       settings.value("scale", 0.007).toDouble(),
       settings.value("colours", 128).toInt(),
-      2,
+      settings.value("diverge", 2).toDouble(),
       settings.value("center", QPointF(0,0)).toPointF(),
       settings.value("first pass", 1).toInt(),
       settings.value("last pass", 10).toInt(),
@@ -82,9 +82,9 @@ MainWindow::MainWindow(QWidget* parent, FractalWidget* fw)
   QToolBar* tb = addToolBar("Control");
   QToolBar* tb_julia = new QToolBar("Julia Control");
   addToolBar(Qt::BottomToolBarArea, tb_julia);
+  tb->addWidget(menuButton);
   m_fractalWidget->addControls(tb);
   m_fractalWidget->addJuliaControls(tb_julia);
-  tb->addWidget(menuButton);
   
   restoreState(QSettings().value("mainWindowState").toByteArray());
   
