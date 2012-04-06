@@ -134,9 +134,7 @@ bool FractalRenderer::render(
   if (
     !fractal.isOk() ||
     !isRunning() || 
-    geometry.m_firstPass > geometry.m_maxPasses || 
-    geometry.m_colours.empty() || 
-    geometry.m_scale == 0 || 
+    !geometry.isOk() ||
     m_state == RENDERING_INIT || 
     m_state == RENDERING_PAUSED)
   {
@@ -148,11 +146,7 @@ bool FractalRenderer::render(
   m_state = RENDERING_START;
   m_image = image;
   m_fractal = fractal;
-  m_center = geometry.m_center;
-  m_scale = geometry.m_scale;
-  m_firstPass = geometry.m_firstPass;
-  m_maxPasses = geometry.m_maxPasses;
-  m_colours = geometry.m_colours;
+  (FractalGeometry &)(*this) = geometry;
   m_fractal.setRenderer(this);
   m_condition.wakeOne();
   
@@ -167,25 +161,21 @@ void FractalRenderer::run()
   {
     m_mutex.lock();
     QImage image = m_image;
-    const double scale = m_scale;
-    const QPointF center = m_center;
-    const int first_pass = m_firstPass;
-    const int max_passes = m_maxPasses;
-    std::vector<uint> colours(m_colours);
+    const FractalGeometry geo(*this);
     const Fractal fractal(m_fractal);
     m_mutex.unlock();
     
     const QSize half = image.size() / 2;
     
     for (
-      int pass = first_pass; 
-      pass <= max_passes && m_state == RENDERING_ACTIVE; 
+      int pass = geo.m_firstPass; 
+      pass <= geo.m_maxPasses && m_state == RENDERING_ACTIVE; 
       pass++)
     {
-      const int inc = calcStep(pass, first_pass, max_passes);
+      const int inc = calcStep(pass, geo.m_firstPass, geo.m_maxPasses);
       const int max_iterations = 16 + (8 << pass);
       
-      emit rendering(pass, max_passes, max_iterations);
+      emit rendering(pass, geo.m_maxPasses, max_iterations);
       
       for (
         int y = 0; 
@@ -194,14 +184,14 @@ void FractalRenderer::run()
       {
         emit rendering(y, image.height());
 
-        const double cy = center.y() + ((y - half.height())* scale);
+        const double cy = geo.m_center.y() + ((y - half.height())* geo.m_scale);
         
         for (
           int x = 0; 
           x < image.width() && !end();
           x+= inc) 
         {
-          const double cx = center.x() + ((x - half.width())* scale);
+          const double cx = geo.m_center.x() + ((x - half.width())* geo.m_scale);
           
           if (!render(
             fractal, 
@@ -210,7 +200,7 @@ void FractalRenderer::run()
             image, 
             QPoint(x, y),
             inc,
-            colours))
+            geo.m_colours))
           {
             return;
           }
@@ -219,7 +209,7 @@ void FractalRenderer::run()
 
       if (!end() || m_state == RENDERING_START)
       {
-        if (pass == max_passes)
+        if (pass == geo.m_maxPasses)
         {
           switch (m_state)
           {
@@ -228,7 +218,7 @@ void FractalRenderer::run()
           }
         }
          
-        emit rendered(image, scale, m_state);
+        emit rendered(image, geo.m_scale, m_state);
       }
     }
 

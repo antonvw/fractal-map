@@ -15,19 +15,22 @@
 class FractalGeometry
 {
 public:
-  // Constructor.
+  // Default constructor.
   FractalGeometry(
     // using this center
-    const QPointF& center,
+    const QPointF& center = QPointF(0,0),
     // using this scale
-    double scale,
+    double scale = 0,
     // pass to start with
-    int firstPass,
+    int firstPass = 0,
     // using max number of passes
-    int maxPasses,
+    int maxPasses = 0,
     // using these colours,
     // the last colour is used for converge
-    const std::vector<uint> & colours);
+    const std::vector<uint> & colours = std::vector<uint>());
+    
+  // Returns true if parameters are ok.
+  bool isOk() const;
 
   QPointF m_center;
   double m_scale;

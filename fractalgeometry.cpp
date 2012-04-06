@@ -20,3 +20,11 @@ FractalGeometry::FractalGeometry(
   , m_colours(colours)
 {
 }
+
+bool FractalGeometry::isOk() const
+{
+  return
+     m_firstPass <= m_maxPasses && 
+    !m_colours.empty() && 
+     m_scale > 0;
+}
