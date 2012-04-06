@@ -42,6 +42,7 @@ FractalWidget::FractalWidget(
   , m_coloursMinWave(380)
   , m_coloursMaxWave(780)
   , m_pixmapScale(scale)
+  , m_pass(0)
   , m_updates(0)
   , m_colourDialog(new QColorDialog())
   , m_juliaToolBar(NULL)
