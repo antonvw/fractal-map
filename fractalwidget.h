@@ -23,9 +23,10 @@
 #include <QWidget>
 #include "fractalrenderer.h"
 #include "fractal.h"
+#include "fractalgeometry.h"
 
 // This class offers the fractal widget.
-class FractalWidget : public QWidget, public Fractal
+class FractalWidget : public QWidget, public Fractal, public FractalGeometry
 {
   Q_OBJECT
 
@@ -129,11 +130,11 @@ private:
   QComboBox* m_fractalEdit;
   QLineEdit* m_juliaEdit;
   QLineEdit* m_juliaExponentEdit;
-  QSpinBox* m_passesEdit;
+  QSpinBox* m_maxPassesEdit;
   QLineEdit* m_scaleEdit;
   QLineEdit* m_sizeEdit;
   
-  QLabel* m_passesLabel;
+  QLabel* m_maxPassesLabel;
   QLabel* m_updatesLabel;
   
   QPixmap m_pixmap;
@@ -141,21 +142,15 @@ private:
   QPoint m_lastDragPos;
   QPoint m_origin;
   QPoint m_pixmapOffset;
-  QPointF m_center;
   
   QTime m_time;
-  
-  std::vector<uint> m_colours;
   
   double m_coloursMinWave;  
   double m_coloursMaxWave;  
   double m_pixmapScale;
-  double m_scale;
   
   int m_colourIndex;
-  int m_firstPass;
   int m_pass;
-  int m_passes;
   int m_updates;
   
   bool m_colourIndexFromStart;

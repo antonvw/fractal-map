@@ -10,9 +10,7 @@
 
 FractalRenderer::FractalRenderer(QObject *parent)
   : QThread(parent)
-  , m_scale(1)
-  , m_first_pass(1)
-  , m_max_passes(0)
+  , FractalGeometry(QPointF(0, 0), 1, 1, 0, std::vector<uint>())
   , m_state(RENDERING_INIT)
   , m_oldState(RENDERING_INIT)
 {
@@ -131,18 +129,14 @@ bool FractalRenderer::render(
 bool FractalRenderer::render(
   const Fractal& fractal,
   const QImage& image,
-  const QPointF& center, 
-  double scale,
-  int first_pass,
-  int passes,
-  const std::vector<uint> & colours)
+  const FractalGeometry& geometry)
 {
   if (
     !fractal.isOk() ||
     !isRunning() || 
-    first_pass > passes || 
-    colours.empty() || 
-    scale == 0 || 
+    geometry.m_firstPass > geometry.m_maxPasses || 
+    geometry.m_colours.empty() || 
+    geometry.m_scale == 0 || 
     m_state == RENDERING_INIT || 
     m_state == RENDERING_PAUSED)
   {
@@ -152,13 +146,13 @@ bool FractalRenderer::render(
   QMutexLocker locker(&m_mutex);
   
   m_state = RENDERING_START;
-  m_center = center;
-  m_scale = scale;
   m_image = image;
-  m_colours = colours;
-  m_first_pass = first_pass;
-  m_max_passes = passes;
   m_fractal = fractal;
+  m_center = geometry.m_center;
+  m_scale = geometry.m_scale;
+  m_firstPass = geometry.m_firstPass;
+  m_maxPasses = geometry.m_maxPasses;
+  m_colours = geometry.m_colours;
   m_fractal.setRenderer(this);
   m_condition.wakeOne();
   
@@ -175,8 +169,8 @@ void FractalRenderer::run()
     QImage image = m_image;
     const double scale = m_scale;
     const QPointF center = m_center;
-    const int first_pass = m_first_pass;
-    const int max_passes = m_max_passes;
+    const int first_pass = m_firstPass;
+    const int max_passes = m_maxPasses;
     std::vector<uint> colours(m_colours);
     const Fractal fractal(m_fractal);
     m_mutex.unlock();

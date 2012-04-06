@@ -33,15 +33,15 @@ FractalWidget::FractalWidget(
       diverge,
       std::complex<double>(julia_real, julia_imag),
       julia_exponent)
+  , FractalGeometry(center,
+      scale,
+      first_pass,
+      passes,
+      std::vector<uint>())
   , m_origin(0, 0)
-  , m_center(center)
   , m_coloursMinWave(380)
   , m_coloursMaxWave(780)
   , m_pixmapScale(scale)
-  , m_scale(scale)
-  , m_firstPass(first_pass)
-  , m_pass(first_pass)
-  , m_passes(passes)
   , m_updates(0)
   , m_colourDialog(new QColorDialog())
   , m_juliaToolBar(NULL)
@@ -58,16 +58,12 @@ FractalWidget::FractalWidget(
   const FractalWidget& fw, QStatusBar* statusbar)
   : QWidget(fw.parentWidget())
   , Fractal(fw)
+  , FractalGeometry(fw)
   , m_origin(fw.m_origin)
-  , m_center(fw.m_center)
-  , m_colours(fw.m_colours)
   , m_coloursMinWave(fw.m_coloursMinWave)
   , m_coloursMaxWave(fw.m_coloursMaxWave)
   , m_pixmapScale(fw.m_scale)
-  , m_scale(fw.m_scale)
-  , m_firstPass(fw.m_firstPass)
   , m_pass(fw.m_firstPass)
-  , m_passes(fw.m_passes)
   , m_updates(0)
   , m_colourDialog(fw.m_colourDialog)
   , m_juliaToolBar(fw.m_juliaToolBar)
@@ -110,7 +106,7 @@ void FractalWidget::addControls(QToolBar* toolbar)
   toolbar->addWidget(m_sizeEdit);
   toolbar->addSeparator();
   toolbar->addWidget(m_firstPassEdit);
-  toolbar->addWidget(m_passesEdit);
+  toolbar->addWidget(m_maxPassesEdit);
   toolbar->addSeparator();
   toolbar->addWidget(m_coloursEdit);
   toolbar->addWidget(m_coloursMinWaveEdit);
@@ -209,11 +205,11 @@ void FractalWidget::init()
   m_juliaExponentEdit->setValidator(new QDoubleValidator());
   m_juliaExponentEdit->setToolTip("julia exponent");
 
-  m_passesEdit = new QSpinBox();
-  m_passesEdit->setMaximum(32);
-  m_passesEdit->setMinimum(m_firstPassEdit->value());
-  m_passesEdit->setValue(m_passes);
-  m_passesEdit->setToolTip("last pass");
+  m_maxPassesEdit = new QSpinBox();
+  m_maxPassesEdit->setMaximum(32);
+  m_maxPassesEdit->setMinimum(m_firstPassEdit->value());
+  m_maxPassesEdit->setValue(m_maxPasses);
+  m_maxPassesEdit->setToolTip("last pass");
   
   m_scaleEdit = new QLineEdit();
   m_scaleEdit->setText(QString::number(m_scale));
@@ -224,8 +220,8 @@ void FractalWidget::init()
   m_sizeEdit->setToolTip("fractal size");
   m_sizeEdit->setValidator(new QRegExpValidator(QRegExp(size_regexp)));
   
-  m_passesLabel = new QLabel();
-  m_passesLabel->setToolTip("current pass out of max passes");
+  m_maxPassesLabel = new QLabel();
+  m_maxPassesLabel->setToolTip("current pass out of max passes");
   m_updatesLabel = new QLabel();
   m_updatesLabel->setToolTip("total images rendered");
   
@@ -258,7 +254,7 @@ void FractalWidget::init()
     this, SLOT(setJulia()));
   connect(m_juliaExponentEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(setJuliaExponent(const QString&)));
-  connect(m_passesEdit, SIGNAL(valueChanged(int)),
+  connect(m_maxPassesEdit, SIGNAL(valueChanged(int)),
     this, SLOT(setPasses(int)));
   connect(m_scaleEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(setScale(const QString&)));
@@ -269,7 +265,7 @@ void FractalWidget::init()
   setFocusPolicy(Qt::StrongFocus);
   
   m_statusBar->addPermanentWidget(m_progressBar);
-  m_statusBar->addPermanentWidget(m_passesLabel);
+  m_statusBar->addPermanentWidget(m_maxPassesLabel);
   m_statusBar->addPermanentWidget(m_updatesLabel);
 }
 
@@ -369,11 +365,7 @@ void FractalWidget::render(int start_at)
   if (m_renderer.render(
     *this,
     QImage(size(), QImage::Format_RGB32), 
-    m_center, 
-    m_scale, 
-    (start_at > 0 ? start_at: m_firstPass), 
-    m_passes, 
-    m_colours))
+    *this))
   {
     m_progressBar->setMinimum(0);
     m_progressBar->setMaximum(size().height());
@@ -400,7 +392,7 @@ void FractalWidget::save()
   settings.setValue("julia exponent", m_juliaExponent);
   settings.setValue("julia real", m_julia.real());
   settings.setValue("julia imag", m_julia.imag());
-  settings.setValue("last pass", m_passes);
+  settings.setValue("last pass", m_maxPasses);
   settings.setValue("scale", m_scale);
   settings.setValue("diverge", m_diverge);
 }
@@ -564,7 +556,7 @@ void FractalWidget::setFirstPass(int value)
 {
   if (value > 0)
   {
-    m_passesEdit->setMinimum(value);
+    m_maxPassesEdit->setMinimum(value);
     m_firstPass = value;
     render();
   }
@@ -616,7 +608,7 @@ void FractalWidget::setPasses(int value)
 {
   if (value > 0)
   {
-    m_passes = value;
+    m_maxPasses = value;
     render(m_pass + 1);
   }
 }
@@ -675,7 +667,7 @@ void FractalWidget::updatePass(int line, int /*max */)
 void FractalWidget::updatePass(int pass, int max, int iterations)
 {
   m_pass = pass;
-  m_passesLabel->setText(QString::number(pass) + "," + QString::number(max));
+  m_maxPassesLabel->setText(QString::number(pass) + "," + QString::number(max));
   m_statusBar->showMessage(QString("executing %1 iterations")
     .arg(iterations));
   m_time.start();    

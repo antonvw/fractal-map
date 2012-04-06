@@ -17,6 +17,7 @@
 #include <QThread>
 #include <QWaitCondition>
 #include "fractal.h"
+#include "fractalgeometry.h"
 
 enum RenderingState
 {
@@ -33,7 +34,7 @@ enum RenderingState
 
 // This class renders the fractal image.
 // Just call start to start the process, after which you can render images.
-class FractalRenderer : public QThread
+class FractalRenderer : public QThread, public FractalGeometry
 {
   Q_OBJECT
 
@@ -67,17 +68,8 @@ public slots:
     const Fractal& fractal,
     // using this image
     const QImage& image,
-    // using this center
-    const QPointF& center,
-    // using this scale
-    double scale,
-    // pass to start with
-    int pass,
-    // using max number of passes
-    int max,
-    // using these colours,
-    // the last colour is used for converge
-    const std::vector<uint> & colours);
+    // using this geometry
+    const FractalGeometry& geometry);
     
   // Skip current pass.
   void skip();
@@ -118,18 +110,10 @@ private:
   QImage m_image;
   QMutex m_mutex;
   QWaitCondition m_condition;
-  QPointF m_center;
-  
-  double m_scale;
-  
-  int m_first_pass;
-  int m_max_passes;
   
   int m_state;
   int m_oldState;
   
   Fractal m_fractal;
-  
-  std::vector<uint> m_colours;
 };
 #endif

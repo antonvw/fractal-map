@@ -9,5 +9,5 @@ INCLUDEPATH += .
 RC_FILE = fractal.rc
 
 # Input
-HEADERS += fractal.h fractalwidget.h mainwindow.h fractalrenderer.h
-SOURCES += fractal.cpp fractalwidget.cpp main.cpp mainwindow.cpp fractalrenderer.cpp
+HEADERS += fractal.h fractalgeometry.h fractalwidget.h mainwindow.h fractalrenderer.h
+SOURCES += fractal.cpp fractalgeometry.cpp fractalwidget.cpp main.cpp mainwindow.cpp fractalrenderer.cpp
