@@ -10,7 +10,7 @@
 
 FractalRenderer::FractalRenderer(QObject *parent)
   : QThread(parent)
-  , FractalGeometry(QPointF(0, 0), 1, 1, 0, std::vector<uint>())
+  , m_geo(QPointF(0, 0), 1, 1, 0, std::vector<uint>())
   , m_state(RENDERING_INIT)
   , m_oldState(RENDERING_INIT)
 {
@@ -146,7 +146,7 @@ bool FractalRenderer::render(
   m_state = RENDERING_START;
   m_image = image;
   m_fractal = fractal;
-  (FractalGeometry &)(*this) = geometry;
+  m_geo = geometry;
   m_fractal.setRenderer(this);
   m_condition.wakeOne();
   
@@ -161,21 +161,21 @@ void FractalRenderer::run()
   {
     m_mutex.lock();
     QImage image = m_image;
-    const FractalGeometry geo(*this);
+    const FractalGeometry geo(m_geo);
     const Fractal fractal(m_fractal);
     m_mutex.unlock();
     
     const QSize half = image.size() / 2;
     
     for (
-      int pass = geo.m_firstPass; 
-      pass <= geo.m_maxPasses && m_state == RENDERING_ACTIVE; 
+      int pass = geo.firstPass(); 
+      pass <= geo.maxPasses() && m_state == RENDERING_ACTIVE; 
       pass++)
     {
-      const int inc = calcStep(pass, geo.m_firstPass, geo.m_maxPasses);
+      const int inc = calcStep(pass, geo.firstPass(), geo.maxPasses());
       const int max_iterations = 16 + (8 << pass);
       
-      emit rendering(pass, geo.m_maxPasses, max_iterations);
+      emit rendering(pass, geo.maxPasses(), max_iterations);
       
       for (
         int y = 0; 
@@ -184,14 +184,14 @@ void FractalRenderer::run()
       {
         emit rendering(y, image.height());
 
-        const double cy = geo.m_center.y() + ((y - half.height())* geo.m_scale);
+        const double cy = geo.center().y() + ((y - half.height())* geo.scale());
         
         for (
           int x = 0; 
           x < image.width() && !end();
           x+= inc) 
         {
-          const double cx = geo.m_center.x() + ((x - half.width())* geo.m_scale);
+          const double cx = geo.center().x() + ((x - half.width())* geo.scale());
           
           if (!render(
             fractal, 
@@ -200,7 +200,7 @@ void FractalRenderer::run()
             image, 
             QPoint(x, y),
             inc,
-            geo.m_colours))
+            geo.colours()))
           {
             return;
           }
@@ -209,7 +209,7 @@ void FractalRenderer::run()
 
       if (!end() || m_state == RENDERING_START)
       {
-        if (pass == geo.m_maxPasses)
+        if (pass == geo.maxPasses())
         {
           switch (m_state)
           {
@@ -218,7 +218,7 @@ void FractalRenderer::run()
           }
         }
          
-        emit rendered(image, geo.m_scale, m_state);
+        emit rendered(image, geo.scale(), m_state);
       }
     }
 

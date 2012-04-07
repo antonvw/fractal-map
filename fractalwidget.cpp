@@ -12,7 +12,6 @@
 #include "fractal.h"
 
 const double zoomIn = 0.9;
-const QString point_regexp("-?[0-9.]+[0-9]*,-?[0-9.]+[0-9]*");
 const QString size_regexp("[0-9]+,[0-9]+");
 
 FractalWidget::FractalWidget(
@@ -33,24 +32,20 @@ FractalWidget::FractalWidget(
       diverge,
       std::complex<double>(julia_real, julia_imag),
       julia_exponent)
-  , FractalGeometry(center,
+  , m_geo(center,
       scale,
       first_pass,
       passes,
       std::vector<uint>())
-  , m_origin(0, 0)
-  , m_coloursMinWave(380)
-  , m_coloursMaxWave(780)
   , m_pixmapScale(scale)
   , m_pass(0)
   , m_updates(0)
-  , m_colourDialog(new QColorDialog())
   , m_juliaToolBar(NULL)
   , m_progressBar(new QProgressBar())
   , m_statusBar(statusbar)
   , m_toolBar(NULL)
 {
-  setColoursMax(colours);
+  m_geo.setColoursMax(colours);
   
   init();
 }
@@ -59,17 +54,14 @@ FractalWidget::FractalWidget(
   const FractalWidget& fw, QStatusBar* statusbar)
   : QWidget(fw.parentWidget())
   , Fractal(fw)
-  , FractalGeometry(fw)
-  , m_origin(fw.m_origin)
-  , m_coloursMinWave(fw.m_coloursMinWave)
-  , m_coloursMaxWave(fw.m_coloursMaxWave)
-  , m_pixmapScale(fw.m_scale)
-  , m_pass(fw.m_firstPass)
+  , m_geo(fw.m_geo)
+  , m_pixmapScale(fw.m_pixmapScale)
+  , m_pass(fw.m_pass)
   , m_updates(0)
-  , m_colourDialog(fw.m_colourDialog)
   , m_juliaToolBar(fw.m_juliaToolBar)
   , m_progressBar(new QProgressBar())
   , m_statusBar(statusbar)
+  , m_toolBar(fw.m_toolBar)
 {
   init();
   
@@ -89,10 +81,10 @@ void FractalWidget::addAxes(QPainter& painter)
     return;
   }
   
-  const QPoint y1 = QPoint(m_origin.x() + m_pixmap.width() / 2, 0);
-  const QPoint y2 = QPoint(m_origin.x() + m_pixmap.width() / 2, m_pixmap.height());
-  const QPoint x1 = QPoint(0, m_origin.y() + m_pixmap.height() / 2);
-  const QPoint x2 = QPoint(m_pixmap.width(), m_origin.y() + m_pixmap.height() / 2);
+  const QPoint y1 = QPoint(m_geo.origin().x() + m_pixmap.width() / 2, 0);
+  const QPoint y2 = QPoint(m_geo.origin().x() + m_pixmap.width() / 2, m_pixmap.height());
+  const QPoint x1 = QPoint(0, m_geo.origin().y() + m_pixmap.height() / 2);
+  const QPoint x2 = QPoint(m_pixmap.width(), m_geo.origin().y() + m_pixmap.height() / 2);
   const QLine l1(y1, y2);
   const QLine l2(x1, x2);
   
@@ -104,21 +96,15 @@ void FractalWidget::addAxes(QPainter& painter)
 void FractalWidget::addControls(QToolBar* toolbar)
 {
   toolbar->addWidget(m_fractalEdit);
+  
+  m_geo.addControls(toolbar);
+  
   toolbar->addWidget(m_sizeEdit);
   toolbar->addSeparator();
-  toolbar->addWidget(m_firstPassEdit);
-  toolbar->addWidget(m_maxPassesEdit);
-  toolbar->addSeparator();
-  toolbar->addWidget(m_coloursEdit);
-  toolbar->addWidget(m_coloursMinWaveEdit);
-  toolbar->addWidget(m_coloursMaxWaveEdit);
-  toolbar->addSeparator();
-  toolbar->addWidget(m_centerEdit);
-  toolbar->addWidget(m_scaleEdit);
   toolbar->addWidget(m_divergeEdit);
   toolbar->addSeparator();
   toolbar->addWidget(m_axesEdit);
-  
+ 
   m_toolBar = toolbar;
 }
 
@@ -143,40 +129,11 @@ void FractalWidget::init()
   m_axesEdit->setChecked(false);
   m_axesEdit->setToolTip("toggle axes");
   
-  m_centerEdit = new QLineEdit();
-  m_centerEdit->setText(
-    QString::number(m_center.x()) + "," + QString::number(m_center.y()));
-  m_centerEdit->setToolTip("center x,y");
-  m_centerEdit->setValidator(new QRegExpValidator(QRegExp(point_regexp)));
-  
-  m_coloursEdit = new QSpinBox();
-  m_coloursEdit->setMaximum(8192);
-  m_coloursEdit->setValue(m_colours.size());
-  m_coloursEdit->setToolTip("colours");
-  
-  m_coloursMinWaveEdit = new QSpinBox();
-  m_coloursMinWaveEdit->setMinimum(380);
-  m_coloursMinWaveEdit->setMaximum(780);
-  m_coloursMinWaveEdit->setToolTip("min wavelength colour");
-  m_coloursMinWaveEdit->setValue(m_coloursMinWave);
-  
-  m_coloursMaxWaveEdit = new QSpinBox();
-  m_coloursMaxWaveEdit->setMinimum(380);
-  m_coloursMaxWaveEdit->setMaximum(780);
-  m_coloursMaxWaveEdit->setToolTip("max wavelength colour");
-  m_coloursMaxWaveEdit->setValue(m_coloursMaxWave);
-  
   m_divergeEdit = new QLineEdit();
   m_divergeEdit->setText(QString::number(m_diverge));
   m_divergeEdit->setValidator(new QDoubleValidator());
   m_divergeEdit->setFixedWidth(25);
   m_divergeEdit->setToolTip("diverge");
-
-  m_firstPassEdit = new QSpinBox();
-  m_firstPassEdit->setMaximum(32);
-  m_firstPassEdit->setMinimum(1);
-  m_firstPassEdit->setValue(m_firstPass);
-  m_firstPassEdit->setToolTip("first pass");
 
   m_fractalEdit = new QComboBox();
   
@@ -206,17 +163,6 @@ void FractalWidget::init()
   m_juliaExponentEdit->setValidator(new QDoubleValidator());
   m_juliaExponentEdit->setToolTip("julia exponent");
 
-  m_maxPassesEdit = new QSpinBox();
-  m_maxPassesEdit->setMaximum(32);
-  m_maxPassesEdit->setMinimum(m_firstPassEdit->value());
-  m_maxPassesEdit->setValue(m_maxPasses);
-  m_maxPassesEdit->setToolTip("last pass");
-  
-  m_scaleEdit = new QLineEdit();
-  m_scaleEdit->setText(QString::number(m_scale));
-  m_scaleEdit->setValidator(new QDoubleValidator());
-  m_scaleEdit->setToolTip("scale");
-
   m_sizeEdit = new QLineEdit();
   m_sizeEdit->setToolTip("fractal size");
   m_sizeEdit->setValidator(new QRegExpValidator(QRegExp(size_regexp)));
@@ -226,6 +172,9 @@ void FractalWidget::init()
   m_updatesLabel = new QLabel();
   m_updatesLabel->setToolTip("total images rendered");
   
+  connect(&m_geo, SIGNAL(changed(int)),
+    this, SLOT(render(int)));
+    
   connect(&m_renderer, SIGNAL(rendered(QImage,double,int)),
     this, SLOT(updatePixmap(QImage,double,int)));
   connect(&m_renderer, SIGNAL(rendering(int,int,int)),
@@ -235,30 +184,14 @@ void FractalWidget::init()
     
   connect(m_axesEdit, SIGNAL(stateChaged(bool)),
     this, SLOT(setAxes(bool)));
-  connect(m_centerEdit, SIGNAL(returnPressed()),
-    this, SLOT(setCenter()));
-  connect(m_colourDialog, SIGNAL(colorSelected(const QColor&)),
-    this, SLOT(setColourSelected(const QColor&)));
-  connect(m_coloursEdit, SIGNAL(valueChanged(int)),
-    this, SLOT(setColoursMax(int)));
-  connect(m_coloursMinWaveEdit, SIGNAL(valueChanged(int)),
-    this, SLOT(setColoursMinWave(int)));
-  connect(m_coloursMaxWaveEdit, SIGNAL(valueChanged(int)),
-    this, SLOT(setColoursMaxWave(int)));
   connect(m_divergeEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(setDiverge(const QString&)));
-  connect(m_firstPassEdit, SIGNAL(valueChanged(int)),
-    this, SLOT(setFirstPass(int)));
   connect(m_fractalEdit, SIGNAL(currentIndexChanged(const QString&)),
     this, SLOT(setFractal(const QString&)));
   connect(m_juliaEdit, SIGNAL(returnPressed()),
     this, SLOT(setJulia()));
   connect(m_juliaExponentEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(setJuliaExponent(const QString&)));
-  connect(m_maxPassesEdit, SIGNAL(valueChanged(int)),
-    this, SLOT(setPasses(int)));
-  connect(m_scaleEdit, SIGNAL(textEdited(const QString&)),
-    this, SLOT(setScale(const QString&)));
   connect(m_sizeEdit, SIGNAL(returnPressed()),
     this, SLOT(setSize()));
 
@@ -277,22 +210,22 @@ void FractalWidget::keyPressEvent(QKeyEvent *event)
   switch (event->key()) 
   {
     case Qt::Key_Plus:
-      zoom(zoomIn);
+      m_geo.zoom(zoomIn);
       break;
     case Qt::Key_Minus:
-      zoom(1 / zoomIn);
+      m_geo.zoom(1 / zoomIn);
       break;
     case Qt::Key_Left:
-      scroll(QPoint(-scrollStep, 0));
+      m_geo.scroll(QPoint(-scrollStep, 0));
       break;
     case Qt::Key_Right:
-      scroll(QPoint(+scrollStep, 0));
+      m_geo.scroll(QPoint(+scrollStep, 0));
       break;
     case Qt::Key_Down:
-      scroll(QPoint(0, +scrollStep));
+      m_geo.scroll(QPoint(0, +scrollStep));
       break;
     case Qt::Key_Up:
-      scroll(QPoint(0, -scrollStep));
+      m_geo.scroll(QPoint(0, -scrollStep));
       break;
     default:
       QWidget::keyPressEvent(event);
@@ -326,7 +259,7 @@ void FractalWidget::mouseReleaseEvent(QMouseEvent *event)
      (width() - m_pixmap.width()) / 2 + m_pixmapOffset.x(),
      (height() - m_pixmap.height()) / 2 + m_pixmapOffset.y());
      
-    scroll(delta);
+    m_geo.scroll(delta);
   }
 }
 
@@ -339,14 +272,14 @@ void FractalWidget::paintEvent(QPaintEvent * /* event */)
 
   QPainter painter(this);
 
-  if (m_scale == m_pixmapScale) 
+  if (m_geo.scale() == m_pixmapScale) 
   {
     painter.drawPixmap(m_pixmapOffset, m_pixmap);
     addAxes(painter);
   } 
   else 
   {
-    const double scaleFactor = m_pixmapScale / m_scale;
+    const double scaleFactor = m_pixmapScale / m_geo.scale();
          
     painter.save();
     painter.translate(m_pixmapOffset);
@@ -363,10 +296,7 @@ void FractalWidget::render(int start_at)
 {
   update();
   
-  if (m_renderer.render(
-    *this,
-    QImage(size(), QImage::Format_RGB32), 
-    *this))
+  if (m_renderer.render(*this, QImage(size(), QImage::Format_RGB32), m_geo))
   {
     m_progressBar->setMinimum(0);
     m_progressBar->setMaximum(size().height());
@@ -386,160 +316,21 @@ void FractalWidget::save()
 {
   QSettings settings;
   
-  settings.setValue("center", m_center);
-  settings.setValue("colours", m_colours.size());
-  settings.setValue("first pass", m_firstPass);
+  settings.setValue("center", m_geo.center());
+  settings.setValue("colours", m_geo.colours().size());
+  settings.setValue("first pass", m_geo.firstPass());
   settings.setValue("fractal", QString::fromStdString(name()));
   settings.setValue("julia exponent", m_juliaExponent);
   settings.setValue("julia real", m_julia.real());
   settings.setValue("julia imag", m_julia.imag());
-  settings.setValue("last pass", m_maxPasses);
-  settings.setValue("scale", m_scale);
+  settings.setValue("last pass", m_geo.maxPasses());
+  settings.setValue("scale", m_geo.scale());
   settings.setValue("diverge", m_diverge);
-}
-
-void FractalWidget::scroll(const QPoint& delta)
-{
-  m_center -= QPointF(delta) * m_scale;
-  m_origin += delta;
-  m_centerEdit->setText(
-    QString::number(m_center.x()) + "," + QString::number(m_center.y()));
-  
-  render();
 }
 
 void FractalWidget::setAxes(bool /* state */)
 {
   render();
-}
-
-void FractalWidget::setCenter()
-{
-  const QStringList sl(m_centerEdit->text().split(","));
-  
-  if (sl.size() == 2)
-  {
-    m_center = QPointF(
-      sl[0].toDouble(),
-      sl[1].toDouble());
-      
-    render();
-  }
-}
-
-void FractalWidget::setColourSelected(const QColor& color)
-{
-  if (!color.isValid())
-  {
-    if (m_colourIndex > 0)
-    {
-      render();
-    }
-    
-    return;
-  }
-  
-  m_colours[m_colourIndex] = color.rgb();
-  
-  bool finished = false;
-  
-  if (m_colourIndexFromStart)
-  {
-    if ((unsigned int)m_colourIndex < m_colours.size() - 1)
-    {
-      m_colourIndex++;
-    }
-    else
-    {
-      finished = true;
-    }
-  }
-  else
-  {
-    if (m_colourIndex >= 1)
-    {
-      m_colourIndex--;
-    }
-    else
-    {
-      finished = true;
-    }
-  }
-  
-  if (!finished)
-  {
-    render();
-    m_colourDialog->setCurrentColor(m_colours[m_colourIndex]);
-    m_colourDialog->setWindowTitle(
-      QString("Select Colour %1 of %2")
-        .arg(m_colourIndex + 1).arg(m_colours.size()));
-    m_colourDialog->show();
-  }
-}
-
-void FractalWidget::setColours(int colours)
-{
-  m_colours.clear();
-  
-  const double visible_min = m_coloursMinWave;
-  const double visible_max = m_coloursMaxWave;
-
-  for (int i = 0; i < colours - 1; ++i)
-  {
-    m_colours.push_back(
-      wav2RGB(visible_min + (i * (visible_max - visible_min) / colours)));
-  }
-  
-  m_colours.push_back(qRgb(0, 0, 0));
-}
-
-void FractalWidget::setColoursDialog(bool from_start)
-{
-  m_colourIndexFromStart = from_start;
-  
-  if (from_start)
-  {
-    m_colourIndex = 0;
-  }
-  else
-  {
-    m_colourIndex = m_colours.size() - 1;
-  }
-  
-  m_colourDialog->setCurrentColor(m_colours[m_colourIndex]);
-  m_colourDialog->setWindowTitle(
-    QString("Select Colour %1 of %2")
-    .arg(m_colourIndex + 1).arg(m_colours.size()));
-  m_colourDialog->show();
-}
-  
-void FractalWidget::setColoursMax(int value)
-{
-  if (value > 0)
-  {
-    setColours(value);
-    render(m_pass);
-  }
-}
-
-void FractalWidget::setColoursMaxWave(int value)
-{
-  if (value > 0)
-  {
-    m_coloursMaxWave = value;
-    setColours(m_colours.size());
-    render(m_pass);
-  }
-}
-
-void FractalWidget::setColoursMinWave(int value)
-{
-  if (value > 0)
-  {
-    m_coloursMinWave = value;
-    setColours(m_colours.size());
-    render(m_pass);
-  }
 }
 
 void FractalWidget::setDiverge(const QString& text)
@@ -551,16 +342,6 @@ void FractalWidget::setDiverge(const QString& text)
   
   m_diverge = text.toDouble();
   render();
-}
-
-void FractalWidget::setFirstPass(int value)
-{
-  if (value > 0)
-  {
-    m_maxPassesEdit->setMinimum(value);
-    m_firstPass = value;
-    render();
-  }
 }
 
 void FractalWidget::setFractal(const QString& index)
@@ -603,31 +384,6 @@ void FractalWidget::setJuliaExponent(const QString& text)
   m_juliaExponent = text.toDouble();
   
   render();
-}
-
-void FractalWidget::setPasses(int value)
-{
-  if (value > 0)
-  {
-    m_maxPasses = value;
-    render(m_pass + 1);
-  }
-}
-
-void FractalWidget::setScale(const QString& text)
-{
-  if (text.isEmpty())
-  {
-    return;
-  }
-  
-  const double scale = text.toDouble();
-  
-  if (scale != 0)
-  {
-    m_scale = scale;
-    render();
-  }
 }
 
 void FractalWidget::setSize()
@@ -688,7 +444,7 @@ void FractalWidget::updatePixmap(
   case RENDERING_ACTIVE:
     m_pixmapOffset = QPoint();
     m_lastDragPos = QPoint();
-    m_pixmapScale = scale;
+    m_pixmapScale = m_geo.scale();
     break;
   
   case RENDERING_READY:
@@ -707,78 +463,9 @@ void FractalWidget::updatePixmap(
   update();
 }
 
-// see
-// http://codingmess.blogspot.com/2009/05/conversion-of-wavelength-in-nanometers.html
-uint FractalWidget::wav2RGB(double w) const
-{
-  double R = 0.0;
-  double G = 0.0;
-  double B = 0.0;
-  
-  if (w >= 380 && w < 440)
-  {
-    R = -(w - 440) / (440 - 350);
-    G = 0.0;
-    B = 1.0;
-  }
-  else if (w >= 440 && w < 490)
-  {
-    R = 0.0;
-    G = (w - 440) / (490 - 440);
-    B = 1.0;
-  }
-  else if (w >= 490 && w < 510)
-  {
-    R = 0.0;
-    G = 1.0;
-    B = -(w - 510) / (510 - 490);
-  }
-  else if (w >= 510 && w < 580)
-  {
-    R = (w - 510) / (580 - 510);
-    G = 1.0;
-    B = 0.0;
-  }
-  else if (w >= 580 && w < 645)
-  {
-    R = 1.0;
-    G = -(w - 645) / (645 - 580);
-    B = 0.0;
-  }
-  else if (w >= 645 && w <= 780)
-  {
-    R = 1.0;
-    G = 0.0;
-    B = 0.0;
-  }
-
-  // intensity correction
-  double SSS = 0;
-  
-  if (w >= 380 && w < 420)
-    SSS = 0.3 + 0.7*(w - 350) / (420 - 350);
-  else if (w >= 420 && w <= 700)
-    SSS = 1.0;
-  else if (w > 700 && w <= 780)
-    SSS = 0.3 + 0.7*(780 - w) / (780 - 700);
-      
-  SSS *= 255;
-
-  return qRgb(int(SSS*R), int(SSS*G), int(SSS*B));
-}
-
 void FractalWidget::wheelEvent(QWheelEvent *event)
 {
   const int numDegrees = event->delta() / 8;
   const double numSteps = numDegrees / 15.0f;
-  zoom(pow(zoomIn, numSteps));
-}
-
-void FractalWidget::zoom(double zoomFactor)
-{
-  m_scale *= zoomFactor;
-  m_center *= zoomFactor;
-  m_scaleEdit->setText(QString::number(m_scale));
-  
-  render();
+  m_geo.zoom(pow(zoomIn, numSteps));
 }

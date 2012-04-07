@@ -9,7 +9,6 @@
 #define _FRACTALWIDGET_H
 
 #include <QCheckBox>
-#include <QColorDialog>
 #include <QComboBox>
 #include <QLabel>
 #include <QLineEdit>
@@ -26,7 +25,7 @@
 #include "fractalgeometry.h"
 
 // This class offers the fractal widget.
-class FractalWidget : public QWidget, public Fractal, public FractalGeometry
+class FractalWidget : public QWidget, public Fractal
 {
   Q_OBJECT
 
@@ -77,10 +76,6 @@ public slots:
   
   // Saves settings.
   void save();
-  
-  // Sets colours.
-  void setColoursDialogBegin() {setColoursDialog(true);};
-  void setColoursDialogEnd() {setColoursDialog(false);};
 protected:
   void keyPressEvent(QKeyEvent *event);
   void mouseMoveEvent(QMouseEvent *event);
@@ -91,47 +86,28 @@ protected:
   void wheelEvent(QWheelEvent *event);
 private slots:
   void setAxes(bool state);
-  void setCenter();
-  void setColoursMax(int value);
-  void setColoursMinWave(int value);
-  void setColoursMaxWave(int value);
-  void setColourSelected(const QColor& color);
   void setDiverge(const QString& text);
-  void setFirstPass(int value);
   void setFractal(const QString& index);
   void setJulia();
   void setJuliaExponent(const QString& text);
-  void setPasses(int value);
-  void setScale(const QString& text);
   void setSize();
   void updatePass(int line, int max);
   void updatePass(int pass, int numberOfPasses, int iterations);
   void updatePixmap(
     const QImage &image, double scale, int state);
-  void zoom(double zoomFactor);
 private:
   void addAxes(QPainter& painter);
   void init();
   void render(int start_at = 0);
-  void scroll(const QPoint& delta);
-  void setColours(int colours);
-  void setColoursDialog(bool from_start);
-  uint wav2RGB(double wave) const;
 
+  FractalGeometry m_geo;
   FractalRenderer m_renderer;
   
   QCheckBox* m_axesEdit;
-  QLineEdit* m_centerEdit;
-  QSpinBox* m_coloursEdit;
-  QSpinBox* m_coloursMaxWaveEdit;
-  QSpinBox* m_coloursMinWaveEdit;
   QLineEdit* m_divergeEdit;
-  QSpinBox* m_firstPassEdit;
   QComboBox* m_fractalEdit;
   QLineEdit* m_juliaEdit;
   QLineEdit* m_juliaExponentEdit;
-  QSpinBox* m_maxPassesEdit;
-  QLineEdit* m_scaleEdit;
   QLineEdit* m_sizeEdit;
   
   QLabel* m_maxPassesLabel;
@@ -140,22 +116,15 @@ private:
   QPixmap m_pixmap;
   
   QPoint m_lastDragPos;
-  QPoint m_origin;
   QPoint m_pixmapOffset;
   
   QTime m_time;
   
-  double m_coloursMinWave;  
-  double m_coloursMaxWave;  
   double m_pixmapScale;
   
-  int m_colourIndex;
   int m_pass;
   int m_updates;
   
-  bool m_colourIndexFromStart;
-  
-  QColorDialog* m_colourDialog;
   QToolBar* m_juliaToolBar;
   QProgressBar* m_progressBar;
   QStatusBar* m_statusBar;

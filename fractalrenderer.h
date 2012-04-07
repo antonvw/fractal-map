@@ -34,7 +34,7 @@ enum RenderingState
 
 // This class renders the fractal image.
 // Just call start to start the process, after which you can render images.
-class FractalRenderer : public QThread, public FractalGeometry
+class FractalRenderer : public QThread
 {
   Q_OBJECT
 
@@ -114,6 +114,7 @@ private:
   int m_state;
   int m_oldState;
   
+  FractalGeometry m_geo;
   Fractal m_fractal;
 };
 #endif
