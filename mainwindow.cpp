@@ -69,8 +69,8 @@ MainWindow::MainWindow(QWidget* parent, FractalWidget* fw)
   menuButton->setMenu(menu);
   
   connect(about, SIGNAL(triggered()), this, SLOT(about()));    
-  connect(colours_begin, SIGNAL(triggered()), m_fractalWidget, SLOT(setColoursDialogBegin()));
-  connect(colours_end, SIGNAL(triggered()), m_fractalWidget, SLOT(setColoursDialogEnd()));
+  connect(colours_begin, SIGNAL(triggered()), m_fractalWidget->geometry(), SLOT(setColoursDialogBegin()));
+  connect(colours_end, SIGNAL(triggered()), m_fractalWidget->geometry(), SLOT(setColoursDialogEnd()));
   connect(copy, SIGNAL(triggered()), m_fractalWidget, SLOT(copy()));
   connect(menu, SIGNAL(clicked()), this, SLOT(menu()));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFractalWidget()));

@@ -36,7 +36,7 @@ FractalWidget::FractalWidget(
       scale,
       first_pass,
       passes,
-      std::vector<uint>())
+      colours)
   , m_pixmapScale(scale)
   , m_pass(0)
   , m_updates(0)
@@ -45,8 +45,6 @@ FractalWidget::FractalWidget(
   , m_statusBar(statusbar)
   , m_toolBar(NULL)
 {
-  m_geo.setColoursMax(colours);
-  
   init();
 }
 
@@ -96,11 +94,11 @@ void FractalWidget::addAxes(QPainter& painter)
 void FractalWidget::addControls(QToolBar* toolbar)
 {
   toolbar->addWidget(m_fractalEdit);
+  toolbar->addWidget(m_sizeEdit);
+  toolbar->addSeparator();
   
   m_geo.addControls(toolbar);
   
-  toolbar->addWidget(m_sizeEdit);
-  toolbar->addSeparator();
   toolbar->addWidget(m_divergeEdit);
   toolbar->addSeparator();
   toolbar->addWidget(m_axesEdit);
@@ -306,7 +304,7 @@ void FractalWidget::render(int start_at)
 
 void FractalWidget::resizeEvent(QResizeEvent * /* event */)
 {
-  render();
+  render(CHANGED_START);
   
   m_sizeEdit->setText(
     QString::number(size().width()) + "," + QString::number(size().height()));
@@ -330,7 +328,7 @@ void FractalWidget::save()
 
 void FractalWidget::setAxes(bool /* state */)
 {
-  render();
+  render(CHANGED_START);
 }
 
 void FractalWidget::setDiverge(const QString& text)
@@ -341,7 +339,7 @@ void FractalWidget::setDiverge(const QString& text)
   }
   
   m_diverge = text.toDouble();
-  render();
+  render(CHANGED_START);
 }
 
 void FractalWidget::setFractal(const QString& index)
@@ -356,7 +354,7 @@ void FractalWidget::setFractal(const QString& index)
     }
     
     m_pass = 0;
-    render();
+    render(CHANGED_START);
   }
 }
 
@@ -371,7 +369,7 @@ void FractalWidget::setJulia()
       
   m_julia = std::complex<double>(sl[0].toDouble(), sl[1].toDouble());
   
-  render();
+  render(CHANGED_START);
 }      
 
 void FractalWidget::setJuliaExponent(const QString& text)
@@ -383,7 +381,7 @@ void FractalWidget::setJuliaExponent(const QString& text)
   
   m_juliaExponent = text.toDouble();
   
-  render();
+  render(CHANGED_START);
 }
 
 void FractalWidget::setSize()

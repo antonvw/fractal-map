@@ -12,7 +12,7 @@ FractalGeometry::FractalGeometry(
   double scale,
   int firstPass,
   int maxPasses,
-  const std::vector<uint> & colours)
+  int colours)
   : m_center(center)
   , m_origin(0, 0)
   , m_coloursMinWave(380)
@@ -20,9 +20,9 @@ FractalGeometry::FractalGeometry(
   , m_scale(scale)
   , m_firstPass(firstPass)
   , m_maxPasses(maxPasses)
-  , m_colours(colours)
   , m_colourDialog(new QColorDialog())
 {
+  setColoursMax(colours);
 }
 
 FractalGeometry::FractalGeometry(const FractalGeometry& geo)

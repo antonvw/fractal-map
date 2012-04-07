@@ -40,9 +40,8 @@ public:
     int firstPass = 0,
     // using max number of passes
     int maxPasses = 0,
-    // using these colours,
-    // the last colour is used for converge
-    const std::vector<uint> & colours = std::vector<uint>());
+    // using max colours,
+    int colours = 0);
     
   // Copy constructor.
   FractalGeometry(const FractalGeometry& geo);
@@ -59,6 +58,9 @@ public:
   // Scroll.
   void scroll(const QPoint& delta);
 
+  // Zoom in or out.
+  void zoom(double zoomFactor);
+  
   // Access to members.
   const QPointF& center() const {return m_center;};
   const std::vector<uint> & colours() const {return m_colours;};
@@ -70,19 +72,18 @@ signals:
   // Whenever a control is changed, this signal is emitted.
   void changed(int);
 public slots:  
+  // Sets colours.
+  void setColoursDialogBegin() {setColoursDialog(true);};
+  void setColoursDialogEnd() {setColoursDialog(false);};
+private slots:  
   void setCenter();
-  void setColoursMax(int value);
   void setColoursMinWave(int value);
+  void setColoursMax(int value);
   void setColoursMaxWave(int value);
   void setColourSelected(const QColor& color);
   void setFirstPass(int value);
   void setPasses(int value);
   void setScale(const QString& text);
-  void zoom(double zoomFactor);
-
-  // Sets colours.
-  void setColoursDialogBegin() {setColoursDialog(true);};
-  void setColoursDialogEnd() {setColoursDialog(false);};
 private:  
   void setColours(int colours);
   void setColoursDialog(bool from_start);
@@ -109,6 +110,7 @@ private:
   int m_firstPass;
   int m_maxPasses;
   
+  // the last colour is used for converge
   std::vector<uint> m_colours;
   
   QColorDialog* m_colourDialog;

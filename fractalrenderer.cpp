@@ -10,7 +10,6 @@
 
 FractalRenderer::FractalRenderer(QObject *parent)
   : QThread(parent)
-  , m_geo(QPointF(0, 0), 1, 1, 0, std::vector<uint>())
   , m_state(RENDERING_INIT)
   , m_oldState(RENDERING_INIT)
 {

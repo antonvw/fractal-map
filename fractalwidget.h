@@ -68,6 +68,9 @@ public:
   // Adds julia specific controls to a toolbar.
   void addJuliaControls(QToolBar* toolbar);
   
+  // Access to geometry.
+  FractalGeometry* geometry() {return &m_geo;};
+  
   // Access to renderer.
   FractalRenderer* renderer() {return &m_renderer;};
 public slots:
@@ -85,6 +88,7 @@ protected:
   void resizeEvent(QResizeEvent *event);
   void wheelEvent(QWheelEvent *event);
 private slots:
+  void render(int);
   void setAxes(bool state);
   void setDiverge(const QString& text);
   void setFractal(const QString& index);
@@ -98,7 +102,6 @@ private slots:
 private:
   void addAxes(QPainter& painter);
   void init();
-  void render(int start_at = 0);
 
   FractalGeometry m_geo;
   FractalRenderer m_renderer;
