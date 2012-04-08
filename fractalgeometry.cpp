@@ -279,7 +279,7 @@ void FractalGeometry::setPasses(int value)
   if (value > 0)
   {
     m_maxPasses = value;
-    emit changed(CHANGED_START);
+    emit changed(CHANGED_FINISH);
   }
 }
 
