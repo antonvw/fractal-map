@@ -159,10 +159,15 @@ void FractalGeometry::setColourSelected(const QColor& color)
   {
     return;
   }
-  
-  m_colours[m_colourIndex] = color.rgb();
-  
+
+  bool updated = false;
   bool finished = false;
+    
+  if (m_colours[m_colourIndex] != color.rgb())
+  {
+    m_colours[m_colourIndex] = color.rgb();  
+    updated = true;
+  }
   
   if (m_colourIndexFromStart)
   {
@@ -189,8 +194,12 @@ void FractalGeometry::setColourSelected(const QColor& color)
   
   if (!finished)
   {
-    m_singlePass = true;
-    emit changed();
+    if (updated)
+    {
+      m_singlePass = true;
+      emit changed();
+    }
+    
     m_colourDialog->setCurrentColor(m_colours[m_colourIndex]);
     m_colourDialog->setWindowTitle(
       QString("Select Colour %1 of %2")
