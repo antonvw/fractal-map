@@ -88,7 +88,7 @@ protected:
   void resizeEvent(QResizeEvent *event);
   void wheelEvent(QWheelEvent *event);
 private slots:
-  void render(int);
+  void render();
   void setAxes(bool state);
   void setDiverge(const QString& text);
   void setFractal(const QString& index);

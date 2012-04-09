@@ -20,6 +20,7 @@ FractalGeometry::FractalGeometry(
   , m_scale(scale)
   , m_firstPass(firstPass)
   , m_maxPasses(maxPasses)
+  , m_singlePass(false)
   , m_colourDialog(new QColorDialog())
 {
   setColoursMax(colours);
@@ -41,6 +42,7 @@ FractalGeometry& FractalGeometry::operator= (const FractalGeometry& geo)
   m_colourIndex = geo.m_colourIndex;
   m_firstPass = geo.m_firstPass;
   m_maxPasses = geo.m_maxPasses;
+  m_singlePass = geo.m_singlePass;
   m_colours = geo.m_colours;
   m_colourDialog = geo.m_colourDialog;
   
@@ -127,12 +129,13 @@ bool FractalGeometry::isOk() const
 
 void FractalGeometry::scroll(const QPoint& delta)
 {
+  m_singlePass = false;
   m_center -= QPointF(delta) * scale();
   m_origin += delta;
   m_centerEdit->setText(
     QString::number(m_center.x()) + "," + QString::number(m_center.y()));
   
-  emit changed(CHANGED_START);
+  emit changed();
 }
 
 void FractalGeometry::setCenter()
@@ -141,11 +144,12 @@ void FractalGeometry::setCenter()
   
   if (sl.size() == 2)
   {
+    m_singlePass = false;
     m_center = QPointF(
       sl[0].toDouble(),
       sl[1].toDouble());
       
-    emit changed(CHANGED_START);
+    emit changed();
   }
 }
 
@@ -153,11 +157,6 @@ void FractalGeometry::setColourSelected(const QColor& color)
 {
   if (!color.isValid())
   {
-    if (m_colourIndex > 0)
-    {
-      emit changed(CHANGED_START);
-    }
-    
     return;
   }
   
@@ -190,7 +189,8 @@ void FractalGeometry::setColourSelected(const QColor& color)
   
   if (!finished)
   {
-    emit changed(CHANGED_START);
+    m_singlePass = true;
+    emit changed();
     m_colourDialog->setCurrentColor(m_colours[m_colourIndex]);
     m_colourDialog->setWindowTitle(
       QString("Select Colour %1 of %2")
@@ -240,7 +240,8 @@ void FractalGeometry::setColoursMax(int value)
   if (value > 0)
   {
     setColours(value);
-    emit changed(CHANGED_START);
+    m_singlePass = false;
+    emit changed();
   }
 }
 
@@ -250,7 +251,8 @@ void FractalGeometry::setColoursMaxWave(int value)
   {
     m_coloursMaxWave = value;
     setColours(m_colours.size());
-    emit changed(CHANGED_START);
+    m_singlePass = false;
+    emit changed();
   }
 }
 
@@ -260,7 +262,8 @@ void FractalGeometry::setColoursMinWave(int value)
   {
     m_coloursMinWave = value;
     setColours(m_colours.size());
-    emit changed(CHANGED_START);
+    m_singlePass = false;
+    emit changed();
   }
 }
 
@@ -270,7 +273,8 @@ void FractalGeometry::setFirstPass(int value)
   {
     m_maxPassesEdit->setMinimum(value);
     m_firstPass = value;
-    emit changed(CHANGED_START);
+    m_singlePass = false;
+    emit changed();
   }
 }
 
@@ -279,7 +283,8 @@ void FractalGeometry::setPasses(int value)
   if (value > 0)
   {
     m_maxPasses = value;
-    emit changed(CHANGED_FINISH);
+    m_singlePass = true;
+    emit changed();
   }
 }
 
@@ -295,7 +300,8 @@ void FractalGeometry::setScale(const QString& text)
   if (scale != 0)
   {
     m_scale = scale;
-    emit changed(CHANGED_START);
+    m_singlePass = false;
+    emit changed();
   }
 }
 
@@ -364,6 +370,7 @@ void FractalGeometry::zoom(double zoomFactor)
   m_scale *= zoomFactor;
   m_center *= zoomFactor;
   m_scaleEdit->setText(QString::number(m_scale));
+  m_singlePass = false;
   
-  emit changed(CHANGED_START);
+  emit changed();
 }

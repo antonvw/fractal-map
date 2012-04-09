@@ -15,13 +15,6 @@
 #include <QSpinBox>
 #include <QToolBar>
 
-enum
-{
-  CHANGED_START,
-  CHANGED_CONTINUE,
-  CHANGED_FINISH,
-};
-
 const QString point_regexp("-?[0-9.]+[0-9]*,-?[0-9.]+[0-9]*");
 
 // This class contains general geometry values for a fractal.
@@ -68,9 +61,10 @@ public:
   int maxPasses() const {return m_maxPasses;};
   const QPoint& origin() const {return m_origin;};
   double scale() const {return m_scale;};
+  bool singlePass() const {return m_singlePass;};
 signals:
   // Whenever a control is changed, this signal is emitted.
-  void changed(int);
+  void changed();
 public slots:  
   // Sets colours.
   void setColoursDialogBegin() {setColoursDialog(true);};
@@ -109,6 +103,8 @@ private:
   int m_colourIndex;
   int m_firstPass;
   int m_maxPasses;
+  
+  bool m_singlePass;
   
   // the last colour is used for converge
   std::vector<uint> m_colours;

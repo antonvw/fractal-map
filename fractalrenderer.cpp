@@ -167,7 +167,7 @@ void FractalRenderer::run()
     const QSize half = image.size() / 2;
     
     for (
-      int pass = geo.firstPass(); 
+      int pass = (!geo.singlePass() ? geo.firstPass(): geo.maxPasses()); 
       pass <= geo.maxPasses() && m_state == RENDERING_ACTIVE; 
       pass++)
     {

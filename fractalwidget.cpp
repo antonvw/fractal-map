@@ -170,8 +170,8 @@ void FractalWidget::init()
   m_updatesLabel = new QLabel();
   m_updatesLabel->setToolTip("total images rendered");
   
-  connect(&m_geo, SIGNAL(changed(int)),
-    this, SLOT(render(int)));
+  connect(&m_geo, SIGNAL(changed()),
+    this, SLOT(render()));
     
   connect(&m_renderer, SIGNAL(rendered(QImage,double,int)),
     this, SLOT(updatePixmap(QImage,double,int)));
@@ -290,7 +290,7 @@ void FractalWidget::paintEvent(QPaintEvent * /* event */)
   }
 }
 
-void FractalWidget::render(int start_at)
+void FractalWidget::render()
 {
   update();
   
@@ -304,7 +304,7 @@ void FractalWidget::render(int start_at)
 
 void FractalWidget::resizeEvent(QResizeEvent * /* event */)
 {
-  render(CHANGED_START);
+  render();
   
   m_sizeEdit->setText(
     QString::number(size().width()) + "," + QString::number(size().height()));
@@ -328,7 +328,7 @@ void FractalWidget::save()
 
 void FractalWidget::setAxes(bool /* state */)
 {
-  render(CHANGED_START);
+  render();
 }
 
 void FractalWidget::setDiverge(const QString& text)
@@ -339,7 +339,7 @@ void FractalWidget::setDiverge(const QString& text)
   }
   
   m_diverge = text.toDouble();
-  render(CHANGED_START);
+  render();
 }
 
 void FractalWidget::setFractal(const QString& index)
@@ -354,7 +354,7 @@ void FractalWidget::setFractal(const QString& index)
     }
     
     m_pass = 0;
-    render(CHANGED_START);
+    render();
   }
 }
 
@@ -369,7 +369,7 @@ void FractalWidget::setJulia()
       
   m_julia = std::complex<double>(sl[0].toDouble(), sl[1].toDouble());
   
-  render(CHANGED_START);
+  render();
 }      
 
 void FractalWidget::setJuliaExponent(const QString& text)
@@ -381,7 +381,7 @@ void FractalWidget::setJuliaExponent(const QString& text)
   
   m_juliaExponent = text.toDouble();
   
-  render(CHANGED_START);
+  render();
 }
 
 void FractalWidget::setSize()
