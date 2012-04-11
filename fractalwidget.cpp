@@ -243,32 +243,37 @@ void FractalWidget::mouseMoveEvent(QMouseEvent *event)
 void FractalWidget::mousePressEvent(QMouseEvent *event)
 {
   if (event->button() == Qt::LeftButton)
+  {
     m_lastDragPos = event->pos();
+  }
 }
 
 void FractalWidget::mouseReleaseEvent(QMouseEvent *event)
 {
   if (event->button() == Qt::LeftButton)
   {
-    m_pixmapOffset += event->pos() - m_lastDragPos;
-    m_lastDragPos = QPoint();
-
-    QPoint delta(
-     (width() - m_pixmap.width()) / 2 + m_pixmapOffset.x(),
-     (height() - m_pixmap.height()) / 2 + m_pixmapOffset.y());
-     
-    m_geo.scroll(delta);
-  }
-  else if (event->button() == Qt::RightButton)
-  {
-    QImage image(m_pixmap.toImage());
-    QRgb rgb = image.pixel(event->pos());
-    
-    const QColor color = QColorDialog::getColor(QColor(rgb));
-    
-    if (color.isValid())
+    if (m_lastDragPos == event->pos())
     {
-      m_geo.setColours(rgb, color.rgb());
+      QImage image(m_pixmap.toImage());
+      QRgb rgb = image.pixel(event->pos());
+    
+      const QColor color = QColorDialog::getColor(QColor(rgb));
+    
+      if (color.isValid())
+      {
+        m_geo.setColours(rgb, color.rgb());
+      }
+    }
+    else
+    {
+      m_pixmapOffset += event->pos() - m_lastDragPos;
+      m_lastDragPos = QPoint();
+
+      QPoint delta(
+       (width() - m_pixmap.width()) / 2 + m_pixmapOffset.x(),
+       (height() - m_pixmap.height()) / 2 + m_pixmapOffset.y());
+     
+      m_geo.scroll(delta);
     }
   }
 }
