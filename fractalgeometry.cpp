@@ -153,6 +153,20 @@ void FractalGeometry::setCenter()
   }
 }
 
+void FractalGeometry::setColours(uint old, uint colour)
+{
+  for (size_t i = 0; i < m_colours.size(); ++i)
+  {
+    if (m_colours[i] == old)
+    {
+      m_colours[i] = colour;
+    }
+  }
+  
+  m_singlePass = true;
+  emit changed();
+}
+
 void FractalGeometry::setColourSelected(const QColor& color)
 {
   if (!color.isValid())

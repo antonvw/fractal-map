@@ -44,12 +44,15 @@ public:
   
   // Constructs and adds all edit controls to toolbar.
   void addControls(QToolBar* toolbar);
-    
+  
   // Returns true if parameters are ok.
   bool isOk() const;
   
-  // Scroll.
+  // Scrolls.
   void scroll(const QPoint& delta);
+  
+  // Sets all old colours into new colour.
+  void setColours(uint old, uint colour);
 
   // Zoom in or out.
   void zoom(double zoomFactor);

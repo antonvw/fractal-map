@@ -259,6 +259,18 @@ void FractalWidget::mouseReleaseEvent(QMouseEvent *event)
      
     m_geo.scroll(delta);
   }
+  else if (event->button() == Qt::RightButton)
+  {
+    QImage image(m_pixmap.toImage());
+    QRgb rgb = image.pixel(event->pos());
+    
+    const QColor color = QColorDialog::getColor(QColor(rgb));
+    
+    if (color.isValid())
+    {
+      m_geo.setColours(rgb, color.rgb());
+    }
+  }
 }
 
 void FractalWidget::paintEvent(QPaintEvent * /* event */)
