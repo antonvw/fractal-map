@@ -245,6 +245,7 @@ void FractalWidget::mousePressEvent(QMouseEvent *event)
   if (event->button() == Qt::LeftButton)
   {
     m_lastDragPos = event->pos();
+    m_startDragPos = event->pos();
   }
 }
 
@@ -252,7 +253,7 @@ void FractalWidget::mouseReleaseEvent(QMouseEvent *event)
 {
   if (event->button() == Qt::LeftButton)
   {
-    if (m_lastDragPos == event->pos())
+    if (m_startDragPos == event->pos())
     {
       QImage image(m_pixmap.toImage());
       QRgb rgb = image.pixel(event->pos());
@@ -268,6 +269,7 @@ void FractalWidget::mouseReleaseEvent(QMouseEvent *event)
     {
       m_pixmapOffset += event->pos() - m_lastDragPos;
       m_lastDragPos = QPoint();
+      m_startDragPos = QPoint();
 
       QPoint delta(
        (width() - m_pixmap.width()) / 2 + m_pixmapOffset.x(),
@@ -450,9 +452,6 @@ void FractalWidget::updatePixmap(
 {
   m_updates++;
   m_updatesLabel->setText(QString::number(m_updates));
-    
-  if (!m_lastDragPos.isNull())
-    return;
     
   switch (state)
   {

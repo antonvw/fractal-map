@@ -119,6 +119,7 @@ private:
   QPixmap m_pixmap;
   
   QPoint m_lastDragPos;
+  QPoint m_startDragPos;
   QPoint m_pixmapOffset;
   
   QTime m_time;
