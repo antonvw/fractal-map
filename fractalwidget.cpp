@@ -244,6 +244,7 @@ void FractalWidget::mousePressEvent(QMouseEvent *event)
   {
     m_lastDragPos = event->pos();
     m_startDragPos = event->pos();
+    m_renderer.interrupt();
   }
 }
 

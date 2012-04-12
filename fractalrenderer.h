@@ -24,6 +24,7 @@ enum RenderingState
   RENDERING_INIT,
   RENDERING_READY,
   RENDERING_ACTIVE,
+  RENDERING_INTERRUPT,
   RENDERING_PAUSED,
   RENDERING_STOPPED,
   // these are not real states, in fact state remains active
@@ -45,10 +46,14 @@ public:
   // Destructor, stops rendering.
  ~FractalRenderer();
  
+  // Interrupts rendering.
+  void interrupt();
+ 
   // Process is interrupted.
   bool interrupted() const {
     return 
       m_state == RENDERING_PAUSED || 
+      m_state == RENDERING_INTERRUPT || 
       m_state == RENDERING_START || 
       m_state == RENDERING_SKIP || 
       m_state == RENDERING_SNAPSHOT || 

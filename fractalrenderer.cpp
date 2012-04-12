@@ -49,8 +49,19 @@ bool FractalRenderer::end() const
 {
   return 
     m_state == RENDERING_START || 
+    m_state == RENDERING_INTERRUPT || 
     m_state == RENDERING_PAUSED || 
     m_state == RENDERING_SKIP;
+}
+
+void FractalRenderer::interrupt()
+{
+  if (m_state == RENDERING_ACTIVE)
+  {
+    QMutexLocker locker(&m_mutex);
+    m_state = RENDERING_INTERRUPT;
+    m_condition.wakeOne();
+  }
 }
 
 void FractalRenderer::pause(bool checked)
@@ -225,6 +236,7 @@ void FractalRenderer::run()
     
     switch (m_state)
     {
+      case RENDERING_INTERRUPT:
       case RENDERING_PAUSED:
       case RENDERING_READY:
         m_condition.wait(&m_mutex);
