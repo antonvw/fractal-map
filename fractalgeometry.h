@@ -55,7 +55,7 @@ public:
   void setColours(uint old, uint colour);
 
   // Zoom in or out.
-  void zoom(double zoomFactor);
+  void zoom(double factor);
   
   // Access to members.
   const QPointF& center() const {return m_center;};
@@ -74,12 +74,12 @@ public slots:
   void setColoursDialogEnd() {setColoursDialog(false);};
 private slots:  
   void setCenter();
+  void setColour(const QColor& color);
   void setColoursMinWave(int value);
   void setColoursMax(int value);
   void setColoursMaxWave(int value);
-  void setColourSelected(const QColor& color);
   void setFirstPass(int value);
-  void setPasses(int value);
+  void setMaxPasses(int value);
   void setScale(const QString& text);
 private:  
   void setColours(int colours);

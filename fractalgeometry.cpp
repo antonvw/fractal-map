@@ -94,7 +94,7 @@ void FractalGeometry::addControls(QToolBar* toolbar)
   connect(m_centerEdit, SIGNAL(returnPressed()),
     this, SLOT(setCenter()));
   connect(m_colourDialog, SIGNAL(colorSelected(const QColor&)),
-    this, SLOT(setColourSelected(const QColor&)));
+    this, SLOT(setColour(const QColor&)));
   connect(m_coloursEdit, SIGNAL(valueChanged(int)),
     this, SLOT(setColoursMax(int)));
   connect(m_coloursMinWaveEdit, SIGNAL(valueChanged(int)),
@@ -104,7 +104,7 @@ void FractalGeometry::addControls(QToolBar* toolbar)
   connect(m_firstPassEdit, SIGNAL(valueChanged(int)),
     this, SLOT(setFirstPass(int)));
   connect(m_maxPassesEdit, SIGNAL(valueChanged(int)),
-    this, SLOT(setPasses(int)));
+    this, SLOT(setMaxPasses(int)));
   connect(m_scaleEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(setScale(const QString&)));
     
@@ -153,21 +153,7 @@ void FractalGeometry::setCenter()
   }
 }
 
-void FractalGeometry::setColours(uint old, uint colour)
-{
-  for (size_t i = 0; i < m_colours.size(); ++i)
-  {
-    if (m_colours[i] == old)
-    {
-      m_colours[i] = colour;
-    }
-  }
-  
-  m_singlePass = true;
-  emit changed();
-}
-
-void FractalGeometry::setColourSelected(const QColor& color)
+void FractalGeometry::setColour(const QColor& color)
 {
   if (!color.isValid())
   {
@@ -222,6 +208,20 @@ void FractalGeometry::setColourSelected(const QColor& color)
   }
 }
 
+void FractalGeometry::setColours(uint old, uint colour)
+{
+  for (size_t i = 0; i < m_colours.size(); ++i)
+  {
+    if (m_colours[i] == old)
+    {
+      m_colours[i] = colour;
+    }
+  }
+  
+  m_singlePass = true;
+  emit changed();
+}
+
 void FractalGeometry::setColours(int colours)
 {
   m_colours.clear();
@@ -236,6 +236,9 @@ void FractalGeometry::setColours(int colours)
   }
   
   m_colours.push_back(qRgb(0, 0, 0));
+  
+  m_singlePass = false;
+  emit changed();
 }
 
 void FractalGeometry::setColoursDialog(bool from_start)
@@ -263,8 +266,6 @@ void FractalGeometry::setColoursMax(int value)
   if (value > 0)
   {
     setColours(value);
-    m_singlePass = false;
-    emit changed();
   }
 }
 
@@ -274,8 +275,6 @@ void FractalGeometry::setColoursMaxWave(int value)
   {
     m_coloursMaxWave = value;
     setColours(m_colours.size());
-    m_singlePass = false;
-    emit changed();
   }
 }
 
@@ -285,8 +284,6 @@ void FractalGeometry::setColoursMinWave(int value)
   {
     m_coloursMinWave = value;
     setColours(m_colours.size());
-    m_singlePass = false;
-    emit changed();
   }
 }
 
@@ -301,7 +298,7 @@ void FractalGeometry::setFirstPass(int value)
   }
 }
 
-void FractalGeometry::setPasses(int value)
+void FractalGeometry::setMaxPasses(int value)
 {
   if (value > 0)
   {

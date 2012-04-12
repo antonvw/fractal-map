@@ -126,7 +126,6 @@ private:
   
   double m_pixmapScale;
   
-  int m_pass;
   int m_updates;
   
   QToolBar* m_juliaToolBar;

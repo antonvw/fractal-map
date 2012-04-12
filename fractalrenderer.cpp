@@ -226,7 +226,6 @@ void FractalRenderer::run()
     switch (m_state)
     {
       case RENDERING_PAUSED:
-        break;
       case RENDERING_READY:
         m_condition.wait(&m_mutex);
         break;

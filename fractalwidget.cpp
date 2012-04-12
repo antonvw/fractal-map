@@ -38,7 +38,6 @@ FractalWidget::FractalWidget(
       passes,
       colours)
   , m_pixmapScale(scale)
-  , m_pass(0)
   , m_updates(0)
   , m_juliaToolBar(NULL)
   , m_progressBar(new QProgressBar())
@@ -54,7 +53,6 @@ FractalWidget::FractalWidget(
   , Fractal(fw)
   , m_geo(fw.m_geo)
   , m_pixmapScale(fw.m_pixmapScale)
-  , m_pass(fw.m_pass)
   , m_updates(0)
   , m_juliaToolBar(fw.m_juliaToolBar)
   , m_progressBar(new QProgressBar())
@@ -372,7 +370,6 @@ void FractalWidget::setFractal(const QString& index)
       m_juliaToolBar->setEnabled(name() == "julia set");
     }
     
-    m_pass = 0;
     render();
   }
 }
@@ -440,7 +437,6 @@ void FractalWidget::updatePass(int line, int /*max */)
 
 void FractalWidget::updatePass(int pass, int max, int iterations)
 {
-  m_pass = pass;
   m_maxPassesLabel->setText(QString::number(pass) + "," + QString::number(max));
   m_statusBar->showMessage(QString("executing %1 iterations")
     .arg(iterations));
@@ -456,9 +452,6 @@ void FractalWidget::updatePixmap(
   switch (state)
   {
   case RENDERING_ACTIVE:
-    m_pixmapOffset = QPoint();
-    m_lastDragPos = QPoint();
-    m_pixmapScale = m_geo.scale();
     break;
   
   case RENDERING_READY:
@@ -473,6 +466,8 @@ void FractalWidget::updatePixmap(
   }
     
   m_pixmap = QPixmap::fromImage(image);
+  m_pixmapOffset = QPoint();
+  m_pixmapScale = scale;
   
   update();
 }

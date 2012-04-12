@@ -107,14 +107,14 @@ private:
   // Stops rendering.
   void stop();
   
+  QWaitCondition m_condition;
   QImage m_image;
   QMutex m_mutex;
-  QWaitCondition m_condition;
   
   int m_state;
   int m_oldState;
   
-  FractalGeometry m_geo;
   Fractal m_fractal;
+  FractalGeometry m_geo;
 };
 #endif
