@@ -54,6 +54,10 @@ public:
   // Supported fractals.
   static std::vector<std::string> & names();
 protected:
+  double m_diverge;
+  std::complex<double> m_julia;
+  double m_juliaExponent;
+private:  
   bool juliaset(
     const std::complex<double> & c, 
     double exp, 
@@ -64,10 +68,6 @@ protected:
     int& n, 
     int max) const;
   
-  double m_diverge;
-  std::complex<double> m_julia;
-  double m_juliaExponent;
-private:  
   FractalRenderer* m_renderer;
   std::string m_name;
   static std::vector<std::string> m_names;
