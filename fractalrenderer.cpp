@@ -113,12 +113,6 @@ bool FractalRenderer::render(
   {
     switch (m_state)
     {
-    case RENDERING_PAUSED:
-      {
-      QMutexLocker locker(&m_mutex);
-      m_condition.wait(&m_mutex);
-      }
-      break;
     case RENDERING_SNAPSHOT:
       {
       emit rendered(image, 0, m_state);
