@@ -14,44 +14,44 @@
 
 class FractalRenderer;
 
-// This class offers fractal calculations.
+/// This class offers fractal calculations.
 class Fractal
 {
 public:
-  // Default constructor.
+  /// Default constructor.
   Fractal(
-    // the name of the fractal, see names
+    /// the name of the fractal, see names
     const std::string& name = std::string(),
-    // diverge limit
+    /// diverge limit
     double diverge = 2,
-    // complex arg (for julia set)
+    /// complex arg (for julia set)
     const std::complex<double> & c = std::complex<double>(0, 0),
-    // exponent (for julia set)
+    /// exponent (for julia set)
     double exp = 2);
     
-  // Do fractal calculation. 
-  // Returns true if calculation was not interrupted by renderer.
+  /// Do fractal calculation. 
+  /// Returns true if calculation was not interrupted by renderer.
   bool calc(
-    // complex start value
+    /// complex start value
     const std::complex<double> & c,
-    // number of iterations before diverge
+    /// number of iterations before diverge
     int& n, 
-    // max iterations
+    /// max iterations
     int max) const;
     
-  // Is this fractal ok?
+  /// Is this fractal ok?
   bool isOk() const;
   
-  // Gets the name.
+  /// Gets the name.
   const std::string& name() const {return m_name;};
   
-  // Update name.
+  /// Update name.
   bool setName(const std::string& name);
 
-  // Sets the renderer.
+  /// Sets the renderer.
   void setRenderer(FractalRenderer* renderer) {m_renderer = renderer;};
     
-  // Supported fractals.
+  /// Supported fractals.
   static std::vector<std::string> & names();
 protected:
   double m_diverge;

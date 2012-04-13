@@ -17,47 +17,47 @@
 
 const QString point_regexp("-?[0-9.]+[0-9]*,-?[0-9.]+[0-9]*");
 
-// This class contains general geometry values for a fractal.
+/// This class contains general geometry values for a fractal.
 class FractalGeometry : public QObject
 {
   Q_OBJECT
 
 public:
-  // Default constructor.
+  /// Default constructor.
   FractalGeometry(
-    // using this center
+    /// using this center
     const QPointF& center = QPointF(0,0),
-    // using this scale
+    /// using this scale
     double scale = 0,
-    // pass to start with
+    /// pass to start with
     int firstPass = 0,
-    // using max number of passes
+    /// using max number of passes
     int maxPasses = 0,
-    // using max colours,
+    /// using max colours,
     int colours = 0);
     
-  // Copy constructor.
+  /// Copy constructor.
   FractalGeometry(const FractalGeometry& geo);
   
-  // Assignment.
+  /// Assignment.
   FractalGeometry& operator= (const FractalGeometry& geo);
   
-  // Constructs and adds all edit controls to toolbar.
+  /// Constructs and adds all edit controls to toolbar.
   void addControls(QToolBar* toolbar);
   
-  // Returns true if parameters are ok.
+  /// Returns true if parameters are ok.
   bool isOk() const;
   
-  // Scrolls.
+  /// Scrolls.
   void scroll(const QPoint& delta);
   
-  // Sets all old colours into new colour.
+  /// Sets all old colours into new colour.
   void setColours(uint old, uint colour);
 
-  // Zoom in or out.
+  /// Zoom in or out.
   void zoom(double factor);
   
-  // Access to members.
+  /// Access to members.
   const QPointF& center() const {return m_center;};
   const std::vector<uint> & colours() const {return m_colours;};
   int firstPass() const {return m_firstPass;};
@@ -66,10 +66,10 @@ public:
   double scale() const {return m_scale;};
   bool singlePass() const {return m_singlePass;};
 signals:
-  // Whenever a control is changed, this signal is emitted.
+  /// Whenever a control is changed, this signal is emitted.
   void changed();
 public slots:  
-  // Sets colours.
+  /// Sets colours.
   void setColoursDialogBegin() {setColoursDialog(true);};
   void setColoursDialogEnd() {setColoursDialog(false);};
 private slots:  

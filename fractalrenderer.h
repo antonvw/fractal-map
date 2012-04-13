@@ -21,79 +21,120 @@
 
 enum RenderingState
 {
-  RENDERING_INIT,
-  RENDERING_READY,
-  RENDERING_ACTIVE,
-  RENDERING_INTERRUPT,
-  RENDERING_PAUSED,
-  RENDERING_STOPPED,
-  // these are not real states, in fact state remains active
-  RENDERING_START,
-  RENDERING_SKIP,
-  RENDERING_SNAPSHOT,
+  RENDERING_INIT,      /// INIT state
+  RENDERING_READY,     /// READY state
+  RENDERING_ACTIVE,    /// ACTIVE state
+  RENDERING_INTERRUPT, /// INTERRUPT state
+  RENDERING_PAUSED,    /// PAUSE state
+  RENDERING_RESET,     /// RESET state
+  RENDERING_STOPPED,   /// STOPPED state
+  RENDERING_START,     /// START state
+  RENDERING_SKIP,      /// SKIP state
+  RENDERING_SNAPSHOT,  /// SNAPSHOT state
 };
 
-// This class renders the fractal image.
-// Just call start to start the process, after which you can render images.
+/// This class renders the fractal image.
+/// Just call start to start the process, after which you can render images.
+/// \dot
+/// digraph RenderingState {
+///   node [shape=doublecircle]; INIT; STOPPED;
+///   node [shape=circle fixedsize width=1.5 height=1];
+///   {rank = same; INIT; STOPPED;}
+///   {rank = same; READY; SKIP; SNAPSHOT; START;}
+///   {rank = same; PAUSED; INTERRUPT; RESET;}
+///   INIT      -> READY     [ label = "start" ];
+///   READY     -> ACTIVE    [ label = "render" ];
+///   READY     -> STOPPED   [ label = "stop" ];
+///   ACTIVE    -> PAUSED    [ label = "pause" ];
+///   ACTIVE    -> SKIP      [ label = "skip" ];
+///   ACTIVE    -> INTERRUPT [ label = "interrupt" ];
+///   ACTIVE    -> SNAPSHOT  [ label = "refresh" ];
+///   ACTIVE    -> STOPPED   [ label = "stop" ];
+///   ACTIVE    -> START     [ label = "render" ];
+///   ACTIVE    -> READY     [ label = "pass == geo.maxPasses" ];
+///   PAUSED    -> ACTIVE    [ label = "cont" ];
+///   PAUSED    -> READY     [ label = "cont" ];
+///   INTERRUPT -> ACTIVE    [ label = "cont" ];
+///   INTERRUPT -> RESET     [ label = "reset" ];
+///   RESET     -> ACTIVE    [ label = "render" ];
+///   START     -> ACTIVE    [ label = "geo = m_geo" ];
+///   SKIP      -> ACTIVE;
+///   SNAPSHOT  -> ACTIVE;
+///  }
+/// \enddot
 class FractalRenderer : public QThread
 {
   Q_OBJECT
 
 public:
-  // Constructor.
+  /// Constructor.
   FractalRenderer(QObject* parent = 0);
   
-  // Destructor, stops rendering.
+  /// Destructor, stops rendering.
  ~FractalRenderer();
  
-  // Interrupts rendering.
+  /// Interrupts rendering.
+  /// Call render or cont to render again.
   void interrupt();
  
-  // Process is interrupted.
+  /// Process is interrupted.
   bool interrupted() const {
     return 
       m_state == RENDERING_PAUSED || 
       m_state == RENDERING_INTERRUPT || 
+      m_state == RENDERING_RESET || 
       m_state == RENDERING_START || 
       m_state == RENDERING_SKIP || 
       m_state == RENDERING_SNAPSHOT || 
       m_state == RENDERING_STOPPED;};
       
+  /// Resets after interrupt.
+  /// Current pass is not finished, no sigal is emitted.
+  void reset();
+    
 public slots:
-  // Pauses or continues rendering.
-  void pause(bool checked);
+  /// Continues rendering from where it was interrupted.
+  void cont();
   
-  // Ask for a refresh.
+  /// Pauses rendering.
+  /// Calling render after pause will have no effect, until you call cont.
+  void pause();
+  
+  /// Pauses or continues rendering.
+  void pause(bool checked) {checked ? pause(): cont();};
+  
+  /// Ask for a refresh, a rendered image will be emitted,
+  /// though the image will not be finished.
   void refresh();
     
-  // Begins rendering the fractal into an image (if the process is started).
-  // Returns false if parameters conflict.
+  /// Begins rendering the fractal into an image (if the process is started).
+  /// Returns false if parameters conflict.
   bool render(
-    // using this fractal
+    /// using this fractal
     const Fractal& fractal,
-    // using this image
+    /// using this image
     const QImage& image,
-    // using this geometry
+    /// using this geometry
     const FractalGeometry& geometry);
     
-  // Skip current pass.
+  /// Skips current pass.
   void skip();
   
-  // Start process.
+  /// Starts process.
   void start();
 signals:
-  // If an image is available, this signal is emitted.
+  /// If an image is available, this signal is emitted.
   void rendered(
     const QImage &image, 
     double scale,
     int state);
   
-  // During rendering, this signal is emitted,
-  // allowing you to observe progress.
+  /// During rendering, this signal is emitted,
+  /// allowing you to observe progress.
   void rendering(int pass, int max, int iterations);
   
-  // During rendering, this signal is emitted as well.
-  // It signals current busy on line out of max lines.
+  /// During rendering, this signal is emitted as well.
+  /// It signals current busy on line out of max lines.
   void rendering(int line, int max);
 protected:
   void run();

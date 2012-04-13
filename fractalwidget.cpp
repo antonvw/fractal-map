@@ -178,7 +178,7 @@ void FractalWidget::init()
   connect(&m_renderer, SIGNAL(rendering(int,int)),
     this, SLOT(updatePass(int,int)));
     
-  connect(m_axesEdit, SIGNAL(stateChaged(bool)),
+  connect(m_axesEdit, SIGNAL(stateChanged(bool)),
     this, SLOT(setAxes(bool)));
   connect(m_divergeEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(setDiverge(const QString&)));
@@ -263,9 +263,21 @@ void FractalWidget::mouseReleaseEvent(QMouseEvent *event)
       {
         m_geo.setColours(rgb, color.rgb());
       }
+      else
+      {
+        if (m_renderer.interrupted())
+        {
+          m_renderer.cont();
+        }
+      }
     }
     else
     {
+      if (m_renderer.interrupted())
+      {
+        m_renderer.reset();
+      }
+      
       m_pixmapOffset += event->pos() - m_lastDragPos;
       m_lastDragPos = QPoint();
       m_startDragPos = QPoint();

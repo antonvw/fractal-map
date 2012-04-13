@@ -45,12 +45,23 @@ int FractalRenderer::calcStep(
   return step;
 }
 
+void FractalRenderer::cont()
+{
+  if (m_state == RENDERING_PAUSED || m_state == RENDERING_INTERRUPT)
+  {
+    QMutexLocker locker(&m_mutex);
+    m_state = m_oldState;
+    m_condition.wakeOne();
+  }
+}
+
 bool FractalRenderer::end() const
 {
   return 
     m_state == RENDERING_START || 
     m_state == RENDERING_INTERRUPT || 
     m_state == RENDERING_PAUSED || 
+    m_state == RENDERING_RESET || 
     m_state == RENDERING_SKIP;
 }
 
@@ -59,22 +70,21 @@ void FractalRenderer::interrupt()
   if (m_state == RENDERING_ACTIVE)
   {
     QMutexLocker locker(&m_mutex);
+    m_oldState = m_state;
     m_state = RENDERING_INTERRUPT;
     m_condition.wakeOne();
   }
 }
 
-void FractalRenderer::pause(bool checked)
+void FractalRenderer::pause()
 {
-  QMutexLocker locker(&m_mutex);
-  
   if (m_state != RENDERING_PAUSED)
   {
+    QMutexLocker locker(&m_mutex);
     m_oldState = m_state;
+    m_state = RENDERING_PAUSED;
+    m_condition.wakeOne();
   }
-  
-  m_state = (checked ? RENDERING_PAUSED: m_oldState);
-  m_condition.wakeOne();
 }
 
 void FractalRenderer::refresh()
@@ -113,6 +123,14 @@ bool FractalRenderer::render(
   {
     switch (m_state)
     {
+    case RENDERING_INTERRUPT:
+    case RENDERING_PAUSED:
+      {
+      QMutexLocker locker(&m_mutex);
+      m_condition.wait(&m_mutex);
+      }
+      break;
+      
     case RENDERING_SNAPSHOT:
       {
       emit rendered(image, 0, m_state);
@@ -138,23 +156,39 @@ bool FractalRenderer::render(
   if (
     !fractal.isOk() ||
     !isRunning() || 
-    !geometry.isOk() ||
-    m_state == RENDERING_INIT || 
-    m_state == RENDERING_PAUSED)
+    !geometry.isOk())
   {
     return false;
   }
 
-  QMutexLocker locker(&m_mutex);
+  if (
+    m_state == RENDERING_READY || 
+    m_state == RENDERING_ACTIVE ||
+    m_state == RENDERING_RESET)
+  {
+    QMutexLocker locker(&m_mutex);
   
-  m_state = RENDERING_START;
-  m_image = image;
-  m_fractal = fractal;
-  m_geo = geometry;
-  m_fractal.setRenderer(this);
-  m_condition.wakeOne();
+    m_state = RENDERING_START;
+    m_image = image;
+    m_fractal = fractal;
+    m_geo = geometry;
+    m_fractal.setRenderer(this);
+    m_condition.wakeOne();
+    
+    return true;
+  }
   
-  return true;
+  return false;
+}
+
+void FractalRenderer::reset()
+{
+  if (m_state == RENDERING_INTERRUPT)
+  {
+    QMutexLocker locker(&m_mutex);
+    m_state = RENDERING_RESET;
+    m_condition.wakeOne();
+  }
 }
 
 void FractalRenderer::run()
@@ -233,6 +267,7 @@ void FractalRenderer::run()
       case RENDERING_INTERRUPT:
       case RENDERING_PAUSED:
       case RENDERING_READY:
+      case RENDERING_RESET:
         m_condition.wait(&m_mutex);
         break;
       case RENDERING_STOPPED:

@@ -24,60 +24,60 @@
 #include "fractal.h"
 #include "fractalgeometry.h"
 
-// This class offers the fractal widget.
+/// This class offers the fractal widget.
 class FractalWidget : public QWidget, public Fractal
 {
   Q_OBJECT
 
 public:
-  // Constructor.
+  /// Constructor.
   FractalWidget(
-    // parent
+    /// parent
     QWidget* parent,
-    // statusbar
+    /// statusbar
     QStatusBar* statusbar,
-    // fractal to use
+    /// fractal to use
     const QString& fractalName,
-    // scale to use
+    /// scale to use
     double scale,
-    // number of colours
+    /// number of colours
     int colours,
-    // diverge limit
+    /// diverge limit
     double diverge,
-    // center
+    /// center
     const QPointF& center,
-    // first pass
+    /// first pass
     int first_pass,
-    // number of passes
+    /// number of passes
     int passes,
-    // extra julia args
+    /// extra julia args
     double julia_real,
     double julia_imag,
     double julia_exponent);
     
-  // Copy constructor.
+  /// Copy constructor.
   FractalWidget(
-    // other fractal widget
+    /// other fractal widget
     const FractalWidget& fractal,
-    // statusbar
+    /// statusbar
     QStatusBar* statusbar);
     
-  // Adds controls to a toolbar.
+  /// Adds controls to a toolbar.
   void addControls(QToolBar* toolbar);
 
-  // Adds julia specific controls to a toolbar.
+  /// Adds julia specific controls to a toolbar.
   void addJuliaControls(QToolBar* toolbar);
   
-  // Access to geometry.
+  /// Access to geometry.
   FractalGeometry* geometry() {return &m_geo;};
   
-  // Access to renderer.
+  /// Access to renderer.
   FractalRenderer* renderer() {return &m_renderer;};
 public slots:
-  // Copies pixmap to clipboard.
+  /// Copies pixmap to clipboard.
   void copy();
   
-  // Saves settings.
+  /// Saves settings.
   void save();
 protected:
   void keyPressEvent(QKeyEvent *event);
