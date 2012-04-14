@@ -25,7 +25,7 @@ enum RenderingState
   RENDERING_READY,     /// READY state
   RENDERING_ACTIVE,    /// ACTIVE state
   RENDERING_INTERRUPT, /// INTERRUPT state
-  RENDERING_PAUSED,    /// PAUSE state
+  RENDERING_PAUSED,    /// PAUSED state
   RENDERING_RESET,     /// RESET state
   RENDERING_STOPPED,   /// STOPPED state
   RENDERING_START,     /// START state
@@ -40,12 +40,13 @@ enum RenderingState
 ///   node [shape=doublecircle]; INIT; STOPPED;
 ///   node [shape=circle fixedsize width=1.5 height=1];
 ///   {rank = same; INIT; STOPPED;}
-///   {rank = same; ACTIVE; SKIP; SNAPSHOT;}
-///   {rank = same; PAUSED; INTERRUPT;}
-///   {rank = same; RESET; START;}
+///   {rank = same; SKIP; SNAPSHOT;}
+///   {rank = same; READY; PAUSED;}
 ///   INIT      -> READY     [ label = "start" ];
 ///   READY     -> START     [ label = "render" ];
 ///   READY     -> STOPPED   [ label = "stop" ];
+///   READY     -> PAUSED    [ label = "pause" ];
+///   START     -> ACTIVE    [ label = "geo = m_geo" ];
 ///   ACTIVE    -> PAUSED    [ label = "pause" ];
 ///   ACTIVE    -> SKIP      [ label = "skip" ];
 ///   ACTIVE    -> INTERRUPT [ label = "interrupt" ];
@@ -55,10 +56,10 @@ enum RenderingState
 ///   ACTIVE    -> READY     [ label = "pass == geo.maxPasses" ];
 ///   PAUSED    -> ACTIVE    [ label = "cont" ];
 ///   PAUSED    -> READY     [ label = "cont" ];
+///   PAUSED    -> STOPPED   [ label = "stop" ];
 ///   INTERRUPT -> ACTIVE    [ label = "cont" ];
 ///   INTERRUPT -> RESET     [ label = "reset" ];
 ///   RESET     -> START     [ label = "render" ];
-///   START     -> ACTIVE    [ label = "geo = m_geo" ];
 ///   SKIP      -> ACTIVE;
 ///   SNAPSHOT  -> ACTIVE;
 ///  }
