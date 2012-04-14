@@ -9,6 +9,7 @@
 #define _FRACTALGEOMETRY_H
 
 #include <vector>
+#include <QCheckBox>
 #include <QColorDialog>
 #include <QLineEdit>
 #include <QPointF>
@@ -73,6 +74,9 @@ public:
   
   /// Sets all old colours into new colour.
   void setColours(uint old, uint colour);
+  
+  /// Gets use images.
+  bool useImages() const {return m_useImages;};
 
   /// Zoom in or out.
   void zoom(double factor);
@@ -94,6 +98,7 @@ private slots:
   void setFirstPass(int value);
   void setMaxPasses(int value);
   void setScale(const QString& text);
+  void setUseImages(bool state);
 private:  
   void setColours(int colours);
   void setColoursDialog(bool from_start);
@@ -106,7 +111,8 @@ private:
   QSpinBox* m_firstPassEdit;
   QSpinBox* m_maxPassesEdit;
   QLineEdit* m_scaleEdit;
-
+  QCheckBox* m_useImagesEdit;
+  
   bool m_colourIndexFromStart;
   
   QPointF m_center;
@@ -121,9 +127,14 @@ private:
   int m_maxPasses;
   
   bool m_singlePass;
+  // use images instead of colours for rendering
+  bool m_useImages;
   
   // the last colour is used for converge
   std::vector<uint> m_colours;
+  
+  // the last image is used for convergence
+  std::vector<QImage> m_images;
   
   QColorDialog* m_colourDialog;
 };
