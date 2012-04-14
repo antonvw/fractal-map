@@ -40,10 +40,11 @@ enum RenderingState
 ///   node [shape=doublecircle]; INIT; STOPPED;
 ///   node [shape=circle fixedsize width=1.5 height=1];
 ///   {rank = same; INIT; STOPPED;}
-///   {rank = same; READY; SKIP; SNAPSHOT; START;}
-///   {rank = same; PAUSED; INTERRUPT; RESET;}
+///   {rank = same; ACTIVE; SKIP; SNAPSHOT;}
+///   {rank = same; PAUSED; INTERRUPT;}
+///   {rank = same; RESET; START;}
 ///   INIT      -> READY     [ label = "start" ];
-///   READY     -> ACTIVE    [ label = "render" ];
+///   READY     -> START     [ label = "render" ];
 ///   READY     -> STOPPED   [ label = "stop" ];
 ///   ACTIVE    -> PAUSED    [ label = "pause" ];
 ///   ACTIVE    -> SKIP      [ label = "skip" ];
@@ -56,7 +57,7 @@ enum RenderingState
 ///   PAUSED    -> READY     [ label = "cont" ];
 ///   INTERRUPT -> ACTIVE    [ label = "cont" ];
 ///   INTERRUPT -> RESET     [ label = "reset" ];
-///   RESET     -> ACTIVE    [ label = "render" ];
+///   RESET     -> START     [ label = "render" ];
 ///   START     -> ACTIVE    [ label = "geo = m_geo" ];
 ///   SKIP      -> ACTIVE;
 ///   SNAPSHOT  -> ACTIVE;
@@ -137,6 +138,7 @@ signals:
   /// It signals current busy on line out of max lines.
   void rendering(int line, int max);
 protected:
+  /// Overriden from base class.
   void run();
 private:
   int calcStep(int pass, int first_pass, int max_passes) const;

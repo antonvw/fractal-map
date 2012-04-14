@@ -44,33 +44,46 @@ public:
   
   /// Constructs and adds all edit controls to toolbar.
   void addControls(QToolBar* toolbar);
+  /// Gets the center.
+  const QPointF& center() const {return m_center;};
+  
+  /// Gets colours.
+  const std::vector<uint> & colours() const {return m_colours;};
+  
+  /// Gets first pass.
+  int firstPass() const {return m_firstPass;};
   
   /// Returns true if parameters are ok.
   bool isOk() const;
   
+  /// Gets max passes.
+  int maxPasses() const {return m_maxPasses;};
+  
+  /// Gets origin.
+  const QPoint& origin() const {return m_origin;};
+  
+  /// Gets scale.
+  double scale() const {return m_scale;};
+  
   /// Scrolls.
   void scroll(const QPoint& delta);
+  
+  /// Gets single pass.
+  bool singlePass() const {return m_singlePass;};
   
   /// Sets all old colours into new colour.
   void setColours(uint old, uint colour);
 
   /// Zoom in or out.
   void zoom(double factor);
-  
-  /// Access to members.
-  const QPointF& center() const {return m_center;};
-  const std::vector<uint> & colours() const {return m_colours;};
-  int firstPass() const {return m_firstPass;};
-  int maxPasses() const {return m_maxPasses;};
-  const QPoint& origin() const {return m_origin;};
-  double scale() const {return m_scale;};
-  bool singlePass() const {return m_singlePass;};
 signals:
   /// Whenever a control is changed, this signal is emitted.
   void changed();
 public slots:  
-  /// Sets colours.
+  /// Sets colours from begin.
   void setColoursDialogBegin() {setColoursDialog(true);};
+  
+  /// Sets colours from end.
   void setColoursDialogEnd() {setColoursDialog(false);};
 private slots:  
   void setCenter();

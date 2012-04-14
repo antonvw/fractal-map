@@ -54,8 +54,13 @@ public:
   /// Supported fractals.
   static std::vector<std::string> & names();
 protected:
+  /// diverge (procted because of FractalWidget)
   double m_diverge;
+  
+  /// julia number (procted because of FractalWidget)
   std::complex<double> m_julia;
+  
+  /// julia exponent (procted because of FractalWidget)
   double m_juliaExponent;
 private:  
   bool juliaset(

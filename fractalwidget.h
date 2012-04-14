@@ -50,9 +50,11 @@ public:
     int first_pass,
     /// number of passes
     int passes,
-    /// extra julia args
+    /// julia arg real component
     double julia_real,
+    /// julia imag component
     double julia_imag,
+    /// julia exponent
     double julia_exponent);
     
   /// Copy constructor.
@@ -80,12 +82,14 @@ public slots:
   /// Saves settings.
   void save();
 protected:
+  /// Handles key press event.
   void keyPressEvent(QKeyEvent *event);
-  void mouseMoveEvent(QMouseEvent *event);
-  void mousePressEvent(QMouseEvent *event);
-  void mouseReleaseEvent(QMouseEvent *event);
-  void paintEvent(QPaintEvent *event);
-  void resizeEvent(QResizeEvent *event);
+    /// Handles mouse move event.
+  void mouseMoveEvent(QMouseEvent *event);  /// Handles mouse press event.
+  void mousePressEvent(QMouseEvent *event);  /// Handles mouse release event.
+  void mouseReleaseEvent(QMouseEvent *event);  /// Handles paint event.
+  void paintEvent(QPaintEvent *event);  /// Handles resize event.
+  void resizeEvent(QResizeEvent *event);  /// Handles key press event.
   void wheelEvent(QWheelEvent *event);
 private slots:
   void render();
