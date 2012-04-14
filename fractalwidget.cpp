@@ -178,8 +178,8 @@ void FractalWidget::init()
   connect(&m_renderer, SIGNAL(rendering(int,int)),
     this, SLOT(updatePass(int,int)));
     
-  connect(m_axesEdit, SIGNAL(stateChanged(bool)),
-    this, SLOT(setAxes(bool)));
+  connect(m_axesEdit, SIGNAL(stateChanged(int)),
+    this, SLOT(setAxes(int)));
   connect(m_divergeEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(setDiverge(const QString&)));
   connect(m_fractalEdit, SIGNAL(currentIndexChanged(const QString&)),
@@ -356,7 +356,7 @@ void FractalWidget::save()
   settings.setValue("diverge", m_diverge);
 }
 
-void FractalWidget::setAxes(bool /* state */)
+void FractalWidget::setAxes(int /* state */)
 {
   render();
 }

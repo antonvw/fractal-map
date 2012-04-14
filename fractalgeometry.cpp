@@ -113,8 +113,8 @@ void FractalGeometry::addControls(QToolBar* toolbar)
     this, SLOT(setMaxPasses(int)));
   connect(m_scaleEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(setScale(const QString&)));
-  connect(m_useImagesEdit, SIGNAL(stateChanged(bool)),
-    this, SLOT(setUseImages(bool)));
+  connect(m_useImagesEdit, SIGNAL(stateChanged(int)),
+    this, SLOT(setUseImages(int)));
     
   toolbar->addWidget(m_firstPassEdit);
   toolbar->addWidget(m_maxPassesEdit);
@@ -334,9 +334,9 @@ void FractalGeometry::setScale(const QString& text)
   }
 }
 
-void FractalGeometry::setUseImages(bool state)
+void FractalGeometry::setUseImages(int state)
 {
-  m_useImages = state;
+  m_useImages = (state == Qt::Checked);
 }
 
 // see

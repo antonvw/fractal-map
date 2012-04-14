@@ -20,20 +20,24 @@ FractalRenderer::~FractalRenderer()
   stop();
 }
 
-int FractalRenderer::calcStep(
-  int pass, int first_pass, int max_passes) const
+int FractalRenderer::calcStep(int pass, const FractalGeometry& geo) const
 {
+  if (geo.useImages())
+  {
+    return geo.images().front().width();
+  }
+  
   int step;
   
-  if (pass == max_passes)
+  if (pass == geo.maxPasses())
   { 
     step = 1;
   }
-  else if (pass == max_passes - 1)
+  else if (pass == geo.maxPasses() - 1)
   {
     step = 2;
   }
-  else if (pass == first_pass)
+  else if (pass == geo.firstPass())
   {
     step = 9;
   }
@@ -95,6 +99,60 @@ void FractalRenderer::refresh()
     m_state = RENDERING_SNAPSHOT;
     m_condition.wakeOne();
   }
+}
+
+bool FractalRenderer::render(
+  const Fractal& fractal,
+  const std::complex<double> & c, 
+  int max, 
+  QImage& image, 
+  const QPoint& p, 
+  const std::vector<QImage> & images)
+{
+  int n = 0;
+
+  const bool result = fractal.calc(c, n, max);
+  
+  // We have to use image n.
+  const int im = (n < max ? (n % images.size()): images.size() - 1);
+  
+  for (int i = 0; i < images[im].width(); i++)
+  {
+    for (int j = 0; j < images[im].height(); j++)
+    {
+      image.setPixel(
+        p + QPoint(i, j),
+        images[im].pixel(QPoint(i, j)));
+    }
+  }
+  
+  if (!result)
+  {
+    switch (m_state)
+    {
+    case RENDERING_INTERRUPT:
+    case RENDERING_PAUSED:
+      {
+      QMutexLocker locker(&m_mutex);
+      m_condition.wait(&m_mutex);
+      }
+      break;
+      
+    case RENDERING_SNAPSHOT:
+      {
+      emit rendered(image, 0, m_state);
+      QMutexLocker locker(&m_mutex);
+      m_image = image;
+      m_state = RENDERING_ACTIVE;
+      }
+      break;
+    
+    case RENDERING_STOPPED: return false; 
+      break;
+    }
+  }
+   
+  return true;
 }
 
 bool FractalRenderer::render(
@@ -210,7 +268,7 @@ void FractalRenderer::run()
       pass <= geo.maxPasses() && m_state == RENDERING_ACTIVE; 
       pass++)
     {
-      const int inc = calcStep(pass, geo.firstPass(), geo.maxPasses());
+      const int inc = calcStep(pass, geo);
       const int max_iterations = 16 + (8 << pass);
       
       emit rendering(pass, geo.maxPasses(), max_iterations);
@@ -231,16 +289,32 @@ void FractalRenderer::run()
         {
           const double cx = geo.center().x() + ((x - half.width())* geo.scale());
           
-          if (!render(
-            fractal, 
-            std::complex<double>(cx, cy), 
-            max_iterations, 
-            image, 
-            QPoint(x, y),
-            inc,
-            geo.colours()))
+          if (!geo.useImages())
           {
-            return;
+            if (!render(
+              fractal, 
+              std::complex<double>(cx, cy), 
+              max_iterations, 
+              image, 
+              QPoint(x, y),
+              inc,
+              geo.colours()))
+            {
+              return;
+            }
+          }
+          else
+          {
+            if (!render(
+              fractal, 
+              std::complex<double>(cx, cy), 
+              max_iterations, 
+              image, 
+              QPoint(x, y),
+              geo.images()))
+            {
+              return;
+            }
           }
         }
       }

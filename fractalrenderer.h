@@ -142,9 +142,16 @@ protected:
   /// Overriden from base class.
   void run();
 private:
-  int calcStep(int pass, int first_pass, int max_passes) const;
+  int calcStep(int pass, const FractalGeometry& geo) const;
   // End current state.
   bool end() const;
+  bool render(
+    const Fractal& fractal,
+    const std::complex<double> & c, 
+    int max, 
+    QImage& image, 
+    const QPoint& p, 
+    const std::vector<QImage> & images);
   bool render(
     const Fractal& fractal,
     const std::complex<double> & c, 

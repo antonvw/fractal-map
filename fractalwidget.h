@@ -93,7 +93,7 @@ protected:
   void wheelEvent(QWheelEvent *event);
 private slots:
   void render();
-  void setAxes(bool state);
+  void setAxes(int state);
   void setDiverge(const QString& text);
   void setFractal(const QString& index);
   void setJulia();

@@ -54,6 +54,9 @@ public:
   /// Gets first pass.
   int firstPass() const {return m_firstPass;};
   
+  /// Gets images.
+  const std::vector<QImage> & images() const {return m_images;};
+  
   /// Returns true if parameters are ok.
   bool isOk() const;
   
@@ -98,7 +101,7 @@ private slots:
   void setFirstPass(int value);
   void setMaxPasses(int value);
   void setScale(const QString& text);
-  void setUseImages(bool state);
+  void setUseImages(int state);
 private:  
   void setColours(int colours);
   void setColoursDialog(bool from_start);
