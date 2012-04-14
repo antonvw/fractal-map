@@ -5,6 +5,7 @@
 // Copyright: (c) 2012 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <QFileDialog>
 #include "fractalgeometry.h"
 
 FractalGeometry::FractalGeometry(
@@ -21,8 +22,8 @@ FractalGeometry::FractalGeometry(
   , m_firstPass(firstPass)
   , m_maxPasses(maxPasses)
   , m_singlePass(false)
-  , m_colourDialog(new QColorDialog())
   , m_useImages(false)
+  , m_colourDialog(new QColorDialog())
 {
   setColoursMax(colours);
 }
@@ -307,6 +308,28 @@ void FractalGeometry::setFirstPass(int value)
   }
 }
 
+void FractalGeometry::setImages()
+{
+  m_images.clear();
+  
+  const QStringList sl = QFileDialog::getOpenFileNames(
+    NULL,
+    "Select Images",
+    QString(),
+    "Images (*.bmp *.gif *.jpg *.png *.xpm)");   
+    
+  for (int i = 0; i < sl.size(); i++)
+  {
+    m_images.push_back(QImage(sl[i]));
+  }
+    
+  if (m_images.size() > 0)
+  {
+    m_singlePass = false;
+    emit changed();
+  }
+}
+
 void FractalGeometry::setMaxPasses(int value)
 {
   if (value > 0)
@@ -337,6 +360,9 @@ void FractalGeometry::setScale(const QString& text)
 void FractalGeometry::setUseImages(int state)
 {
   m_useImages = (state == Qt::Checked);
+  
+  m_singlePass = false;
+  emit changed();
 }
 
 // see

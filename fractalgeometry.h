@@ -92,6 +92,9 @@ public slots:
   
   /// Sets colours from end.
   void setColoursDialogEnd() {setColoursDialog(false);};
+  
+  /// Sets images.
+  void setImages();
 private slots:  
   void setCenter();
   void setColour(const QColor& color);

@@ -52,6 +52,7 @@ MainWindow::MainWindow(QWidget* parent, FractalWidget* fw)
   menu->addSeparator();
   QAction* colours_begin = menu->addAction("Colours From Begin...");
   QAction* colours_end = menu->addAction("Colours From End...");
+  QAction* images = menu->addAction("Images...");
   menu->addSeparator();
   QAction* copy = menu->addAction("Copy");
   copy->setShortcuts(QKeySequence::Copy);
@@ -71,6 +72,7 @@ MainWindow::MainWindow(QWidget* parent, FractalWidget* fw)
   connect(about, SIGNAL(triggered()), this, SLOT(about()));    
   connect(colours_begin, SIGNAL(triggered()), m_fractalWidget->geometry(), SLOT(setColoursDialogBegin()));
   connect(colours_end, SIGNAL(triggered()), m_fractalWidget->geometry(), SLOT(setColoursDialogEnd()));
+  connect(images, SIGNAL(triggered()), m_fractalWidget->geometry(), SLOT(setImages()));
   connect(copy, SIGNAL(triggered()), m_fractalWidget, SLOT(copy()));
   connect(menu, SIGNAL(clicked()), this, SLOT(menu()));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFractalWidget()));

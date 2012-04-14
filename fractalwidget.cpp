@@ -330,6 +330,10 @@ void FractalWidget::render()
     m_progressBar->setMaximum(size().height());
     m_progressBar->show();
   }
+  else
+  {
+    m_statusBar->showMessage("could not render");
+  }
 }
 
 void FractalWidget::resizeEvent(QResizeEvent * /* event */)
