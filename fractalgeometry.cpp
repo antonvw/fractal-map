@@ -314,7 +314,7 @@ void FractalGeometry::setImages()
     NULL,
     "Select Images",
     m_dir.absolutePath(),
-    "Images (*.bmp *.gif *.jpg *.png *.xpm)");   
+    "Images (*.bmp *.gif *.jpg *.png *.xpm *.ico)");   
 
   if (!sl.isEmpty())
   {
