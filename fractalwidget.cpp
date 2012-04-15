@@ -332,7 +332,7 @@ void FractalWidget::render()
   }
   else
   {
-    m_statusBar->showMessage("could not render");
+    m_statusBar->showMessage("rendering failed");
   }
 }
 

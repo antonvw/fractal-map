@@ -11,6 +11,7 @@
 #include <vector>
 #include <QCheckBox>
 #include <QColorDialog>
+#include <QFileInfo>
 #include <QLineEdit>
 #include <QPointF>
 #include <QSpinBox>
@@ -122,6 +123,7 @@ private:
   bool m_colourIndexFromStart;
   
   QPointF m_center;
+  QFileInfo m_dir;
   QPoint m_origin;
 
   double m_coloursMinWave;  
