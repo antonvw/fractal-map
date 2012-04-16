@@ -17,7 +17,8 @@
 #include <QSpinBox>
 #include <QToolBar>
 
-const QString point_regexp("-?[0-9.]+[0-9]*,-?[0-9.]+[0-9]*");
+const QString pointf_regexp("-?[0-9.]+[0-9]*,-?[0-9.]+[0-9]*");
+const QString size_regexp("[0-9]+,[0-9]+");
 
 /// This class contains general geometry values for a fractal.
 class FractalGeometry : public QObject
@@ -109,6 +110,7 @@ private slots:
   void setColoursMax(int value);
   void setColoursMaxWave(int value);
   void setFirstPass(int value);
+  void setImagesSize();
   void setMaxPasses(int value);
   void setScale(const QString& text);
   void setUseImages(int state);
@@ -122,6 +124,7 @@ private:
   QSpinBox* m_coloursMaxWaveEdit;
   QSpinBox* m_coloursMinWaveEdit;
   QSpinBox* m_firstPassEdit;
+  QLineEdit* m_imagesSizeEdit;
   QSpinBox* m_maxPassesEdit;
   QLineEdit* m_scaleEdit;
   QCheckBox* m_useImagesEdit;
@@ -130,6 +133,7 @@ private:
   
   QPointF m_center;
   QDir m_dir;
+  QSize m_imagesSize;
   QPoint m_origin;
 
   double m_coloursMinWave;  

@@ -12,7 +12,6 @@
 #include "fractal.h"
 
 const double zoomIn = 0.9;
-const QString size_regexp("[0-9]+,[0-9]+");
 
 FractalWidget::FractalWidget(
   QWidget* parent,
@@ -154,7 +153,7 @@ void FractalWidget::init()
   m_juliaEdit->setText(
     QString::number(m_julia.real()) + "," + QString::number(m_julia.imag()));
   m_juliaEdit->setToolTip("julia real,imag");
-  m_juliaEdit->setValidator(new QRegExpValidator(QRegExp(point_regexp)));
+  m_juliaEdit->setValidator(new QRegExpValidator(QRegExp(pointf_regexp)));
   
   m_juliaExponentEdit = new QLineEdit();
   m_juliaExponentEdit->setText(QString::number(m_juliaExponent));
