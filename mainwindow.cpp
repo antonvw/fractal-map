@@ -32,6 +32,7 @@ MainWindow::MainWindow(QWidget* parent, FractalWidget* fw)
       settings.value("fractal", "julia set 4").toString(),
       settings.value("scale", 0.007).toDouble(),
       settings.value("colours", 128).toInt(),
+      settings.value("dir", "").toString(),
       settings.value("diverge", 2).toDouble(),
       settings.value("center", QPointF(0,0)).toPointF(),
       settings.value("first pass", 1).toInt(),

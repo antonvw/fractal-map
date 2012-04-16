@@ -42,6 +42,8 @@ public:
     double scale,
     /// number of colours
     int colours,
+    /// images dir
+    const QString& dir,
     /// diverge limit
     double diverge,
     /// center

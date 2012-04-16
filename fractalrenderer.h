@@ -145,6 +145,7 @@ private:
   int calcStep(int pass, const FractalGeometry& geo) const;
   // End current state.
   bool end() const;
+  bool nextStateForCalcEnd(const QImage& image);
   bool render(
     const Fractal& fractal,
     const std::complex<double> & c, 

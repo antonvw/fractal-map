@@ -13,8 +13,10 @@ FractalGeometry::FractalGeometry(
   double scale,
   int firstPass,
   int maxPasses,
-  int colours)
+  int colours,
+  const QString& dir)
   : m_center(center)
+  , m_dir(dir)
   , m_origin(0, 0)
   , m_coloursMinWave(380)
   , m_coloursMaxWave(780)
@@ -49,6 +51,7 @@ FractalGeometry& FractalGeometry::operator= (const FractalGeometry& geo)
   m_colourDialog = geo.m_colourDialog;
   m_useImages = geo.m_useImages;
   m_images = geo.m_images;
+  m_dir = geo.m_dir;
   
   return *this;
 }
@@ -314,7 +317,7 @@ void FractalGeometry::setImages()
     NULL,
     "Select Images",
     m_dir.absolutePath(),
-    "Images (*.bmp *.gif *.jpg *.png *.xpm *.ico)");   
+    "Images (*.bmp *.gif  *.ico *.jpg *.png *.xpm)");
 
   if (!sl.isEmpty())
   {
@@ -322,9 +325,20 @@ void FractalGeometry::setImages()
   
     m_dir = sl[0];
     
+    const QSize size(32, 32);
+    
     for (int i = 0; i < sl.size(); i++)
     {
-      m_images.push_back(QImage(sl[i]));
+      const QImage image(sl[i]);
+      
+      if (image.width() > size.width() || image.height() > size.height())
+      {
+        m_images.push_back(image.scaled(size));
+      }
+      else
+      {
+        m_images.push_back(image);
+      }
     }
     
     m_singlePass = false;
@@ -363,11 +377,11 @@ void FractalGeometry::setUseImages(int state)
 {
   bool use = (state == Qt::Checked);
   
-  if (use && m_images.size() == 0)
+  if (use && m_images.empty())
   {
     setImages();
     
-    if (m_images.size() == 0)
+    if (m_images.empty())
     {
       return;
     }

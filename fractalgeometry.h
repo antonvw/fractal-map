@@ -36,7 +36,9 @@ public:
     /// using max number of passes
     int maxPasses = 0,
     /// using max colours,
-    int colours = 0);
+    int colours = 0,
+    /// dir for images
+    const QString& dir = QString());
     
   /// Copy constructor.
   FractalGeometry(const FractalGeometry& geo);
@@ -46,8 +48,12 @@ public:
   
   /// Constructs and adds all edit controls to toolbar.
   void addControls(QToolBar* toolbar);
+  
   /// Gets the center.
   const QPointF& center() const {return m_center;};
+  
+  /// Gets dir.
+  const QFileInfo& dir() const {return m_dir;};
   
   /// Gets colours.
   const std::vector<uint> & colours() const {return m_colours;};

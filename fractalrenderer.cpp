@@ -80,6 +80,34 @@ void FractalRenderer::interrupt()
   }
 }
 
+bool FractalRenderer::nextStateForCalcEnd(const QImage& image)
+{
+  switch (m_state)
+  {
+  case RENDERING_INTERRUPT:
+  case RENDERING_PAUSED:
+    {
+    QMutexLocker locker(&m_mutex);
+    m_condition.wait(&m_mutex);
+    }
+    break;
+      
+  case RENDERING_SNAPSHOT:
+    {
+    emit rendered(image, 0, m_state);
+    QMutexLocker locker(&m_mutex);
+    m_image = image;
+    m_state = RENDERING_ACTIVE;
+    }
+    break;
+    
+  case RENDERING_STOPPED: return false; 
+    break;
+  }
+  
+  return true;
+}
+    
 void FractalRenderer::pause()
 {
   if (m_state != RENDERING_PAUSED)
@@ -128,28 +156,7 @@ bool FractalRenderer::render(
   
   if (!result)
   {
-    switch (m_state)
-    {
-    case RENDERING_INTERRUPT:
-    case RENDERING_PAUSED:
-      {
-      QMutexLocker locker(&m_mutex);
-      m_condition.wait(&m_mutex);
-      }
-      break;
-      
-    case RENDERING_SNAPSHOT:
-      {
-      emit rendered(image, 0, m_state);
-      QMutexLocker locker(&m_mutex);
-      m_image = image;
-      m_state = RENDERING_ACTIVE;
-      }
-      break;
-    
-    case RENDERING_STOPPED: return false; 
-      break;
-    }
+    return nextStateForCalcEnd(image);
   }
    
   return true;
@@ -172,35 +179,15 @@ bool FractalRenderer::render(
   {
     for (int j = 0; j < inc; j++)
     {
-      image.setPixel(p + QPoint(i, j),
+      image.setPixel(
+        p + QPoint(i, j),
        (n < max ? colours[n % colours.size()]: colours.back()));
     }
   }
   
   if (!result)
   {
-    switch (m_state)
-    {
-    case RENDERING_INTERRUPT:
-    case RENDERING_PAUSED:
-      {
-      QMutexLocker locker(&m_mutex);
-      m_condition.wait(&m_mutex);
-      }
-      break;
-      
-    case RENDERING_SNAPSHOT:
-      {
-      emit rendered(image, 0, m_state);
-      QMutexLocker locker(&m_mutex);
-      m_image = image;
-      m_state = RENDERING_ACTIVE;
-      }
-      break;
-    
-    case RENDERING_STOPPED: return false; 
-      break;
-    }
+    return nextStateForCalcEnd(image);
   }
    
   return true;

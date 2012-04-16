@@ -20,6 +20,7 @@ FractalWidget::FractalWidget(
   const QString& fractalName,
   double scale,
   int colours,
+  const QString& dir,
   double diverge,
   const QPointF& center,
   int first_pass,
@@ -36,7 +37,8 @@ FractalWidget::FractalWidget(
       scale,
       first_pass,
       passes,
-      colours)
+      colours,
+      dir)
   , m_pixmapScale(scale)
   , m_updates(0)
   , m_juliaToolBar(NULL)
@@ -254,14 +256,24 @@ void FractalWidget::mouseReleaseEvent(QMouseEvent *event)
   {
     if (m_startDragPos == event->pos())
     {
-      QImage image(m_pixmap.toImage());
-      QRgb rgb = image.pixel(event->pos());
-    
-      const QColor color = QColorDialog::getColor(QColor(rgb));
-    
-      if (color.isValid())
+      if (!m_geo.useImages())
       {
-        m_geo.setColours(rgb, color.rgb());
+        QImage image(m_pixmap.toImage());
+        QRgb rgb = image.pixel(event->pos());
+    
+        const QColor color = QColorDialog::getColor(QColor(rgb));
+    
+        if (color.isValid())
+        {
+          m_geo.setColours(rgb, color.rgb());
+        }
+        else
+        {
+          if (m_renderer.interrupted())
+          {
+            m_renderer.cont();
+          }
+        }
       }
       else
       {
@@ -358,6 +370,7 @@ void FractalWidget::save()
   settings.setValue("last pass", m_geo.maxPasses());
   settings.setValue("scale", m_geo.scale());
   settings.setValue("diverge", m_diverge);
+  settings.setValue("dir", m_geo.dir().absolutePath());
 }
 
 void FractalWidget::setAxes(int /* state */)
