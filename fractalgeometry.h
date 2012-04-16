@@ -11,7 +11,7 @@
 #include <vector>
 #include <QCheckBox>
 #include <QColorDialog>
-#include <QFileInfo>
+#include <QDir>
 #include <QLineEdit>
 #include <QPointF>
 #include <QSpinBox>
@@ -53,7 +53,7 @@ public:
   const QPointF& center() const {return m_center;};
   
   /// Gets dir.
-  const QFileInfo& dir() const {return m_dir;};
+  const QDir& dir() const {return m_dir;};
   
   /// Gets colours.
   const std::vector<uint> & colours() const {return m_colours;};
@@ -129,7 +129,7 @@ private:
   bool m_colourIndexFromStart;
   
   QPointF m_center;
-  QFileInfo m_dir;
+  QDir m_dir;
   QPoint m_origin;
 
   double m_coloursMinWave;  

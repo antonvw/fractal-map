@@ -53,6 +53,7 @@ MainWindow::MainWindow(QWidget* parent, FractalWidget* fw)
   menu->addSeparator();
   QAction* colours_begin = menu->addAction("Colours From Begin...");
   QAction* colours_end = menu->addAction("Colours From End...");
+  menu->addSeparator();
   QAction* images = menu->addAction("Images...");
   menu->addSeparator();
   QAction* copy = menu->addAction("Copy");

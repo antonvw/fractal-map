@@ -316,7 +316,7 @@ void FractalGeometry::setImages()
   const QStringList sl = QFileDialog::getOpenFileNames(
     NULL,
     "Select Images",
-    m_dir.absolutePath(),
+    m_dir.path(),
     "Images (*.bmp *.gif  *.ico *.jpg *.png *.xpm)");
 
   if (!sl.isEmpty())
