@@ -20,11 +20,11 @@ FractalRenderer::~FractalRenderer()
   stop();
 }
 
-int FractalRenderer::calcStep(int pass, const FractalGeometry& geo) const
+const QSize FractalRenderer::calcStep(int pass, const FractalGeometry& geo) const
 {
   if (geo.useImages())
   {
-    return geo.images().front().width();
+    return QSize(geo.images().front().width(), geo.images().front().height());
   }
   
   int step;
@@ -46,7 +46,7 @@ int FractalRenderer::calcStep(int pass, const FractalGeometry& geo) const
     step = 7;
   }
 
-  return step;
+  return QSize(step, step);
 }
 
 void FractalRenderer::cont()
@@ -168,16 +168,16 @@ bool FractalRenderer::render(
   int max,
   QImage& image,
   const QPoint& p,
-  int inc,
+  const QSize& inc,
   const std::vector<uint> & colours)
 {
   int n = 0;
 
   const bool result = fractal.calc(c, n, max);
   
-  for (int i = 0; i < inc; i++)
+  for (int i = 0; i < inc.width(); i++)
   {
-    for (int j = 0; j < inc; j++)
+    for (int j = 0; j < inc.height(); j++)
     {
       image.setPixel(
         p + QPoint(i, j),
@@ -255,7 +255,7 @@ void FractalRenderer::run()
       pass <= geo.maxPasses() && m_state == RENDERING_ACTIVE; 
       pass++)
     {
-      const int inc = calcStep(pass, geo);
+      const QSize inc = calcStep(pass, geo);
       const int max_iterations = 16 + (8 << pass);
       
       emit rendering(pass, geo.maxPasses(), max_iterations);
@@ -263,7 +263,7 @@ void FractalRenderer::run()
       for (
         int y = 0; 
         y < image.height() && !end();
-        y+= inc)
+        y+= inc.height())
       {
         emit rendering(y, image.height());
 
@@ -272,7 +272,7 @@ void FractalRenderer::run()
         for (
           int x = 0; 
           x < image.width() && !end();
-          x+= inc) 
+          x+= inc.width()) 
         {
           const double cx = geo.center().x() + ((x - half.width())* geo.scale());
           

@@ -91,9 +91,8 @@ public:
       m_state == RENDERING_STOPPED;};
       
   /// Resets after interrupt.
-  /// Current pass is not finished, no sigal is emitted.
+  /// The current pass is not finished, and no rendered sigal is emitted.
   void reset();
-    
 public slots:
   /// Continues rendering from where it was interrupted.
   void cont();
@@ -142,7 +141,7 @@ protected:
   /// Overriden from base class.
   void run();
 private:
-  int calcStep(int pass, const FractalGeometry& geo) const;
+  const QSize calcStep(int pass, const FractalGeometry& geo) const;
   // End current state.
   bool end() const;
   bool nextStateForCalcEnd(const QImage& image);
@@ -159,7 +158,7 @@ private:
     int max, 
     QImage& image, 
     const QPoint& p, 
-    int inc,
+    const QSize& inc,
     const std::vector<uint> & colours);
   // Stops rendering.
   void stop();

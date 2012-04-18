@@ -21,6 +21,9 @@ const QString pointf_regexp("-?[0-9.]+[0-9]*,-?[0-9.]+[0-9]*");
 const QString size_regexp("[0-9]+,[0-9]+");
 
 /// This class contains general geometry values for a fractal.
+/// If you want to edit values supplied using the default constructor,
+/// call addControls with you toolbar, then the right
+/// controls will be put on the toolbar. 
 class FractalGeometry : public QObject
 {
   Q_OBJECT
@@ -53,11 +56,11 @@ public:
   /// Gets the center.
   const QPointF& center() const {return m_center;};
   
-  /// Gets dir.
-  const QDir& dir() const {return m_dir;};
-  
   /// Gets colours.
   const std::vector<uint> & colours() const {return m_colours;};
+  
+  /// Gets the dir used when using images instead fo colours.
+  const QDir& dir() const {return m_dir;};
   
   /// Gets first pass.
   int firstPass() const {return m_firstPass;};
@@ -80,11 +83,11 @@ public:
   /// Scrolls.
   void scroll(const QPoint& delta);
   
-  /// Gets single pass.
-  bool singlePass() const {return m_singlePass;};
-  
   /// Sets all old colours into new colour.
   void setColours(uint old, uint colour);
+  
+  /// Gets single pass.
+  bool singlePass() const {return m_singlePass;};
   
   /// Gets use images.
   bool useImages() const {return m_useImages;};
