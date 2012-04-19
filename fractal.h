@@ -49,18 +49,19 @@ public:
   bool setName(const std::string& name);
 
   /// Sets the renderer.
+  /// Use this if you want to be able to interrupt fractal calculation.
   void setRenderer(FractalRenderer* renderer) {m_renderer = renderer;};
     
   /// Supported fractals.
   static std::vector<std::string> & names();
 protected:
-  /// diverge (procted because of FractalWidget)
+  /// diverge (protected because of FractalWidget)
   double m_diverge;
   
-  /// julia number (procted because of FractalWidget)
+  /// julia number (protected because of FractalWidget)
   std::complex<double> m_julia;
   
-  /// julia exponent (procted because of FractalWidget)
+  /// julia exponent (protected because of FractalWidget)
   double m_juliaExponent;
 private:  
   bool juliaset(

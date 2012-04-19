@@ -73,10 +73,10 @@ public:
   void addJuliaControls(QToolBar* toolbar);
   
   /// Access to geometry.
-  FractalGeometry* geometry() {return &m_geo;};
+  FractalGeometry* geometry() {return &m_fractalGeo;};
   
   /// Access to renderer.
-  FractalRenderer* renderer() {return &m_renderer;};
+  FractalRenderer* renderer() {return &m_fractalRenderer;};
 public slots:
   /// Copies pixmap to clipboard.
   void copy();
@@ -86,12 +86,23 @@ public slots:
 protected:
   /// Handles key press event.
   void keyPressEvent(QKeyEvent *event);
-    /// Handles mouse move event.
-  void mouseMoveEvent(QMouseEvent *event);  /// Handles mouse press event.
-  void mousePressEvent(QMouseEvent *event);  /// Handles mouse release event.
-  void mouseReleaseEvent(QMouseEvent *event);  /// Handles paint event.
-  void paintEvent(QPaintEvent *event);  /// Handles resize event.
-  void resizeEvent(QResizeEvent *event);  /// Handles key press event.
+  
+  /// Handles mouse move event.
+  void mouseMoveEvent(QMouseEvent *event);
+
+  /// Handles mouse press event.
+  void mousePressEvent(QMouseEvent *event);
+
+  /// Handles mouse release event.
+  void mouseReleaseEvent(QMouseEvent *event);
+
+  /// Handles paint event.
+  void paintEvent(QPaintEvent *event);
+
+  /// Handles resize event.
+  void resizeEvent(QResizeEvent *event);
+
+  /// Handles key press event.
   void wheelEvent(QWheelEvent *event);
 private slots:
   void render();
@@ -109,8 +120,11 @@ private:
   void addAxes(QPainter& painter);
   void init();
 
-  FractalGeometry m_geo;
-  FractalRenderer m_renderer;
+  FractalGeometry m_fractalGeo;
+  QPixmap m_fractalPixmap;
+  QPoint m_fractalPixmapOffset;
+  double m_fractalPixmapScale;
+  FractalRenderer m_fractalRenderer;
   
   QCheckBox* m_axesEdit;
   QLineEdit* m_divergeEdit;
@@ -122,15 +136,10 @@ private:
   QLabel* m_maxPassesLabel;
   QLabel* m_updatesLabel;
   
-  QPixmap m_pixmap;
-  
   QPoint m_lastDragPos;
   QPoint m_startDragPos;
-  QPoint m_pixmapOffset;
   
   QTime m_time;
-  
-  double m_pixmapScale;
   
   int m_updates;
   

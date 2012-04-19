@@ -76,10 +76,7 @@ bool Fractal::juliaset(
 {
   std::complex<double> z(c);
     
-  for (
-    n = 0; 
-    n < max && !m_renderer->interrupted(); 
-    n++)
+  for (n = 0; n < max; n++)
   {
     z = pow(z, exp) + m_julia;
         
@@ -87,9 +84,19 @@ bool Fractal::juliaset(
     {
       break;
     }
+    
+    if (m_renderer != NULL && !m_renderer->interrupted())
+    {
+      break;
+    }
   }
   
-  return !m_renderer->interrupted();
+  if (m_renderer != NULL)
+  {
+    return !m_renderer->interrupted();
+  }
+  
+  return true;
 }
 
 bool Fractal::mandelbrotset(
@@ -99,7 +106,7 @@ bool Fractal::mandelbrotset(
 {
   std::complex<double> z;
     
-  for (n = 0; n < max && !m_renderer->interrupted(); n++)
+  for (n = 0; n < max; n++)
   {
     z = z * z - c;
         
@@ -107,9 +114,19 @@ bool Fractal::mandelbrotset(
     {
       break;
     }
+    
+    if (m_renderer != NULL && m_renderer->interrupted())
+    {
+      break;
+    }
   }
   
-  return !m_renderer->interrupted();
+  if (m_renderer != NULL)
+  {
+    return !m_renderer->interrupted();
+  }
+  
+  return true;
 }
 
 std::vector<std::string> & Fractal::names()

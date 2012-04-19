@@ -32,13 +32,14 @@ FractalWidget::FractalWidget(
       diverge,
       std::complex<double>(julia_real, julia_imag),
       julia_exponent)
-  , m_geo(center,
+  , m_fractalGeo(center,
       scale,
       first_pass,
       passes,
       colours,
       dir)
-  , m_pixmapScale(scale)
+  , m_fractalPixmapOffset(QPoint())
+  , m_fractalPixmapScale(scale)
   , m_updates(0)
   , m_juliaToolBar(NULL)
   , m_progressBar(new QProgressBar())
@@ -52,8 +53,8 @@ FractalWidget::FractalWidget(
   const FractalWidget& fw, QStatusBar* statusbar)
   : QWidget(fw.parentWidget())
   , Fractal(fw)
-  , m_geo(fw.m_geo)
-  , m_pixmapScale(fw.m_pixmapScale)
+  , m_fractalGeo(fw.m_fractalGeo)
+  , m_fractalPixmapScale(fw.m_fractalPixmapScale)
   , m_updates(0)
   , m_juliaToolBar(fw.m_juliaToolBar)
   , m_progressBar(new QProgressBar())
@@ -62,11 +63,11 @@ FractalWidget::FractalWidget(
 {
   init();
   
-  const QImage image(fw.m_pixmap.toImage());
+  const QImage image(fw.m_fractalPixmap.toImage());
   
   if (!image.isNull())
   { 
-    m_pixmap = QPixmap::fromImage(image);
+    m_fractalPixmap = QPixmap::fromImage(image);
     update();
   }
 }
@@ -78,10 +79,19 @@ void FractalWidget::addAxes(QPainter& painter)
     return;
   }
   
-  const QPoint y1 = QPoint(m_geo.origin().x() + m_pixmap.width() / 2, 0);
-  const QPoint y2 = QPoint(m_geo.origin().x() + m_pixmap.width() / 2, m_pixmap.height());
-  const QPoint x1 = QPoint(0, m_geo.origin().y() + m_pixmap.height() / 2);
-  const QPoint x2 = QPoint(m_pixmap.width(), m_geo.origin().y() + m_pixmap.height() / 2);
+  const QPoint y1 = QPoint(
+    m_fractalGeo.origin().x() + m_fractalPixmap.width() / 2, 
+    0);
+  const QPoint y2 = QPoint(
+    m_fractalGeo.origin().x() + m_fractalPixmap.width() / 2, 
+    m_fractalPixmap.height());
+  const QPoint x1 = QPoint(
+    0, 
+    m_fractalGeo.origin().y() + m_fractalPixmap.height() / 2);
+  const QPoint x2 = QPoint(
+    m_fractalPixmap.width(), 
+    m_fractalGeo.origin().y() + m_fractalPixmap.height() / 2);
+    
   const QLine l1(y1, y2);
   const QLine l2(x1, x2);
   
@@ -96,7 +106,7 @@ void FractalWidget::addControls(QToolBar* toolbar)
   toolbar->addWidget(m_sizeEdit);
   toolbar->addSeparator();
   
-  m_geo.addControls(toolbar);
+  m_fractalGeo.addControls(toolbar);
   
   toolbar->addWidget(m_divergeEdit);
   toolbar->addSeparator();
@@ -116,7 +126,7 @@ void FractalWidget::addJuliaControls(QToolBar* toolbar)
 
 void FractalWidget::copy()
 {
-  QApplication::clipboard()->setImage(m_pixmap.toImage());
+  QApplication::clipboard()->setImage(m_fractalPixmap.toImage());
   m_statusBar->showMessage("copied to clipboard", 50);
 }
 
@@ -169,14 +179,14 @@ void FractalWidget::init()
   m_updatesLabel = new QLabel();
   m_updatesLabel->setToolTip("total images rendered");
   
-  connect(&m_geo, SIGNAL(changed()),
+  connect(&m_fractalGeo, SIGNAL(changed()),
     this, SLOT(render()));
     
-  connect(&m_renderer, SIGNAL(rendered(QImage,double,int)),
+  connect(&m_fractalRenderer, SIGNAL(rendered(QImage,double,int)),
     this, SLOT(updatePixmap(QImage,double,int)));
-  connect(&m_renderer, SIGNAL(rendering(int,int,int)),
+  connect(&m_fractalRenderer, SIGNAL(rendering(int,int,int)),
     this, SLOT(updatePass(int,int,int)));
-  connect(&m_renderer, SIGNAL(rendering(int,int)),
+  connect(&m_fractalRenderer, SIGNAL(rendering(int,int)),
     this, SLOT(updatePass(int,int)));
     
   connect(m_axesEdit, SIGNAL(stateChanged(int)),
@@ -207,22 +217,22 @@ void FractalWidget::keyPressEvent(QKeyEvent *event)
   switch (event->key()) 
   {
     case Qt::Key_Plus:
-      m_geo.zoom(zoomIn);
+      m_fractalGeo.zoom(zoomIn);
       break;
     case Qt::Key_Minus:
-      m_geo.zoom(1 / zoomIn);
+      m_fractalGeo.zoom(1 / zoomIn);
       break;
     case Qt::Key_Left:
-      m_geo.scroll(QPoint(-scrollStep, 0));
+      m_fractalGeo.scroll(QPoint(-scrollStep, 0));
       break;
     case Qt::Key_Right:
-      m_geo.scroll(QPoint(+scrollStep, 0));
+      m_fractalGeo.scroll(QPoint(+scrollStep, 0));
       break;
     case Qt::Key_Down:
-      m_geo.scroll(QPoint(0, +scrollStep));
+      m_fractalGeo.scroll(QPoint(0, +scrollStep));
       break;
     case Qt::Key_Up:
-      m_geo.scroll(QPoint(0, -scrollStep));
+      m_fractalGeo.scroll(QPoint(0, -scrollStep));
       break;
     default:
       QWidget::keyPressEvent(event);
@@ -233,7 +243,7 @@ void FractalWidget::mouseMoveEvent(QMouseEvent *event)
 {
   if (event->buttons() & Qt::LeftButton) 
   {
-    m_pixmapOffset += event->pos() - m_lastDragPos;
+    m_fractalPixmapOffset += event->pos() - m_lastDragPos;
     m_lastDragPos = event->pos();
     update();
   }
@@ -245,7 +255,7 @@ void FractalWidget::mousePressEvent(QMouseEvent *event)
   {
     m_lastDragPos = event->pos();
     m_startDragPos = event->pos();
-    m_renderer.interrupt();
+    m_fractalRenderer.interrupt();
   }
 }
 
@@ -255,78 +265,78 @@ void FractalWidget::mouseReleaseEvent(QMouseEvent *event)
   {
     if (m_startDragPos == event->pos())
     {
-      if (!m_geo.useImages())
+      if (!m_fractalGeo.useImages())
       {
-        QImage image(m_pixmap.toImage());
+        QImage image(m_fractalPixmap.toImage());
         QRgb rgb = image.pixel(event->pos());
     
         const QColor color = QColorDialog::getColor(QColor(rgb));
     
         if (color.isValid())
         {
-          m_geo.setColours(rgb, color.rgb());
+          m_fractalGeo.setColours(rgb, color.rgb());
         }
         else
         {
-          if (m_renderer.interrupted())
+          if (m_fractalRenderer.interrupted())
           {
-            m_renderer.cont();
+            m_fractalRenderer.cont();
           }
         }
       }
       else
       {
-        if (m_renderer.interrupted())
+        if (m_fractalRenderer.interrupted())
         {
-          m_renderer.cont();
+          m_fractalRenderer.cont();
         }
       }
     }
     else
     {
-      if (m_renderer.interrupted())
+      if (m_fractalRenderer.interrupted())
       {
-        m_renderer.reset();
+        m_fractalRenderer.reset();
       }
       
-      m_pixmapOffset += event->pos() - m_lastDragPos;
+      m_fractalPixmapOffset += event->pos() - m_lastDragPos;
       m_lastDragPos = QPoint();
       m_startDragPos = QPoint();
 
       QPoint delta(
-       (width() - m_pixmap.width()) / 2 + m_pixmapOffset.x(),
-       (height() - m_pixmap.height()) / 2 + m_pixmapOffset.y());
+       (width() - m_fractalPixmap.width()) / 2 + m_fractalPixmapOffset.x(),
+       (height() - m_fractalPixmap.height()) / 2 + m_fractalPixmapOffset.y());
      
-      m_geo.scroll(delta);
+      m_fractalGeo.scroll(delta);
     }
   }
 }
 
 void FractalWidget::paintEvent(QPaintEvent * /* event */)
 {
-  if (m_pixmap.isNull()) 
+  if (m_fractalPixmap.isNull()) 
   {
     return;
   }
 
   QPainter painter(this);
 
-  if (m_geo.scale() == m_pixmapScale) 
+  if (m_fractalGeo.scale() == m_fractalPixmapScale) 
   {
-    painter.drawPixmap(m_pixmapOffset, m_pixmap);
+    painter.drawPixmap(m_fractalPixmapOffset, m_fractalPixmap);
     addAxes(painter);
   } 
   else 
   {
-    const double scaleFactor = m_pixmapScale / m_geo.scale();
+    const double scaleFactor = m_fractalPixmapScale / m_fractalGeo.scale();
          
     painter.save();
-    painter.translate(m_pixmapOffset);
+    painter.translate(m_fractalPixmapOffset);
     painter.scale(scaleFactor, scaleFactor);
-    painter.translate(-m_pixmapOffset);
+    painter.translate(-m_fractalPixmapOffset);
     painter.restore();
     QRectF exposed = painter.matrix().inverted().mapRect(rect()).adjusted(-1, -1, 1, 1);
-    painter.drawPixmap(exposed, m_pixmap, exposed);
+    painter.drawPixmap(exposed, m_fractalPixmap, exposed);
     addAxes(painter);
   }
 }
@@ -335,7 +345,9 @@ void FractalWidget::render()
 {
   update();
   
-  if (m_renderer.render(*this, QImage(size(), QImage::Format_RGB32), m_geo))
+  if (m_fractalRenderer.render(*this, 
+    QImage(size(), QImage::Format_RGB32), 
+    m_fractalGeo))
   {
     m_progressBar->setMinimum(0);
     m_progressBar->setMaximum(size().height());
@@ -359,17 +371,17 @@ void FractalWidget::save()
 {
   QSettings settings;
   
-  settings.setValue("center", m_geo.center());
-  settings.setValue("colours", m_geo.colours().size());
-  settings.setValue("first pass", m_geo.firstPass());
+  settings.setValue("center", m_fractalGeo.center());
+  settings.setValue("colours", m_fractalGeo.colours().size());
+  settings.setValue("first pass", m_fractalGeo.firstPass());
   settings.setValue("fractal", QString::fromStdString(name()));
   settings.setValue("julia exponent", m_juliaExponent);
   settings.setValue("julia real", m_julia.real());
   settings.setValue("julia imag", m_julia.imag());
-  settings.setValue("last pass", m_geo.maxPasses());
-  settings.setValue("scale", m_geo.scale());
+  settings.setValue("last pass", m_fractalGeo.maxPasses());
+  settings.setValue("scale", m_fractalGeo.scale());
   settings.setValue("diverge", m_diverge);
-  settings.setValue("dir", m_geo.dir().absolutePath());
+  settings.setValue("dir", m_fractalGeo.dir().absolutePath());
 }
 
 void FractalWidget::setAxes(int /* state */)
@@ -494,9 +506,9 @@ void FractalWidget::updatePixmap(
     break;
   }
     
-  m_pixmap = QPixmap::fromImage(image);
-  m_pixmapOffset = QPoint();
-  m_pixmapScale = scale;
+  m_fractalPixmap = QPixmap::fromImage(image);
+  m_fractalPixmapOffset = QPoint();
+  m_fractalPixmapScale = scale;
   
   update();
 }
@@ -505,5 +517,5 @@ void FractalWidget::wheelEvent(QWheelEvent *event)
 {
   const int numDegrees = event->delta() / 8;
   const double numSteps = numDegrees / 15.0f;
-  m_geo.zoom(pow(zoomIn, numSteps));
+  m_fractalGeo.zoom(pow(zoomIn, numSteps));
 }
