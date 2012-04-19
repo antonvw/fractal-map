@@ -75,20 +75,15 @@ public:
   /// Destructor, stops rendering.
  ~FractalRenderer();
  
+  /// Returns true if rendering is allowed.
+  bool allowRender() const;
+ 
   /// Interrupts rendering.
   /// Call render or cont to render again.
   void interrupt();
  
   /// Process is interrupted.
-  bool interrupted() const {
-    return 
-      m_state == RENDERING_PAUSED || 
-      m_state == RENDERING_INTERRUPT || 
-      m_state == RENDERING_RESET || 
-      m_state == RENDERING_START || 
-      m_state == RENDERING_SKIP || 
-      m_state == RENDERING_SNAPSHOT || 
-      m_state == RENDERING_STOPPED;};
+  bool interrupted() const;
       
   /// Resets after interrupt.
   /// The current pass is not finished, and no rendered sigal is emitted.
@@ -109,7 +104,7 @@ public slots:
   void refresh();
     
   /// Begins rendering the fractal into an image (if the process is started).
-  /// Returns false if parameters conflict.
+  /// Returns false if fractal or image not ok, or rendering is not allowed.
   bool render(
     /// using this fractal
     const Fractal& fractal,

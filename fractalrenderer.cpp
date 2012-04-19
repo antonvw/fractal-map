@@ -20,6 +20,14 @@ FractalRenderer::~FractalRenderer()
   stop();
 }
 
+bool FractalRenderer::allowRender() const
+{
+  return
+    m_state == RENDERING_READY || 
+    m_state == RENDERING_ACTIVE ||
+    m_state == RENDERING_RESET;
+}
+
 const QSize FractalRenderer::calcStep(int pass, const FractalGeometry& geo) const
 {
   if (geo.useImages())
@@ -80,6 +88,18 @@ void FractalRenderer::interrupt()
   }
 }
 
+bool FractalRenderer::interrupted() const 
+{
+  return 
+    m_state == RENDERING_PAUSED || 
+    m_state == RENDERING_INTERRUPT || 
+    m_state == RENDERING_RESET || 
+    m_state == RENDERING_START || 
+    m_state == RENDERING_SKIP || 
+    m_state == RENDERING_SNAPSHOT || 
+    m_state == RENDERING_STOPPED;
+}
+      
 bool FractalRenderer::nextStateForCalcEnd(const QImage& image)
 {
   switch (m_state)
@@ -200,30 +220,22 @@ bool FractalRenderer::render(
 {
   if (
     !fractal.isOk() ||
-    !isRunning() || 
-    !geometry.isOk())
+    !geometry.isOk() ||
+    !allowRender())
   {
     return false;
   }
 
-  if (
-    m_state == RENDERING_READY || 
-    m_state == RENDERING_ACTIVE ||
-    m_state == RENDERING_RESET)
-  {
-    QMutexLocker locker(&m_mutex);
+  QMutexLocker locker(&m_mutex);
   
-    m_state = RENDERING_START;
-    m_image = image;
-    m_fractal = fractal;
-    m_geo = geometry;
-    m_fractal.setRenderer(this);
-    m_condition.wakeOne();
+  m_state = RENDERING_START;
+  m_image = image;
+  m_fractal = fractal;
+  m_geo = geometry;
+  m_fractal.setRenderer(this);
+  m_condition.wakeOne();
     
-    return true;
-  }
-  
-  return false;
+  return true;
 }
 
 void FractalRenderer::reset()

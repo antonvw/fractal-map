@@ -353,8 +353,9 @@ void FractalWidget::render()
     m_progressBar->setMaximum(size().height());
     m_progressBar->show();
   }
-  else
+  else if (m_fractalRenderer.allowRender())
   {
+    // we could not render, but it is allowed, this is an error
     m_statusBar->showMessage("rendering failed");
   }
 }
