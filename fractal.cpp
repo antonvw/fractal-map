@@ -85,7 +85,7 @@ bool Fractal::juliaset(
       break;
     }
     
-    if (m_renderer != NULL && !m_renderer->interrupted())
+    if (m_renderer != NULL && m_renderer->interrupted())
     {
       break;
     }
