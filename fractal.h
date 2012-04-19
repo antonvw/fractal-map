@@ -39,11 +39,29 @@ public:
     /// max iterations
     int max) const;
     
+  /// Gets diverge.
+  double diverge() const {return m_diverge;};
+    
+  /// Gets julia.
+  const std::complex<double> & julia() const {return m_julia;};
+    
+  /// Gets julia exponent.
+  double juliaExponent() const {return m_juliaExponent;};
+    
   /// Is this fractal ok?
   bool isOk() const;
   
   /// Gets the name.
   const std::string& name() const {return m_name;};
+  
+  /// Sets diverge.
+  void setDiverge(double diverge) {m_diverge = diverge;};
+  
+  /// Sets julia.
+  void setJulia(const std::complex<double> julia) {m_julia = julia;};
+  
+  /// Sets julia exponent.
+  void setJuliaExponent(double exp) {m_juliaExponent = exp;};
   
   /// Update name.
   bool setName(const std::string& name);
@@ -54,15 +72,6 @@ public:
     
   /// Supported fractals.
   static std::vector<std::string> & names();
-protected:
-  /// diverge (protected because of FractalWidget)
-  double m_diverge;
-  
-  /// julia number (protected because of FractalWidget)
-  std::complex<double> m_julia;
-  
-  /// julia exponent (protected because of FractalWidget)
-  double m_juliaExponent;
 private:  
   bool juliaset(
     const std::complex<double> & c, 
@@ -75,6 +84,10 @@ private:
     int max) const;
   
   FractalRenderer* m_renderer;
+  
+  double m_diverge;
+  std::complex<double> m_julia;
+  double m_juliaExponent;
   std::string m_name;
   static std::vector<std::string> m_names;
 };

@@ -137,7 +137,7 @@ void FractalWidget::init()
   m_axesEdit->setToolTip("toggle axes");
   
   m_divergeEdit = new QLineEdit();
-  m_divergeEdit->setText(QString::number(m_diverge));
+  m_divergeEdit->setText(QString::number(diverge()));
   m_divergeEdit->setValidator(new QDoubleValidator());
   m_divergeEdit->setFixedWidth(25);
   m_divergeEdit->setToolTip("diverge");
@@ -161,12 +161,12 @@ void FractalWidget::init()
   
   m_juliaEdit = new QLineEdit();
   m_juliaEdit->setText(
-    QString::number(m_julia.real()) + "," + QString::number(m_julia.imag()));
+    QString::number(julia().real()) + "," + QString::number(julia().imag()));
   m_juliaEdit->setToolTip("julia real,imag");
   m_juliaEdit->setValidator(new QRegExpValidator(QRegExp(pointf_regexp)));
   
   m_juliaExponentEdit = new QLineEdit();
-  m_juliaExponentEdit->setText(QString::number(m_juliaExponent));
+  m_juliaExponentEdit->setText(QString::number(juliaExponent()));
   m_juliaExponentEdit->setValidator(new QDoubleValidator());
   m_juliaExponentEdit->setToolTip("julia exponent");
 
@@ -375,12 +375,12 @@ void FractalWidget::save()
   settings.setValue("colours", m_fractalGeo.colours().size());
   settings.setValue("first pass", m_fractalGeo.firstPass());
   settings.setValue("fractal", QString::fromStdString(name()));
-  settings.setValue("julia exponent", m_juliaExponent);
-  settings.setValue("julia real", m_julia.real());
-  settings.setValue("julia imag", m_julia.imag());
+  settings.setValue("julia exponent", juliaExponent());
+  settings.setValue("julia real", julia().real());
+  settings.setValue("julia imag", julia().imag());
   settings.setValue("last pass", m_fractalGeo.maxPasses());
   settings.setValue("scale", m_fractalGeo.scale());
-  settings.setValue("diverge", m_diverge);
+  settings.setValue("diverge", diverge());
   settings.setValue("dir", m_fractalGeo.dir().absolutePath());
 }
 
@@ -396,7 +396,8 @@ void FractalWidget::setDiverge(const QString& text)
     return;
   }
   
-  m_diverge = text.toDouble();
+  Fractal::setDiverge(text.toDouble());
+  
   render();
 }
 
@@ -424,7 +425,7 @@ void FractalWidget::setJulia()
     return;
   }
       
-  m_julia = std::complex<double>(sl[0].toDouble(), sl[1].toDouble());
+  Fractal::setJulia(std::complex<double>(sl[0].toDouble(), sl[1].toDouble()));
   
   render();
 }      
@@ -436,7 +437,7 @@ void FractalWidget::setJuliaExponent(const QString& text)
     return;
   }
   
-  m_juliaExponent = text.toDouble();
+  Fractal::setJuliaExponent(text.toDouble());
   
   render();
 }
