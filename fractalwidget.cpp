@@ -8,10 +8,47 @@
 #include <math.h>
 #include <QtGui>
 #include <QRegExpValidator>
+#include <qwt_plot_panner.h>
+#include <qwt_plot_magnifier.h>
 #include "fractalwidget.h"
 #include "fractal.h"
 
 const double zoomIn = 0.9;
+
+class FractalPlotItem: public QwtPlotItem
+{
+public:
+  FractalPlotItem();
+
+  virtual int rtti() const;
+
+  virtual void draw(QPainter *p,
+    const QwtScaleMap &, const QwtScaleMap &,
+    const QRectF &rect) const;
+};
+
+FractalPlotItem::FractalPlotItem()
+{
+  setZ(1000);
+  setRenderHint(QwtPlotItem::RenderAntialiased, true);
+}
+
+int FractalPlotItem::rtti() const
+{
+  return QwtPlotItem::Rtti_PlotUserItem;
+}
+
+void FractalPlotItem::draw(QPainter *p, 
+  const QwtScaleMap &, 
+  const QwtScaleMap &,
+  const QRectF &rect) const
+{
+  const FractalWidget *cpuPlot = (FractalWidget *)plot();
+    
+  p->save();
+  p->drawPixmap(rect, cpuPlot->fractalPixmap(), rect);
+  p->restore();
+}
 
 FractalWidget::FractalWidget(
   QWidget* parent,
@@ -27,7 +64,7 @@ FractalWidget::FractalWidget(
   double julia_real,
   double julia_imag,
   double julia_exponent)
-  : QWidget(parent)
+  : QwtPlot(parent)
   , Fractal(fractalName.toStdString(), 
       diverge,
       std::complex<double>(julia_real, julia_imag),
@@ -51,7 +88,7 @@ FractalWidget::FractalWidget(
 
 FractalWidget::FractalWidget(
   const FractalWidget& fw, QStatusBar* statusbar)
-  : QWidget(fw.parentWidget())
+  : QwtPlot(fw.parentWidget())
   , Fractal(fw)
   , m_fractalGeo(fw.m_fractalGeo)
   , m_fractalPixmapScale(fw.m_fractalPixmapScale)
@@ -208,6 +245,18 @@ void FractalWidget::init()
   m_statusBar->addPermanentWidget(m_progressBar);
   m_statusBar->addPermanentWidget(m_maxPassesLabel);
   m_statusBar->addPermanentWidget(m_updatesLabel);
+  
+  FractalPlotItem* pie = new FractalPlotItem();
+  pie->attach(this);
+  
+  // panning with the left mouse button
+  (void) new QwtPlotPanner( canvas() );
+
+  // zoom in/out with the wheel
+  (void) new QwtPlotMagnifier( canvas() );
+  
+  setAxisScale(xBottom, -5.0, 5.0);
+  setAxisScale(yLeft, -5.0, 5.0);
 }
 
 void FractalWidget::keyPressEvent(QKeyEvent *event)
@@ -312,35 +361,6 @@ void FractalWidget::mouseReleaseEvent(QMouseEvent *event)
   }
 }
 
-void FractalWidget::paintEvent(QPaintEvent * /* event */)
-{
-  if (m_fractalPixmap.isNull()) 
-  {
-    return;
-  }
-
-  QPainter painter(this);
-
-  if (m_fractalGeo.scale() == m_fractalPixmapScale) 
-  {
-    painter.drawPixmap(m_fractalPixmapOffset, m_fractalPixmap);
-    addAxes(painter);
-  } 
-  else 
-  {
-    const double scaleFactor = m_fractalPixmapScale / m_fractalGeo.scale();
-         
-    painter.save();
-    painter.translate(m_fractalPixmapOffset);
-    painter.scale(scaleFactor, scaleFactor);
-    painter.translate(-m_fractalPixmapOffset);
-    painter.restore();
-    QRectF exposed = painter.matrix().inverted().mapRect(rect()).adjusted(-1, -1, 1, 1);
-    painter.drawPixmap(exposed, m_fractalPixmap, exposed);
-    addAxes(painter);
-  }
-}
-
 void FractalWidget::render()
 {
   update();
@@ -358,6 +378,8 @@ void FractalWidget::render()
     // we could not render, but it is allowed, this is an error
     m_statusBar->showMessage("rendering failed");
   }
+  
+  replot();
 }
 
 void FractalWidget::resizeEvent(QResizeEvent * /* event */)

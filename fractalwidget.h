@@ -20,12 +20,13 @@
 #include <QTime>
 #include <QToolBar>
 #include <QWidget>
+#include <qwt_plot.h>
 #include "fractalrenderer.h"
 #include "fractal.h"
 #include "fractalgeometry.h"
 
 /// This class offers the fractal widget.
-class FractalWidget : public QWidget, public Fractal
+class FractalWidget : public QwtPlot, public Fractal
 {
   Q_OBJECT
 
@@ -77,6 +78,9 @@ public:
   
   /// Access to renderer.
   FractalRenderer* renderer() {return &m_fractalRenderer;};
+  
+  const QPixmap& fractalPixmap() const {return m_fractalPixmap;};
+  
 public slots:
   /// Copies pixmap to clipboard.
   void copy();
@@ -95,9 +99,6 @@ protected:
 
   /// Handles mouse release event.
   void mouseReleaseEvent(QMouseEvent *event);
-
-  /// Handles paint event.
-  void paintEvent(QPaintEvent *event);
 
   /// Handles resize event.
   void resizeEvent(QResizeEvent *event);
