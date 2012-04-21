@@ -398,7 +398,7 @@ void FractalGeometry::setScale(const QString& text)
 
 void FractalGeometry::setUseImages(int state)
 {
-  bool use = (state == Qt::Checked);
+  const bool use = (state == Qt::Checked);
   m_imagesSizeEdit->setEnabled(use);  
   
   if (use && m_images.empty())

@@ -107,7 +107,7 @@ protected:
   void wheelEvent(QWheelEvent *event);
 private slots:
   void render();
-  void setAxes(int state);
+  void setAxis(int state);
   void setDiverge(const QString& text);
   void setFractal(const QString& index);
   void setJulia();
@@ -118,7 +118,6 @@ private slots:
   void updatePixmap(
     const QImage &image, double scale, int state);
 private:
-  void addAxes(QPainter& painter);
   void init();
 
   FractalGeometry m_fractalGeo;
@@ -127,7 +126,7 @@ private:
   double m_fractalPixmapScale;
   FractalRenderer m_fractalRenderer;
   
-  QCheckBox* m_axesEdit;
+  QCheckBox* m_axisEdit;
   QLineEdit* m_divergeEdit;
   QComboBox* m_fractalEdit;
   QLineEdit* m_juliaEdit;

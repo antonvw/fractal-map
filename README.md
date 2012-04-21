@@ -1,1 +1,1 @@
-This project offers a fractal browser, developed using Qt 4.8.0.
+This project offers a fractal browser, developed using Qt 4.8.0 and qwt 6.0.1.

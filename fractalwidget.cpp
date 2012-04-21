@@ -109,34 +109,6 @@ FractalWidget::FractalWidget(
   }
 }
 
-void FractalWidget::addAxes(QPainter& painter)
-{
-  if (!m_axesEdit->isChecked())
-  {
-    return;
-  }
-  
-  const QPoint y1 = QPoint(
-    m_fractalGeo.origin().x() + m_fractalPixmap.width() / 2, 
-    0);
-  const QPoint y2 = QPoint(
-    m_fractalGeo.origin().x() + m_fractalPixmap.width() / 2, 
-    m_fractalPixmap.height());
-  const QPoint x1 = QPoint(
-    0, 
-    m_fractalGeo.origin().y() + m_fractalPixmap.height() / 2);
-  const QPoint x2 = QPoint(
-    m_fractalPixmap.width(), 
-    m_fractalGeo.origin().y() + m_fractalPixmap.height() / 2);
-    
-  const QLine l1(y1, y2);
-  const QLine l2(x1, x2);
-  
-  painter.setPen("grey");
-  painter.drawLine(l1);
-  painter.drawLine(l2);
-}
-
 void FractalWidget::addControls(QToolBar* toolbar)
 {
   toolbar->addWidget(m_fractalEdit);
@@ -147,7 +119,7 @@ void FractalWidget::addControls(QToolBar* toolbar)
   
   toolbar->addWidget(m_divergeEdit);
   toolbar->addSeparator();
-  toolbar->addWidget(m_axesEdit);
+  toolbar->addWidget(m_axisEdit);
  
   m_toolBar = toolbar;
 }
@@ -169,9 +141,10 @@ void FractalWidget::copy()
 
 void FractalWidget::init()
 {
-  m_axesEdit = new QCheckBox("Axes");
-  m_axesEdit->setChecked(false);
-  m_axesEdit->setToolTip("toggle axes");
+  m_axisEdit = new QCheckBox("Axis");
+  m_axisEdit->setChecked(false);
+  m_axisEdit->setToolTip("toggle axis");
+  m_axisEdit->setChecked(true);
   
   m_divergeEdit = new QLineEdit();
   m_divergeEdit->setText(QString::number(diverge()));
@@ -226,8 +199,8 @@ void FractalWidget::init()
   connect(&m_fractalRenderer, SIGNAL(rendering(int,int)),
     this, SLOT(updatePass(int,int)));
     
-  connect(m_axesEdit, SIGNAL(stateChanged(int)),
-    this, SLOT(setAxes(int)));
+  connect(m_axisEdit, SIGNAL(stateChanged(int)),
+    this, SLOT(setAxis(int)));
   connect(m_divergeEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(setDiverge(const QString&)));
   connect(m_fractalEdit, SIGNAL(currentIndexChanged(const QString&)),
@@ -407,9 +380,11 @@ void FractalWidget::save()
   settings.setValue("dir", m_fractalGeo.dir().absolutePath());
 }
 
-void FractalWidget::setAxes(int /* state */)
+void FractalWidget::setAxis(int state)
 {
-  render();
+  const bool use = (state == Qt::Checked);
+  enableAxis(xBottom, use);
+  enableAxis(yLeft, use);
 }
 
 void FractalWidget::setDiverge(const QString& text)
@@ -534,7 +509,7 @@ void FractalWidget::updatePixmap(
   m_fractalPixmapOffset = QPoint();
   m_fractalPixmapScale = scale;
   
-  update();
+  replot();
 }
 
 void FractalWidget::wheelEvent(QWheelEvent *event)
