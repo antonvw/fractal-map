@@ -25,6 +25,8 @@
 #include "fractal.h"
 #include "fractalgeometry.h"
 
+class QwtPlotMagnifier;
+
 /// This class offers the fractal widget.
 class FractalWidget : public QwtPlot, public Fractal
 {
@@ -135,6 +137,8 @@ private:
   
   QLabel* m_maxPassesLabel;
   QLabel* m_updatesLabel;
+  
+  QwtPlotMagnifier* m_plotMagnifier;
   
   QPoint m_lastDragPos;
   QPoint m_startDragPos;

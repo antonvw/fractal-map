@@ -223,10 +223,10 @@ void FractalWidget::init()
   pie->attach(this);
   
   // panning with the left mouse button
-  (void) new QwtPlotPanner( canvas() );
+  new QwtPlotPanner( canvas() );
 
   // zoom in/out with the wheel
-  (void) new QwtPlotMagnifier( canvas() );
+  m_plotMagnifier = new QwtPlotMagnifier( canvas() );
   
   setAxisScale(xBottom, -5.0, 5.0);
   setAxisScale(yLeft, -5.0, 5.0);
@@ -514,7 +514,7 @@ void FractalWidget::updatePixmap(
 
 void FractalWidget::wheelEvent(QWheelEvent *event)
 {
-  const int numDegrees = event->delta() / 8;
-  const double numSteps = numDegrees / 15.0f;
-  m_fractalGeo.zoom(pow(zoomIn, numSteps));
+  QwtPlot::wheelEvent(event);
+  
+  m_fractalGeo.zoom(m_plotMagnifier->wheelFactor());
 }
