@@ -74,8 +74,6 @@ FractalWidget::FractalWidget(
       passes,
       colours,
       dir)
-  , m_fractalPixmapOffset(QPoint())
-  , m_fractalPixmapScale(scale)
   , m_updates(0)
   , m_juliaToolBar(NULL)
   , m_progressBar(new QProgressBar())
@@ -90,7 +88,6 @@ FractalWidget::FractalWidget(
   : QwtPlot(fw.parentWidget())
   , Fractal(fw)
   , m_fractalGeo(fw.m_fractalGeo)
-  , m_fractalPixmapScale(fw.m_fractalPixmapScale)
   , m_updates(0)
   , m_juliaToolBar(fw.m_juliaToolBar)
   , m_progressBar(new QProgressBar())
@@ -267,85 +264,6 @@ void FractalWidget::keyPressEvent(QKeyEvent *event)
   }
 }
 
-void FractalWidget::mouseMoveEvent(QMouseEvent *event)
-{
-  QwtPlot::mouseMoveEvent(event);
-return;
-  if (event->buttons() & Qt::LeftButton) 
-  {
-    m_fractalPixmapOffset += event->pos() - m_lastDragPos;
-    m_lastDragPos = event->pos();
-    update();
-  }
-}
-
-void FractalWidget::mousePressEvent(QMouseEvent *event)
-{
-  QwtPlot::mousePressEvent(event);
-return;
-  if (event->button() == Qt::LeftButton)
-  {
-    m_lastDragPos = event->pos();
-    m_startDragPos = event->pos();
-    m_fractalRenderer.interrupt();
-  }
-}
-
-void FractalWidget::mouseReleaseEvent(QMouseEvent *event)
-{
-  QwtPlot::mouseReleaseEvent(event);
-return;
-  if (event->button() == Qt::LeftButton)
-  {
-    if (m_startDragPos == event->pos())
-    {
-      if (!m_fractalGeo.useImages())
-      {
-        QImage image(m_fractalPixmap.toImage());
-        QRgb rgb = image.pixel(event->pos());
-    
-        const QColor color = QColorDialog::getColor(QColor(rgb));
-    
-        if (color.isValid())
-        {
-          m_fractalGeo.setColours(rgb, color.rgb());
-        }
-        else
-        {
-          if (m_fractalRenderer.interrupted())
-          {
-            m_fractalRenderer.cont();
-          }
-        }
-      }
-      else
-      {
-        if (m_fractalRenderer.interrupted())
-        {
-          m_fractalRenderer.cont();
-        }
-      }
-    }
-    else
-    {
-      if (m_fractalRenderer.interrupted())
-      {
-        m_fractalRenderer.reset();
-      }
-      
-      m_fractalPixmapOffset += event->pos() - m_lastDragPos;
-      m_lastDragPos = QPoint();
-      m_startDragPos = QPoint();
-
-      QPoint delta(
-       (width() - m_fractalPixmap.width()) / 2 + m_fractalPixmapOffset.x(),
-       (height() - m_fractalPixmap.height()) / 2 + m_fractalPixmapOffset.y());
-     
-      m_fractalGeo.scroll(delta);
-    }
-  }
-}
-
 void FractalWidget::render()
 {
   if (m_fractalRenderer.render(*this, 
@@ -516,8 +434,6 @@ void FractalWidget::updatePixmap(
   }
     
   m_fractalPixmap = QPixmap::fromImage(image);
-  m_fractalPixmapOffset = QPoint();
-  m_fractalPixmapScale = scale;
   
   replot();
 }
