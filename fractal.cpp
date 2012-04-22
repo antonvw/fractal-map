@@ -31,10 +31,10 @@ Fractal::Fractal(
   double diverge,
   const std::complex<double> & c,
   double exp)
-  : m_diverge(diverge)
+  : m_renderer(NULL)
+  , m_diverge(diverge)
   , m_julia(c)
   , m_juliaExponent(exp)
-  , m_renderer(NULL)
 {
   setName(name);
 }
