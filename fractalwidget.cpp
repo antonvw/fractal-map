@@ -14,8 +14,6 @@
 #include "fractalwidget.h"
 #include "fractal.h"
 
-const double zoomIn = 0.9;
-
 class FractalPlotItem: public QwtPlotItem
 {
 public:
@@ -247,10 +245,10 @@ void FractalWidget::keyPressEvent(QKeyEvent *event)
   switch (event->key()) 
   {
     case Qt::Key_Plus:
-      m_fractalGeo.zoom(zoomIn);
+      m_fractalGeo.zoom(m_plotMagnifier->wheelFactor());
       break;
     case Qt::Key_Minus:
-      m_fractalGeo.zoom(1 / zoomIn);
+      m_fractalGeo.zoom(1 / m_plotMagnifier->wheelFactor());
       break;
     case Qt::Key_Left:
       m_fractalGeo.scroll(QPoint(-scrollStep, 0));
@@ -271,6 +269,8 @@ void FractalWidget::keyPressEvent(QKeyEvent *event)
 
 void FractalWidget::mouseMoveEvent(QMouseEvent *event)
 {
+  QwtPlot::mouseMoveEvent(event);
+return;
   if (event->buttons() & Qt::LeftButton) 
   {
     m_fractalPixmapOffset += event->pos() - m_lastDragPos;
@@ -281,6 +281,8 @@ void FractalWidget::mouseMoveEvent(QMouseEvent *event)
 
 void FractalWidget::mousePressEvent(QMouseEvent *event)
 {
+  QwtPlot::mousePressEvent(event);
+return;
   if (event->button() == Qt::LeftButton)
   {
     m_lastDragPos = event->pos();
@@ -291,6 +293,8 @@ void FractalWidget::mousePressEvent(QMouseEvent *event)
 
 void FractalWidget::mouseReleaseEvent(QMouseEvent *event)
 {
+  QwtPlot::mouseReleaseEvent(event);
+return;
   if (event->button() == Qt::LeftButton)
   {
     if (m_startDragPos == event->pos())
