@@ -8,8 +8,9 @@
 #include <math.h>
 #include <QtGui>
 #include <QRegExpValidator>
-#include <qwt_plot_panner.h>
+#include <qwt_plot_grid.h>
 #include <qwt_plot_magnifier.h>
+#include <qwt_plot_panner.h>
 #include "fractalwidget.h"
 #include "fractal.h"
 
@@ -119,7 +120,7 @@ void FractalWidget::addControls(QToolBar* toolbar)
   
   toolbar->addWidget(m_divergeEdit);
   toolbar->addSeparator();
-  toolbar->addWidget(m_axisEdit);
+  toolbar->addWidget(m_axesEdit);
  
   m_toolBar = toolbar;
 }
@@ -141,10 +142,10 @@ void FractalWidget::copy()
 
 void FractalWidget::init()
 {
-  m_axisEdit = new QCheckBox("Axis");
-  m_axisEdit->setChecked(false);
-  m_axisEdit->setToolTip("toggle axis");
-  m_axisEdit->setChecked(true);
+  m_axesEdit = new QCheckBox("Axes");
+  m_axesEdit->setChecked(false);
+  m_axesEdit->setToolTip("toggle axes");
+  m_axesEdit->setChecked(true);
   
   m_divergeEdit = new QLineEdit();
   m_divergeEdit->setText(QString::number(diverge()));
@@ -199,8 +200,8 @@ void FractalWidget::init()
   connect(&m_fractalRenderer, SIGNAL(rendering(int,int)),
     this, SLOT(updatePass(int,int)));
     
-  connect(m_axisEdit, SIGNAL(stateChanged(int)),
-    this, SLOT(setAxis(int)));
+  connect(m_axesEdit, SIGNAL(stateChanged(int)),
+    this, SLOT(setAxes(int)));
   connect(m_divergeEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(setDiverge(const QString&)));
   connect(m_fractalEdit, SIGNAL(currentIndexChanged(const QString&)),
@@ -228,6 +229,13 @@ void FractalWidget::init()
   // zoom in/out with the wheel
   m_plotMagnifier = new QwtPlotMagnifier( canvas() );
   
+  // grid 
+  QwtPlotGrid *grid = new QwtPlotGrid;
+  grid->enableXMin(true);
+  grid->setMajPen(QPen(Qt::white, 0, Qt::DotLine));
+  grid->setMinPen(QPen(Qt::gray, 0 , Qt::DotLine));
+  grid->attach(this);
+
   setAxisScale(xBottom, -5.0, 5.0);
   setAxisScale(yLeft, -5.0, 5.0);
 }
@@ -336,8 +344,6 @@ void FractalWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void FractalWidget::render()
 {
-  update();
-  
   if (m_fractalRenderer.render(*this, 
     QImage(size(), QImage::Format_RGB32), 
     m_fractalGeo))
@@ -380,7 +386,7 @@ void FractalWidget::save()
   settings.setValue("dir", m_fractalGeo.dir().absolutePath());
 }
 
-void FractalWidget::setAxis(int state)
+void FractalWidget::setAxes(int state)
 {
   const bool use = (state == Qt::Checked);
   enableAxis(xBottom, use);
