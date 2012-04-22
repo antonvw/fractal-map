@@ -16,6 +16,7 @@
 #include <QPointF>
 #include <QSpinBox>
 #include <QToolBar>
+#include <qwt_interval.h>
 
 const QString pointf_regexp("-?[0-9.]+[0-9]*,-?[0-9.]+[0-9]*");
 const QString size_regexp("[0-9]+,[0-9]+");
@@ -122,7 +123,6 @@ private:
   void setColoursDialog(bool from_start);
   uint wav2RGB(double wave) const;
   
-  QLineEdit* m_centerEdit;
   QSpinBox* m_coloursEdit;
   QSpinBox* m_coloursMaxWaveEdit;
   QSpinBox* m_coloursMinWaveEdit;
@@ -134,7 +134,8 @@ private:
   
   bool m_colourIndexFromStart;
   
-  QPointF m_center;
+  QwtInterval* m_intervalX;
+  QwtInterval* m_intervalY;
   QDir m_dir;
   QSize m_imagesSize;
   QPoint m_origin;
