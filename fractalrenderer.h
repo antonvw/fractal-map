@@ -104,7 +104,7 @@ public slots:
   void refresh();
     
   /// Begins rendering the fractal into an image (if the process is started).
-  /// Returns false if fractal or image not ok, or rendering is not allowed.
+  /// Returns false if fractal or geometry not ok, or rendering is not allowed.
   bool render(
     /// using this fractal
     const Fractal& fractal,
@@ -120,10 +120,7 @@ public slots:
   void start();
 signals:
   /// If an image is available, this signal is emitted.
-  void rendered(
-    const QImage &image, 
-    double scale,
-    int state);
+  void rendered(const QImage &image, int state);
   
   /// During rendering, this signal is emitted,
   /// allowing you to observe progress.

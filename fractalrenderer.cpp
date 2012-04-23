@@ -279,14 +279,16 @@ void FractalRenderer::run()
       {
         emit rendering(y, image.height());
 
-        const double cy = geo.center().y() + ((y - half.height())* geo.scale());
+        const double cy = 
+          geo.intervalY().minValue() + ((double)y / image.height()) * geo.intervalY.width();
         
         for (
           int x = 0; 
           x < image.width() && !end();
           x+= inc.width()) 
         {
-          const double cx = geo.center().x() + ((x - half.width())* geo.scale());
+          const double cx = 
+            geo.intervalX().minValue() + ((double)x / image.width()) * geo.intervalX.width();
           
           if (!geo.useImages())
           {
@@ -329,7 +331,7 @@ void FractalRenderer::run()
           }
         }
          
-        emit rendered(image, geo.scale(), m_state);
+        emit rendered(image, m_state);
       }
     }
 

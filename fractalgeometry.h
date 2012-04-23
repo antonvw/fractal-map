@@ -32,10 +32,10 @@ class FractalGeometry : public QObject
 public:
   /// Default constructor.
   FractalGeometry(
-    /// using this center
-    const QPointF& center = QPointF(0,0),
-    /// using this scale
-    double scale = 0,
+    /// using this x interval
+    const QwtInterval& xInterval = QwtInterval(-2,2),
+    /// using this y interval
+    const QwtInterval& yInterval = QwtInterval(-2,2),
     /// pass to start with
     int firstPass = 0,
     /// using max number of passes
@@ -54,9 +54,6 @@ public:
   /// Constructs and adds all edit controls to toolbar.
   void addControls(QToolBar* toolbar);
   
-  /// Gets the center.
-  const QPointF& center() const {return m_center;};
-  
   /// Gets colours.
   const std::vector<uint> & colours() const {return m_colours;};
   
@@ -65,6 +62,12 @@ public:
   
   /// Gets first pass.
   int firstPass() const {return m_firstPass;};
+  
+  /// Gets the x interval.
+  const QwtInterval& intervalX() const {return m_intervalX;};
+  
+  /// Gets the y interval.
+  const QwtInterval& intervalY() const {return m_intervalY;};
   
   /// Gets images.
   const std::vector<QImage> & images() const {return m_images;};
@@ -75,26 +78,17 @@ public:
   /// Gets max passes.
   int maxPasses() const {return m_maxPasses;};
   
-  /// Gets origin.
-  const QPoint& origin() const {return m_origin;};
-  
-  /// Gets scale.
-  double scale() const {return m_scale;};
-  
-  /// Scrolls.
-  void scroll(const QPoint& delta);
-  
   /// Sets all old colours into new colour.
   void setColours(uint old, uint colour);
+  
+  /// Sets intervals.
+  void setIntervals(const QwtInterval& x, const QwtInterval& y);
   
   /// Gets single pass.
   bool singlePass() const {return m_singlePass;};
   
   /// Gets use images.
   bool useImages() const {return m_useImages;};
-
-  /// Zoom in or out.
-  void zoom(double factor);
 signals:
   /// Whenever a control is changed, this signal is emitted.
   void changed();
@@ -108,7 +102,6 @@ public slots:
   /// Sets images.
   void setImages();
 private slots:  
-  void setCenter();
   void setColour(const QColor& color);
   void setColoursMinWave(int value);
   void setColoursMax(int value);
@@ -116,7 +109,6 @@ private slots:
   void setFirstPass(int value);
   void setImagesSize();
   void setMaxPasses(int value);
-  void setScale(const QString& text);
   void setUseImages(int state);
 private:  
   void setColours(int colours);
@@ -129,20 +121,17 @@ private:
   QSpinBox* m_firstPassEdit;
   QLineEdit* m_imagesSizeEdit;
   QSpinBox* m_maxPassesEdit;
-  QLineEdit* m_scaleEdit;
   QCheckBox* m_useImagesEdit;
   
   bool m_colourIndexFromStart;
   
-  QwtInterval* m_intervalX;
-  QwtInterval* m_intervalY;
+  QwtInterval m_intervalX;
+  QwtInterval m_intervalY;
   QDir m_dir;
   QSize m_imagesSize;
-  QPoint m_origin;
 
   double m_coloursMinWave;  
   double m_coloursMaxWave;  
-  double m_scale;
   
   int m_colourIndex;
   int m_firstPass;

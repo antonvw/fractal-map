@@ -28,7 +28,7 @@ public:
 
 FractalPlotItem::FractalPlotItem()
 {
-  setZ(1000);
+  setZ(1);
   setRenderHint(QwtPlotItem::RenderAntialiased, true);
 }
 
@@ -42,10 +42,10 @@ void FractalPlotItem::draw(QPainter *p,
   const QwtScaleMap &,
   const QRectF &rect) const
 {
-  const FractalWidget *cpuPlot = (FractalWidget *)plot();
+  const FractalWidget *plot = (FractalWidget *)plot();
     
   p->save();
-  p->drawPixmap(rect, cpuPlot->fractalPixmap(), rect);
+  p->drawPixmap(rect, plot->fractalPixmap(), rect);
   p->restore();
 }
 
@@ -53,11 +53,11 @@ FractalWidget::FractalWidget(
   QWidget* parent,
   QStatusBar* statusbar,
   const QString& fractalName,
-  double scale,
   int colours,
   const QString& dir,
   double diverge,
-  const QPointF& center,
+  const QwtInterval& xInterval,
+  const QwtInterval& yInterval,
   int first_pass,
   int passes,
   double julia_real,
@@ -68,8 +68,7 @@ FractalWidget::FractalWidget(
       diverge,
       std::complex<double>(julia_real, julia_imag),
       julia_exponent)
-  , m_fractalGeo(center,
-      scale,
+  , m_fractalGeo(xInterval, yInterval,
       first_pass,
       passes,
       colours,
@@ -208,64 +207,36 @@ void FractalWidget::init()
   connect(m_sizeEdit, SIGNAL(returnPressed()),
     this, SLOT(setSize()));
 
-  setCursor(Qt::CrossCursor);
-  setFocusPolicy(Qt::StrongFocus);
-  
   m_statusBar->addPermanentWidget(m_progressBar);
   m_statusBar->addPermanentWidget(m_maxPassesLabel);
   m_statusBar->addPermanentWidget(m_updatesLabel);
   
-  FractalPlotItem* pie = new FractalPlotItem();
-  pie->attach(this);
+  FractalPlotItem* fractalitem = new FractalPlotItem();
+  fractalitem->attach(this);
   
   // panning with the left mouse button
-  new QwtPlotPanner( canvas() );
+  new QwtPlotPanner(canvas());
 
   // zoom in/out with the wheel
-  m_plotMagnifier = new QwtPlotMagnifier( canvas() );
+  new QwtPlotMagnifier(canvas());
   
   // grid 
   QwtPlotGrid *grid = new QwtPlotGrid;
   grid->enableXMin(true);
   grid->setMajPen(QPen(Qt::white, 0, Qt::DotLine));
   grid->setMinPen(QPen(Qt::gray, 0 , Qt::DotLine));
+  grid->setZ(1000); // always on top (last item)
   grid->attach(this);
 
-  setAxisScale(xBottom, -5.0, 5.0);
-  setAxisScale(yLeft, -5.0, 5.0);
-}
-
-void FractalWidget::keyPressEvent(QKeyEvent *event)
-{
-  const int scrollStep = 20;
-  
-  switch (event->key()) 
-  {
-    case Qt::Key_Plus:
-      m_fractalGeo.zoom(m_plotMagnifier->wheelFactor());
-      break;
-    case Qt::Key_Minus:
-      m_fractalGeo.zoom(1 / m_plotMagnifier->wheelFactor());
-      break;
-    case Qt::Key_Left:
-      m_fractalGeo.scroll(QPoint(-scrollStep, 0));
-      break;
-    case Qt::Key_Right:
-      m_fractalGeo.scroll(QPoint(+scrollStep, 0));
-      break;
-    case Qt::Key_Down:
-      m_fractalGeo.scroll(QPoint(0, +scrollStep));
-      break;
-    case Qt::Key_Up:
-      m_fractalGeo.scroll(QPoint(0, -scrollStep));
-      break;
-    default:
-      QWidget::keyPressEvent(event);
-  }
+  setAxisScale(xBottom, m_intervalX.minValue(), m_intervalX.maxValue());
+  setAxisScale(yLeft, m_intervalY.minValue(), m_intervalY.maxValue());
 }
 
 void FractalWidget::render()
 {
+  m_fractalGeo.setIntervals(
+    axisInterval(xBottom), axisInterval(yLeft));
+  
   if (m_fractalRenderer.render(*this, 
     QImage(size(), QImage::Format_RGB32), 
     m_fractalGeo))
@@ -295,7 +266,6 @@ void FractalWidget::save()
 {
   QSettings settings;
   
-  settings.setValue("center", m_fractalGeo.center());
   settings.setValue("colours", m_fractalGeo.colours().size());
   settings.setValue("first pass", m_fractalGeo.firstPass());
   settings.setValue("fractal", QString::fromStdString(name()));
@@ -303,7 +273,6 @@ void FractalWidget::save()
   settings.setValue("julia real", julia().real());
   settings.setValue("julia imag", julia().imag());
   settings.setValue("last pass", m_fractalGeo.maxPasses());
-  settings.setValue("scale", m_fractalGeo.scale());
   settings.setValue("diverge", diverge());
   settings.setValue("dir", m_fractalGeo.dir().absolutePath());
 }
@@ -411,8 +380,7 @@ void FractalWidget::updatePass(int pass, int max, int iterations)
   m_time.start();    
 }
 
-void FractalWidget::updatePixmap(
-  const QImage &image, double scale, int state)
+void FractalWidget::updatePixmap(const QImage &image, int state)
 {
   m_updates++;
   m_updatesLabel->setText(QString::number(m_updates));
@@ -436,11 +404,4 @@ void FractalWidget::updatePixmap(
   m_fractalPixmap = QPixmap::fromImage(image);
   
   replot();
-}
-
-void FractalWidget::wheelEvent(QWheelEvent *event)
-{
-  QwtPlot::wheelEvent(event);
-  
-  m_fractalGeo.zoom(m_plotMagnifier->wheelFactor());
 }

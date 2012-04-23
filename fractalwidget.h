@@ -20,12 +20,11 @@
 #include <QTime>
 #include <QToolBar>
 #include <QWidget>
+#include <qwt_interval.h>
 #include <qwt_plot.h>
 #include "fractalrenderer.h"
 #include "fractal.h"
 #include "fractalgeometry.h"
-
-class QwtPlotMagnifier;
 
 /// This class offers the fractal widget.
 class FractalWidget : public QwtPlot, public Fractal
@@ -41,16 +40,16 @@ public:
     QStatusBar* statusbar,
     /// fractal to use
     const QString& fractalName,
-    /// scale to use
-    double scale,
     /// number of colours
     int colours,
     /// images dir
     const QString& dir,
     /// diverge limit
     double diverge,
-    /// center
-    const QPointF& center,
+    /// using this x interval
+    const QwtInterval& xInterval,
+    /// using this y interval
+    const QwtInterval& yInterval,
     /// first pass
     int first_pass,
     /// number of passes
@@ -75,14 +74,14 @@ public:
   /// Adds julia specific controls to a toolbar.
   void addJuliaControls(QToolBar* toolbar);
   
+  /// Access to fractal pixmap.
+  const QPixmap& fractalPixmap() const {return m_fractalPixmap;};
+  
   /// Access to geometry.
   FractalGeometry* geometry() {return &m_fractalGeo;};
   
   /// Access to renderer.
   FractalRenderer* renderer() {return &m_fractalRenderer;};
-  
-  const QPixmap& fractalPixmap() const {return m_fractalPixmap;};
-  
 public slots:
   /// Copies pixmap to clipboard.
   void copy();
@@ -90,14 +89,8 @@ public slots:
   /// Saves settings.
   void save();
 protected:
-  /// Handles key press event.
-  void keyPressEvent(QKeyEvent *event);
-  
   /// Handles resize event.
   void resizeEvent(QResizeEvent *event);
-
-  /// Handles key press event.
-  void wheelEvent(QWheelEvent *event);
 private slots:
   void render();
   void setAxes(int state);
@@ -108,8 +101,7 @@ private slots:
   void setSize();
   void updatePass(int line, int max);
   void updatePass(int pass, int numberOfPasses, int iterations);
-  void updatePixmap(
-    const QImage &image, double scale, int state);
+  void updatePixmap(const QImage &image, int state);
 private:
   void init();
 
@@ -126,8 +118,6 @@ private:
   
   QLabel* m_maxPassesLabel;
   QLabel* m_updatesLabel;
-  
-  QwtPlotMagnifier* m_plotMagnifier;
   
   QTime m_time;
   

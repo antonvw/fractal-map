@@ -9,19 +9,18 @@
 #include "fractalgeometry.h"
 
 FractalGeometry::FractalGeometry(
-  const QPointF& center,
-  double scale,
+  const QwtInterval& xInterval,
+  const QwtInterval& yInterval,
   int firstPass,
   int maxPasses,
   int colours,
   const QString& dir)
-  : m_center(center)
+  : m_intervalX(xInterval)
+  , m_intervalY(yInterval)
   , m_dir(dir)
   , m_imagesSize(32, 32)
-  , m_origin(0, 0)
   , m_coloursMinWave(380)
   , m_coloursMaxWave(780)
-  , m_scale(scale)
   , m_firstPass(firstPass)
   , m_maxPasses(maxPasses)
   , m_singlePass(false)
@@ -39,11 +38,8 @@ FractalGeometry::FractalGeometry(const FractalGeometry& geo)
 FractalGeometry& FractalGeometry::operator= (const FractalGeometry& geo)
 {
   m_colourIndexFromStart = geo.m_colourIndexFromStart;
-  m_center = geo.m_center;
-  m_origin = geo.m_origin;
   m_coloursMinWave = geo.m_coloursMinWave;
   m_coloursMaxWave = geo.m_coloursMaxWave;
-  m_scale = geo.m_scale;
   m_colourIndex = geo.m_colourIndex;
   m_firstPass = geo.m_firstPass;
   m_maxPasses = geo.m_maxPasses;
@@ -53,18 +49,14 @@ FractalGeometry& FractalGeometry::operator= (const FractalGeometry& geo)
   m_useImages = geo.m_useImages;
   m_images = geo.m_images;
   m_dir = geo.m_dir;
+  m_intervalX = m_geo.m_intervalX;
+  m_intervalY = m_geo.m_intervalY;
   
   return *this;
 }
 
 void FractalGeometry::addControls(QToolBar* toolbar)
 {
-  m_centerEdit = new QLineEdit();
-  m_centerEdit->setText(
-    QString::number(m_center.x()) + "," + QString::number(m_center.y()));
-  m_centerEdit->setToolTip("center x,y");
-  m_centerEdit->setValidator(new QRegExpValidator(QRegExp(pointf_regexp)));
-  
   m_coloursEdit = new QSpinBox();
   m_coloursEdit->setMaximum(8192);
   m_coloursEdit->setValue(m_colours.size());
@@ -101,16 +93,9 @@ void FractalGeometry::addControls(QToolBar* toolbar)
   m_maxPassesEdit->setValue(m_maxPasses);
   m_maxPassesEdit->setToolTip("last pass");
   
-  m_scaleEdit = new QLineEdit();
-  m_scaleEdit->setText(QString::number(m_scale));
-  m_scaleEdit->setValidator(new QDoubleValidator());
-  m_scaleEdit->setToolTip("scale");
-  
   m_useImagesEdit = new QCheckBox("Images");
   m_useImagesEdit->setToolTip("use images");
 
-  connect(m_centerEdit, SIGNAL(returnPressed()),
-    this, SLOT(setCenter()));
   connect(m_colourDialog, SIGNAL(colorSelected(const QColor&)),
     this, SLOT(setColour(const QColor&)));
   connect(m_coloursEdit, SIGNAL(valueChanged(int)),
@@ -125,8 +110,6 @@ void FractalGeometry::addControls(QToolBar* toolbar)
     this, SLOT(setImagesSize()));
   connect(m_maxPassesEdit, SIGNAL(valueChanged(int)),
     this, SLOT(setMaxPasses(int)));
-  connect(m_scaleEdit, SIGNAL(textEdited(const QString&)),
-    this, SLOT(setScale(const QString&)));
   connect(m_useImagesEdit, SIGNAL(stateChanged(int)),
     this, SLOT(setUseImages(int)));
     
@@ -137,8 +120,6 @@ void FractalGeometry::addControls(QToolBar* toolbar)
   toolbar->addWidget(m_coloursMinWaveEdit);
   toolbar->addWidget(m_coloursMaxWaveEdit);
   toolbar->addSeparator();
-  toolbar->addWidget(m_centerEdit);
-  toolbar->addWidget(m_scaleEdit);
   toolbar->addWidget(m_useImagesEdit);
   toolbar->addWidget(m_imagesSizeEdit);
 }
@@ -147,34 +128,9 @@ bool FractalGeometry::isOk() const
 {
   return
      m_firstPass <= m_maxPasses && 
-  ((!m_useImages && !m_colours.empty()) || (m_useImages && !m_images.empty())) && 
-     m_scale > 0;
-}
-
-void FractalGeometry::scroll(const QPoint& delta)
-{
-  m_singlePass = false;
-  m_center -= QPointF(delta) * scale();
-  m_origin += delta;
-  m_centerEdit->setText(
-    QString::number(m_center.x()) + "," + QString::number(m_center.y()));
-  
-  emit changed();
-}
-
-void FractalGeometry::setCenter()
-{
-  const QStringList sl(m_centerEdit->text().split(","));
-  
-  if (sl.size() == 2)
-  {
-    m_singlePass = false;
-    m_center = QPointF(
-      sl[0].toDouble(),
-      sl[1].toDouble());
-      
-    emit changed();
-  }
+     m_intervalX.isValid() &&
+     m_intervalY.isValid() &&
+  ((!m_useImages && !m_colours.empty()) || (m_useImages && !m_images.empty()));
 }
 
 void FractalGeometry::setColour(const QColor& color)
@@ -369,29 +325,19 @@ void FractalGeometry::setImagesSize()
   }
 }
 
+void FractalGeometry::setIntervals(const QwtInterval& x, const QwtInterval& y)
+{
+  m_singlePass = false;
+  m_intervalX = x;
+  m_intervalY = y;
+}
+
 void FractalGeometry::setMaxPasses(int value)
 {
   if (value > 0)
   {
     m_maxPasses = value;
     m_singlePass = true;
-    emit changed();
-  }
-}
-
-void FractalGeometry::setScale(const QString& text)
-{
-  if (text.isEmpty())
-  {
-    return;
-  }
-  
-  const double scale = text.toDouble();
-  
-  if (scale != 0)
-  {
-    m_scale = scale;
-    m_singlePass = false;
     emit changed();
   }
 }
@@ -479,14 +425,4 @@ uint FractalGeometry::wav2RGB(double w) const
   SSS *= 255;
 
   return qRgb(int(SSS*R), int(SSS*G), int(SSS*B));
-}
-
-void FractalGeometry::zoom(double zoomFactor)
-{
-  m_scale *= zoomFactor;
-  m_center *= zoomFactor;
-  m_scaleEdit->setText(QString::number(m_scale));
-  m_singlePass = false;
-  
-  emit changed();
 }
