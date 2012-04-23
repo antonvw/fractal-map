@@ -86,13 +86,14 @@ public slots:
   /// Copies pixmap to clipboard.
   void copy();
   
+  void render();
+  
   /// Saves settings.
   void save();
 protected:
   /// Handles resize event.
   void resizeEvent(QResizeEvent *event);
 private slots:
-  void render();
   void setAxes(int state);
   void setDiverge(const QString& text);
   void setFractal(const QString& index);

@@ -114,7 +114,7 @@ bool FractalRenderer::nextStateForCalcEnd(const QImage& image)
       
   case RENDERING_SNAPSHOT:
     {
-    emit rendered(image, 0, m_state);
+    emit rendered(image, m_state);
     QMutexLocker locker(&m_mutex);
     m_image = image;
     m_state = RENDERING_ACTIVE;
@@ -281,7 +281,7 @@ void FractalRenderer::run()
 
         const double cy = 
           geo.intervalY().minValue() + 
-          ((double)y / image.height()) * geo.intervalY().width();
+          (((double)y / image.height()) * geo.intervalY().width());
         
         for (
           int x = 0; 
@@ -290,7 +290,7 @@ void FractalRenderer::run()
         {
           const double cx = 
             geo.intervalX().minValue() + 
-            ((double)x / image.width()) * geo.intervalX().width();
+            (((double)x / image.width()) * geo.intervalX().width());
           
           if (!geo.useImages())
           {

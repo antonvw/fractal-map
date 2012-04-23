@@ -11,6 +11,7 @@
 #include <qwt_plot_grid.h>
 #include <qwt_plot_magnifier.h>
 #include <qwt_plot_panner.h>
+#include <qwt_plot_zoomer.h>
 #include "fractalwidget.h"
 #include "fractal.h"
 
@@ -47,6 +48,28 @@ void FractalPlotItem::draw(QPainter *p,
   p->save();
   p->drawPixmap(rect, fw->fractalPixmap(), rect);
   p->restore();
+}
+
+class PlotMagnifier: public QwtPlotMagnifier
+{
+public: 
+  PlotMagnifier(QwtPlotCanvas* canvas);
+protected:
+  void widgetWheelEvent(QWheelEvent* event);
+}; 
+
+PlotMagnifier::PlotMagnifier(QwtPlotCanvas* canvas)
+  : QwtPlotMagnifier(canvas)
+{
+}
+
+void PlotMagnifier::widgetWheelEvent(QWheelEvent* event)
+{
+  QwtPlotMagnifier::widgetWheelEvent(event);
+  
+  FractalWidget* fw = (FractalWidget *)plot();
+  
+  fw->render();
 }
 
 FractalWidget::FractalWidget(
@@ -210,6 +233,7 @@ void FractalWidget::init()
   m_statusBar->addPermanentWidget(m_progressBar);
   m_statusBar->addPermanentWidget(m_maxPassesLabel);
   m_statusBar->addPermanentWidget(m_updatesLabel);
+  m_progressBar->hide();
   
   FractalPlotItem* fractalitem = new FractalPlotItem();
   fractalitem->attach(this);
@@ -218,13 +242,18 @@ void FractalWidget::init()
   new QwtPlotPanner(canvas());
 
   // zoom in/out with the wheel
-  new QwtPlotMagnifier(canvas());
+  new PlotMagnifier(canvas());
+
+//  QwtPlotZoomer* zoom = new QwtPlotZoomer(canvas());
+//  connect(zoom, SIGNAL(zoomed(const QRectF&)),
+//    this, SLOT(render()));
   
   // grid 
   QwtPlotGrid *grid = new QwtPlotGrid;
   grid->enableXMin(true);
+  grid->enableYMin(true);
   grid->setMajPen(QPen(Qt::white, 0, Qt::DotLine));
-  grid->setMinPen(QPen(Qt::gray, 0 , Qt::DotLine));
+  grid->setMinPen(QPen(Qt::darkGray, 0 , Qt::DotLine));
   grid->setZ(1000); // always on top (last item)
   grid->attach(this);
 
@@ -235,6 +264,8 @@ void FractalWidget::init()
   setAxisScale(yLeft, 
     m_fractalGeo.intervalY().minValue(), 
     m_fractalGeo.intervalY().maxValue());
+    
+  replot();
 }
 
 void FractalWidget::render()
@@ -255,13 +286,12 @@ void FractalWidget::render()
     // we could not render, but it is allowed, this is an error
     m_statusBar->showMessage("rendering failed");
   }
-  
-  replot();
 }
 
 void FractalWidget::resizeEvent(QResizeEvent * /* event */)
 {
   render();
+  replot();
   
   m_sizeEdit->setText(
     QString::number(size().width()) + "," + QString::number(size().height()));
