@@ -42,10 +42,10 @@ void FractalPlotItem::draw(QPainter *p,
   const QwtScaleMap &,
   const QRectF &rect) const
 {
-  const FractalWidget *plot = (FractalWidget *)plot();
+  const FractalWidget* fw = (FractalWidget *)plot();
     
   p->save();
-  p->drawPixmap(rect, plot->fractalPixmap(), rect);
+  p->drawPixmap(rect, fw->fractalPixmap(), rect);
   p->restore();
 }
 
@@ -187,8 +187,8 @@ void FractalWidget::init()
   connect(&m_fractalGeo, SIGNAL(changed()),
     this, SLOT(render()));
     
-  connect(&m_fractalRenderer, SIGNAL(rendered(QImage,double,int)),
-    this, SLOT(updatePixmap(QImage,double,int)));
+  connect(&m_fractalRenderer, SIGNAL(rendered(QImage,int)),
+    this, SLOT(updatePixmap(QImage,int)));
   connect(&m_fractalRenderer, SIGNAL(rendering(int,int,int)),
     this, SLOT(updatePass(int,int,int)));
   connect(&m_fractalRenderer, SIGNAL(rendering(int,int)),
@@ -228,8 +228,13 @@ void FractalWidget::init()
   grid->setZ(1000); // always on top (last item)
   grid->attach(this);
 
-  setAxisScale(xBottom, m_intervalX.minValue(), m_intervalX.maxValue());
-  setAxisScale(yLeft, m_intervalY.minValue(), m_intervalY.maxValue());
+  setAxisScale(xBottom, 
+    m_fractalGeo.intervalX().minValue(), 
+    m_fractalGeo.intervalX().maxValue());
+    
+  setAxisScale(yLeft, 
+    m_fractalGeo.intervalY().minValue(), 
+    m_fractalGeo.intervalY().maxValue());
 }
 
 void FractalWidget::render()

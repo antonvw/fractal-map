@@ -49,8 +49,8 @@ FractalGeometry& FractalGeometry::operator= (const FractalGeometry& geo)
   m_useImages = geo.m_useImages;
   m_images = geo.m_images;
   m_dir = geo.m_dir;
-  m_intervalX = m_geo.m_intervalX;
-  m_intervalY = m_geo.m_intervalY;
+  m_intervalX = geo.m_intervalX;
+  m_intervalY = geo.m_intervalY;
   
   return *this;
 }
