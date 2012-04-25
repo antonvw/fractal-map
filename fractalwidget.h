@@ -13,18 +13,19 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPixmap>
-#include <QPointF>
 #include <QProgressBar>
-#include <QSpinBox>
 #include <QStatusBar>
 #include <QTime>
 #include <QToolBar>
 #include <QWidget>
 #include <qwt_interval.h>
 #include <qwt_plot.h>
-#include "fractalrenderer.h"
 #include "fractal.h"
 #include "fractalgeometry.h"
+#include "fractalrenderer.h"
+
+class PlotZoomer;
+class QwtPlotGrid;
 
 /// This class offers the fractal widget.
 class FractalWidget : public QwtPlot, public Fractal
@@ -86,6 +87,10 @@ public slots:
   /// Copies pixmap to clipboard.
   void copy();
   
+  /// Double clicked.
+  void doubleClicked();
+  
+  /// Renders (starts with) fractal pixmap.
   void render();
   
   /// Saves settings.
@@ -97,6 +102,7 @@ private slots:
   void setAxes(int state);
   void setDiverge(const QString& text);
   void setFractal(const QString& index);
+  void setIntervals();
   void setJulia();
   void setJuliaExponent(const QString& text);
   void setSize();
@@ -119,6 +125,9 @@ private:
   
   QLabel* m_maxPassesLabel;
   QLabel* m_updatesLabel;
+  
+  QwtPlotGrid* m_grid;
+  PlotZoomer* m_zoom;
   
   QTime m_time;
   

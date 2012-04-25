@@ -87,6 +87,13 @@ void FractalGeometry::addControls(QToolBar* toolbar)
   m_imagesSizeEdit->setText(
     QString::number(m_imagesSize.width()) + "," + QString::number(m_imagesSize.height()));
 
+  m_intervalsEdit = new QLineEdit();
+  m_intervalsEdit->setToolTip("interval x,y");
+  m_intervalsEdit->setValidator(new QRegExpValidator(QRegExp(intervals_regexp)));
+  m_intervalsEdit->setText(
+    QString::number(m_intervalX.minValue()) + "," + QString::number(m_intervalX.maxValue()) + "," +
+    QString::number(m_intervalY.minValue()) + "," + QString::number(m_intervalY.maxValue()));
+  
   m_maxPassesEdit = new QSpinBox();
   m_maxPassesEdit->setMaximum(32);
   m_maxPassesEdit->setMinimum(m_firstPassEdit->value());
@@ -108,6 +115,8 @@ void FractalGeometry::addControls(QToolBar* toolbar)
     this, SLOT(setFirstPass(int)));
   connect(m_imagesSizeEdit, SIGNAL(returnPressed()),
     this, SLOT(setImagesSize()));
+  connect(m_intervalsEdit, SIGNAL(returnPressed()),
+    this, SLOT(setIntervals()));
   connect(m_maxPassesEdit, SIGNAL(valueChanged(int)),
     this, SLOT(setMaxPasses(int)));
   connect(m_useImagesEdit, SIGNAL(stateChanged(int)),
@@ -115,6 +124,8 @@ void FractalGeometry::addControls(QToolBar* toolbar)
     
   toolbar->addWidget(m_firstPassEdit);
   toolbar->addWidget(m_maxPassesEdit);
+  toolbar->addSeparator();
+  toolbar->addWidget(m_intervalsEdit);
   toolbar->addSeparator();
   toolbar->addWidget(m_coloursEdit);
   toolbar->addWidget(m_coloursMinWaveEdit);
@@ -322,6 +333,20 @@ void FractalGeometry::setImagesSize()
     m_imagesSize = QSize(sl[0].toInt(), sl[1].toInt());
     
     setImages();
+  }
+}
+
+void FractalGeometry::setIntervals()
+{
+  const QStringList sl(m_intervalsEdit->text().split(","));
+  
+  if (sl.size() == 4)
+  {
+    setIntervals(
+      QwtInterval(sl[0].toDouble(), sl[1].toDouble()),    
+      QwtInterval(sl[2].toDouble(), sl[3].toDouble()));
+      
+    emit changedIntervals();
   }
 }
 

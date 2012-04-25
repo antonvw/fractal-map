@@ -260,8 +260,6 @@ void FractalRenderer::run()
     const Fractal fractal(m_fractal);
     m_mutex.unlock();
     
-    const QSize half = image.size() / 2;
-    
     for (
       int pass = (!geo.singlePass() ? geo.firstPass(): geo.maxPasses()); 
       pass <= geo.maxPasses() && m_state == RENDERING_ACTIVE; 
@@ -278,11 +276,10 @@ void FractalRenderer::run()
         y+= inc.height())
       {
         emit rendering(y, image.height());
-
-        const double cy = 
-          geo.intervalY().minValue() + 
-          (((double)y / image.height()) * geo.intervalY().width());
         
+        const double cy = geo.intervalY().maxValue() - 
+          (((double)y / image.height()) * geo.intervalY().width());
+
         for (
           int x = 0; 
           x < image.width() && !end();

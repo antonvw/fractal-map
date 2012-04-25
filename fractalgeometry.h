@@ -19,6 +19,7 @@
 #include <qwt_interval.h>
 
 const QString pointf_regexp("-?[0-9.]+[0-9]*,-?[0-9.]+[0-9]*");
+const QString intervals_regexp = pointf_regexp + "," + pointf_regexp;
 const QString size_regexp("[0-9]+,[0-9]+");
 
 /// This class contains general geometry values for a fractal.
@@ -92,6 +93,9 @@ public:
 signals:
   /// Whenever a control is changed, this signal is emitted.
   void changed();
+  
+  /// Whenever interval is changed manually, this signal is emitted.
+  void changedIntervals();
 public slots:  
   /// Sets colours from begin.
   void setColoursDialogBegin() {setColoursDialog(true);};
@@ -108,6 +112,7 @@ private slots:
   void setColoursMaxWave(int value);
   void setFirstPass(int value);
   void setImagesSize();
+  void setIntervals();
   void setMaxPasses(int value);
   void setUseImages(int state);
 private:  
@@ -120,6 +125,7 @@ private:
   QSpinBox* m_coloursMinWaveEdit;
   QSpinBox* m_firstPassEdit;
   QLineEdit* m_imagesSizeEdit;
+  QLineEdit* m_intervalsEdit;
   QSpinBox* m_maxPassesEdit;
   QCheckBox* m_useImagesEdit;
   

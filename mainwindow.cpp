@@ -7,6 +7,7 @@
 
 #include <QtGui>
 #include <QSettings>
+#include <qwt_global.h>
 #include "mainwindow.h"
 #include "fractalwidget.h"
 
@@ -102,8 +103,9 @@ void MainWindow::about()
 {
   QMessageBox::about(this, 
     "About " + windowTitle(),
-    QString("This application shows a fractal map.\nBuilt using Qt %1").
-      arg(QT_VERSION_STR));
+    QString("This application shows a fractal map.\nBuilt using Qt %1 and Qwt %2")
+      .arg(QT_VERSION_STR)
+      .arg(QWT_VERSION_STR));
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) 

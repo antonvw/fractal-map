@@ -8,9 +8,9 @@
 #include <math.h>
 #include <QtGui>
 #include <QRegExpValidator>
+#include <qwt_painter.h>
 #include <qwt_plot_grid.h>
-#include <qwt_plot_magnifier.h>
-#include <qwt_plot_panner.h>
+#include <qwt_plot_item.h>
 #include <qwt_plot_zoomer.h>
 #include "fractalwidget.h"
 #include "fractal.h"
@@ -20,17 +20,29 @@ class FractalPlotItem: public QwtPlotItem
 public:
   FractalPlotItem();
 
-  virtual int rtti() const;
-
   virtual void draw(QPainter *p,
-    const QwtScaleMap &, const QwtScaleMap &,
+    const QwtScaleMap&, 
+    const QwtScaleMap&,
     const QRectF &rect) const;
+    
+  virtual int rtti() const;
 };
 
 FractalPlotItem::FractalPlotItem()
 {
-  setZ(1);
+  setItemAttribute(AutoScale);
   setRenderHint(QwtPlotItem::RenderAntialiased, true);
+  setZ(1);
+}
+
+void FractalPlotItem::draw(QPainter *p, 
+  const QwtScaleMap&,
+  const QwtScaleMap&,
+  const QRectF& r) const
+{
+  const FractalWidget* fw = (FractalWidget *)plot();
+  
+  QwtPainter::drawPixmap(p, r, fw->fractalPixmap());
 }
 
 int FractalPlotItem::rtti() const
@@ -38,40 +50,27 @@ int FractalPlotItem::rtti() const
   return QwtPlotItem::Rtti_PlotUserItem;
 }
 
-void FractalPlotItem::draw(QPainter *p, 
-  const QwtScaleMap &, 
-  const QwtScaleMap &,
-  const QRectF &rect) const
+class PlotZoomer: public QwtPlotZoomer
 {
-  const FractalWidget* fw = (FractalWidget *)plot();
-    
-  p->save();
-  p->drawPixmap(rect, fw->fractalPixmap(), rect);
-  p->restore();
+public:
+  PlotZoomer(QwtPlotCanvas* canvas);
+protected:  
+  void widgetMouseDoubleClickEvent(QMouseEvent *);
+};
+
+PlotZoomer::PlotZoomer(QwtPlotCanvas* canvas)
+  : QwtPlotZoomer(canvas)
+{
+  setTrackerMode(AlwaysOn);
 }
 
-class PlotMagnifier: public QwtPlotMagnifier
+void PlotZoomer::widgetMouseDoubleClickEvent(QMouseEvent* event)
 {
-public: 
-  PlotMagnifier(QwtPlotCanvas* canvas);
-protected:
-  void widgetWheelEvent(QWheelEvent* event);
-}; 
-
-PlotMagnifier::PlotMagnifier(QwtPlotCanvas* canvas)
-  : QwtPlotMagnifier(canvas)
-{
-}
-
-void PlotMagnifier::widgetWheelEvent(QWheelEvent* event)
-{
-  QwtPlotMagnifier::widgetWheelEvent(event);
-  
   FractalWidget* fw = (FractalWidget *)plot();
   
-  fw->render();
+  fw->doubleClicked();
 }
-
+  
 FractalWidget::FractalWidget(
   QWidget* parent,
   QStatusBar* statusbar,
@@ -96,6 +95,7 @@ FractalWidget::FractalWidget(
       passes,
       colours,
       dir)
+  , m_fractalPixmap(100, 100)
   , m_updates(0)
   , m_juliaToolBar(NULL)
   , m_progressBar(new QProgressBar())
@@ -118,11 +118,9 @@ FractalWidget::FractalWidget(
 {
   init();
   
-  const QImage image(fw.m_fractalPixmap.toImage());
-  
-  if (!image.isNull())
+  if (!fw.m_fractalPixmap.isNull())
   { 
-    m_fractalPixmap = QPixmap::fromImage(image);
+    m_fractalPixmap = fw.m_fractalPixmap;
     update();
   }
 }
@@ -157,8 +155,32 @@ void FractalWidget::copy()
   m_statusBar->showMessage("copied to clipboard", 50);
 }
 
+void FractalWidget::doubleClicked()
+{
+  if (!m_fractalGeo.useImages())
+  {
+    QImage image(m_fractalPixmap.toImage());
+    QRgb rgb = image.pixel(m_zoom->trackerPosition());
+    
+    const QColor color = QColorDialog::getColor(QColor(rgb));
+    
+    if (color.isValid())
+    {
+      m_fractalGeo.setColours(rgb, color.rgb());
+    }
+  }
+}
+
 void FractalWidget::init()
 {
+  setAxisScale(xBottom, 
+    m_fractalGeo.intervalX().minValue(), 
+    m_fractalGeo.intervalX().maxValue());
+    
+  setAxisScale(yLeft, 
+    m_fractalGeo.intervalY().minValue(), 
+    m_fractalGeo.intervalY().maxValue());
+
   m_axesEdit = new QCheckBox("Axes");
   m_axesEdit->setChecked(false);
   m_axesEdit->setToolTip("toggle axes");
@@ -235,35 +257,25 @@ void FractalWidget::init()
   m_statusBar->addPermanentWidget(m_updatesLabel);
   m_progressBar->hide();
   
+  m_grid = new QwtPlotGrid;
+  m_grid->enableXMin(true);
+  m_grid->enableYMin(true);
+  m_grid->setMajPen(QPen(Qt::white, 0, Qt::DotLine));
+  m_grid->setMinPen(QPen(Qt::darkGray, 0 , Qt::DotLine));
+  m_grid->setZ(1000); // always on top (last item)
+  m_grid->attach(this);
+  
   FractalPlotItem* fractalitem = new FractalPlotItem();
   fractalitem->attach(this);
   
-  // panning with the left mouse button
-  new QwtPlotPanner(canvas());
-
-  // zoom in/out with the wheel
-  new PlotMagnifier(canvas());
-
-//  QwtPlotZoomer* zoom = new QwtPlotZoomer(canvas());
-//  connect(zoom, SIGNAL(zoomed(const QRectF&)),
-//    this, SLOT(render()));
+  m_zoom = new PlotZoomer(canvas());
   
-  // grid 
-  QwtPlotGrid *grid = new QwtPlotGrid;
-  grid->enableXMin(true);
-  grid->enableYMin(true);
-  grid->setMajPen(QPen(Qt::white, 0, Qt::DotLine));
-  grid->setMinPen(QPen(Qt::darkGray, 0 , Qt::DotLine));
-  grid->setZ(1000); // always on top (last item)
-  grid->attach(this);
-
-  setAxisScale(xBottom, 
-    m_fractalGeo.intervalX().minValue(), 
-    m_fractalGeo.intervalX().maxValue());
-    
-  setAxisScale(yLeft, 
-    m_fractalGeo.intervalY().minValue(), 
-    m_fractalGeo.intervalY().maxValue());
+  connect(&m_fractalGeo, SIGNAL(changedIntervals()),
+    this, SLOT(setIntervals()));
+  connect(m_zoom, SIGNAL(selected(const QRectF&)),
+    this, SLOT(selected(const QRectF&)));
+  connect(m_zoom, SIGNAL(zoomed(const QRectF&)),
+    this, SLOT(render()));
     
   replot();
 }
@@ -272,7 +284,7 @@ void FractalWidget::render()
 {
   m_fractalGeo.setIntervals(
     axisInterval(xBottom), axisInterval(yLeft));
-  
+    
   if (m_fractalRenderer.render(*this, 
     QImage(size(), QImage::Format_RGB32), 
     m_fractalGeo))
@@ -288,8 +300,10 @@ void FractalWidget::render()
   }
 }
 
-void FractalWidget::resizeEvent(QResizeEvent * /* event */)
+void FractalWidget::resizeEvent(QResizeEvent* event)
 {
+  QwtPlot::resizeEvent(event);
+  
   render();
   replot();
   
@@ -315,8 +329,11 @@ void FractalWidget::save()
 void FractalWidget::setAxes(int state)
 {
   const bool use = (state == Qt::Checked);
+  
   enableAxis(xBottom, use);
   enableAxis(yLeft, use);
+  
+  use ? m_grid->show(): m_grid->hide();
 }
 
 void FractalWidget::setDiverge(const QString& text)
@@ -346,6 +363,20 @@ void FractalWidget::setFractal(const QString& index)
   }
 }
 
+void FractalWidget::setIntervals()
+{
+  setAxisScale(xBottom, 
+    m_fractalGeo.intervalX().minValue(), 
+    m_fractalGeo.intervalX().maxValue());
+    
+  setAxisScale(yLeft, 
+    m_fractalGeo.intervalY().minValue(), 
+    m_fractalGeo.intervalY().maxValue());
+    
+  render();
+  replot();
+}
+    
 void FractalWidget::setJulia()
 {
   const QStringList sl(m_juliaEdit->text().split(","));
