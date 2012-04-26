@@ -62,6 +62,10 @@ protected:
 PlotZoomer::PlotZoomer(QwtPlotCanvas* canvas)
   : QwtPlotZoomer(canvas)
 {
+  setKeyPattern( KeyRedo, Qt::Key_Up );
+  setKeyPattern( KeyUndo, Qt::Key_Down );
+  setKeyPattern( KeyHome, Qt::Key_Escape );
+    
   setTrackerPen(QColor(Qt::white));
   setTrackerMode(AlwaysOn);
 }
@@ -285,8 +289,6 @@ void FractalWidget::init()
   
   connect(&m_fractalGeo, SIGNAL(changedIntervals()),
     this, SLOT(setIntervals()));
-  connect(m_zoom, SIGNAL(selected(const QRectF&)),
-    this, SLOT(selected(const QRectF&)));
   connect(m_zoom, SIGNAL(zoomed(const QRectF&)),
     this, SLOT(render()));
     
@@ -295,6 +297,11 @@ void FractalWidget::init()
 
 void FractalWidget::render()
 {
+//  if (m_zoom->zoomRectIndex() < m_zoom->zoomStack().size() - 1)
+//  {
+//    return;
+//  }
+  
   m_fractalGeo.setIntervals(
     axisInterval(xBottom), axisInterval(yLeft));
     
