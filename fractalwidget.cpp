@@ -55,16 +55,26 @@ class PlotZoomer: public QwtPlotZoomer
 public:
   PlotZoomer(QwtPlotCanvas* canvas);
 protected:  
-  void widgetMouseDoubleClickEvent(QMouseEvent *);
+  virtual QSizeF minZoomSize() const;
+  virtual void widgetMouseDoubleClickEvent(QMouseEvent *);
 };
 
 PlotZoomer::PlotZoomer(QwtPlotCanvas* canvas)
   : QwtPlotZoomer(canvas)
 {
+  setTrackerPen(QColor(Qt::white));
   setTrackerMode(AlwaysOn);
 }
 
-void PlotZoomer::widgetMouseDoubleClickEvent(QMouseEvent* event)
+QSizeF PlotZoomer::minZoomSize() const
+{
+  // default uses 10e4
+  return QSizeF(
+    zoomStack()[0].width() / 10e6,
+    zoomStack()[0].height() / 10e6);
+}
+
+void PlotZoomer::widgetMouseDoubleClickEvent(QMouseEvent*)
 {
   FractalWidget* fw = (FractalWidget *)plot();
   
@@ -173,6 +183,9 @@ void FractalWidget::doubleClicked()
 
 void FractalWidget::init()
 {
+  // Qwt uses a minimumSizeHit, override that.
+  setMinimumSize(32, 32);
+  
   setAxisScale(xBottom, 
     m_fractalGeo.intervalX().minValue(), 
     m_fractalGeo.intervalX().maxValue());
@@ -261,7 +274,7 @@ void FractalWidget::init()
   m_grid->enableXMin(true);
   m_grid->enableYMin(true);
   m_grid->setMajPen(QPen(Qt::white, 0, Qt::DotLine));
-  m_grid->setMinPen(QPen(Qt::darkGray, 0 , Qt::DotLine));
+  m_grid->setMinPen(QPen(Qt::darkGray, 0, Qt::DotLine));
   m_grid->setZ(1000); // always on top (last item)
   m_grid->attach(this);
   
@@ -373,8 +386,9 @@ void FractalWidget::setIntervals()
     m_fractalGeo.intervalY().minValue(), 
     m_fractalGeo.intervalY().maxValue());
     
+  m_zoom->setZoomBase();
+    
   render();
-  replot();
 }
     
 void FractalWidget::setJulia()
@@ -408,27 +422,46 @@ void FractalWidget::setSize()
   const QStringList sl(m_sizeEdit->text().split(","));
   
   int height = 0;
+  int width = 0;
   
   if (m_toolBar != NULL)
   {
-    if (m_toolBar->isVisible() && !m_toolBar->isFloating())
+    if (
+      m_toolBar->isVisible() && 
+     !m_toolBar->isFloating())
     {
-      height += m_toolBar->height();
+      if (m_toolBar->orientation() == Qt::Horizontal)
+      {
+        height += m_toolBar->height();
+      }
+      else
+      {
+        width += m_toolBar->width();
+      }
     }
   }
   
   if (m_juliaToolBar != NULL)
   {
-    if (m_juliaToolBar->isVisible() && !m_juliaToolBar->isFloating())
+    if (
+      m_juliaToolBar->isVisible() && 
+     !m_juliaToolBar->isFloating())
     {
-      height += m_juliaToolBar->height();
+      if (m_juliaToolBar->orientation() == Qt::Horizontal)
+      {
+        height += m_juliaToolBar->height();
+      }
+      else
+      {
+        width += m_toolBar->width();
+      }
     }
   }
   
   if (sl.size() == 2)
   {
     parentWidget()->resize(QSize(
-      sl[0].toInt(), 
+      sl[0].toInt() + width, 
       sl[1].toInt() + m_statusBar->height() + height));
   }
 }
