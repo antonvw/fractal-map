@@ -290,18 +290,13 @@ void FractalWidget::init()
   connect(&m_fractalGeo, SIGNAL(changedIntervals()),
     this, SLOT(setIntervals()));
   connect(m_zoom, SIGNAL(zoomed(const QRectF&)),
-    this, SLOT(render()));
+    this, SLOT(zoomed()));
     
   replot();
 }
 
 void FractalWidget::render()
 {
-//  if (m_zoom->zoomRectIndex() < m_zoom->zoomStack().size() - 1)
-//  {
-//    return;
-//  }
-  
   m_fractalGeo.setIntervals(
     axisInterval(xBottom), axisInterval(yLeft));
     
@@ -510,4 +505,12 @@ void FractalWidget::updatePixmap(const QImage &image, int state)
   m_fractalPixmap = QPixmap::fromImage(image);
   
   replot();
+}
+
+void FractalWidget::zoomed()
+{
+  // Just render, might restore pixmaps from cache if we are zooming back
+  // or forward to recently rendered fractal,
+  // so rendering would not be necessary.
+  render();  
 }

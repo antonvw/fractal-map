@@ -90,15 +90,14 @@ public slots:
   /// Double clicked.
   void doubleClicked();
   
-  /// Renders (starts with) fractal pixmap.
-  void render();
-  
   /// Saves settings.
   void save();
 protected:
   /// Handles resize event.
   void resizeEvent(QResizeEvent *event);
 private slots:
+  /// Renders (starts with) fractal pixmap.
+  void render();
   void setAxes(int state);
   void setDiverge(const QString& text);
   void setFractal(const QString& index);
@@ -109,6 +108,7 @@ private slots:
   void updatePass(int line, int max);
   void updatePass(int pass, int numberOfPasses, int iterations);
   void updatePixmap(const QImage &image, int state);
+  void zoomed();
 private:
   void init();
 
