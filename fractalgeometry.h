@@ -85,6 +85,9 @@ public:
   /// Sets intervals.
   void setIntervals(const QwtInterval& x, const QwtInterval& y);
   
+  /// Sets single pass (for auto zooming).
+  void setSinglePass() {m_singlePass = true;};
+  
   /// Gets single pass.
   bool singlePass() const {return m_singlePass;};
   

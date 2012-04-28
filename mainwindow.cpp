@@ -40,7 +40,8 @@ MainWindow::MainWindow(QWidget* parent, FractalWidget* fw)
       settings.value("last pass", 10).toInt(),
       settings.value("julia real", 0.9).toDouble(),
       settings.value("julia imag", 1.1).toDouble(),
-      settings.value("julia exponent", 2).toDouble());
+      settings.value("julia exponent", 2).toDouble(),
+      settings.value("axes", false).toBool());
       
     restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
   }
@@ -64,6 +65,10 @@ MainWindow::MainWindow(QWidget* parent, FractalWidget* fw)
   QAction* skip = menu->addAction("Skip");
   skip->setShortcut(QKeySequence("Ctrl+S"));
   menu->addSeparator();
+  QAction* zoom = menu->addAction("Zoom");
+  QAction* autoZoom = menu->addAction("Auto Zoom");
+  zoom->setShortcut(QKeySequence("Ctrl+Z"));
+  menu->addSeparator();
   QAction* newAction = menu->addAction("New");
   newAction->setShortcut(QKeySequence::New);
   menu->addSeparator();
@@ -83,6 +88,8 @@ MainWindow::MainWindow(QWidget* parent, FractalWidget* fw)
   connect(qApp, SIGNAL(lastWindowClosed()), m_fractalWidget, SLOT(save()));
   connect(refresh, SIGNAL(triggered()), m_fractalWidget->renderer(), SLOT(refresh()));
   connect(skip, SIGNAL(triggered()), m_fractalWidget->renderer(), SLOT(skip()));
+  connect(zoom, SIGNAL(triggered()), m_fractalWidget, SLOT(zoom()));
+  connect(autoZoom, SIGNAL(triggered()), m_fractalWidget, SLOT(autoZoom()));
 
   QToolBar* tb = addToolBar("Control");
   QToolBar* tb_julia = new QToolBar("Julia Control");

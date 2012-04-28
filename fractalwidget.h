@@ -60,7 +60,9 @@ public:
     /// julia imag component
     double julia_imag,
     /// julia exponent
-    double julia_exponent);
+    double julia_exponent,
+    /// shows axes
+    bool show_axes);
     
   /// Copy constructor.
   FractalWidget(
@@ -83,7 +85,11 @@ public:
   
   /// Access to renderer.
   FractalRenderer* renderer() {return &m_fractalRenderer;};
+  
 public slots:
+  /// Zooms in a number of times.
+  void autoZoom();
+  
   /// Copies pixmap to clipboard.
   void copy();
   
@@ -92,6 +98,9 @@ public slots:
   
   /// Saves settings.
   void save();
+  
+  /// Zooms in.
+  void zoom();
 protected:
   /// Handles resize event.
   void resizeEvent(QResizeEvent *event);
@@ -110,7 +119,7 @@ private slots:
   void updatePixmap(const QImage &image, int state);
   void zoomed();
 private:
-  void init();
+  void init(bool show_axes);
 
   FractalGeometry m_fractalGeo;
   QPixmap m_fractalPixmap;
@@ -130,7 +139,8 @@ private:
   PlotZoomer* m_zoom;
   
   QTime m_time;
-  
+
+  int m_autoZoom;
   int m_updates;
   
   QToolBar* m_juliaToolBar;
