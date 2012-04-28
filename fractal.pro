@@ -13,5 +13,5 @@ RC_FILE = fractal.rc
 DEFINES += QWT_DLL
 
 # Input
-HEADERS += fractal.h fractalgeometry.h fractalwidget.h mainwindow.h fractalrenderer.h
-SOURCES += fractal.cpp fractalgeometry.cpp fractalwidget.cpp main.cpp mainwindow.cpp fractalrenderer.cpp
+HEADERS += fractal.h fractalgeometry.h fractalwidget.h mainwindow.h fractalrenderer.h plotitem.h plotzoomer.h
+SOURCES += fractal.cpp fractalgeometry.cpp fractalwidget.cpp main.cpp mainwindow.cpp fractalrenderer.cpp plotitem.cpp plotzoomer.cpp

@@ -8,103 +8,12 @@
 #include <math.h>
 #include <QtGui>
 #include <QRegExpValidator>
-#include <qwt_painter.h>
 #include <qwt_plot_grid.h>
-#include <qwt_plot_item.h>
-#include <qwt_plot_zoomer.h>
 #include "fractalwidget.h"
 #include "fractal.h"
+#include "plotitem.h"
+#include "plotzoomer.h"
 
-class FractalPlotItem: public QwtPlotItem
-{
-public:
-  FractalPlotItem();
-
-  virtual void draw(QPainter *p,
-    const QwtScaleMap&, 
-    const QwtScaleMap&,
-    const QRectF &rect) const;
-    
-  virtual int rtti() const;
-};
-
-FractalPlotItem::FractalPlotItem()
-{
-  setItemAttribute(AutoScale);
-  setRenderHint(QwtPlotItem::RenderAntialiased, true);
-  setZ(1);
-}
-
-void FractalPlotItem::draw(QPainter *p, 
-  const QwtScaleMap&,
-  const QwtScaleMap&,
-  const QRectF& r) const
-{
-  const FractalWidget* fw = (FractalWidget *)plot();
-  
-  QwtPainter::drawPixmap(p, r, fw->fractalPixmap());
-}
-
-int FractalPlotItem::rtti() const
-{
-  return QwtPlotItem::Rtti_PlotUserItem;
-}
-
-class PlotZoomer: public QwtPlotZoomer
-{
-public:
-  PlotZoomer(QwtPlotCanvas* canvas);
-protected:  
-  virtual QSizeF minZoomSize() const;
-  virtual QwtText trackerTextF( const QPointF & ) const;
-  virtual void widgetMouseDoubleClickEvent(QMouseEvent *);
-};
-
-PlotZoomer::PlotZoomer(QwtPlotCanvas* canvas)
-  : QwtPlotZoomer(canvas)
-{
-  setKeyPattern( KeyRedo, Qt::Key_Up );
-  setKeyPattern( KeyUndo, Qt::Key_Down );
-  setKeyPattern( KeyHome, Qt::Key_Escape );
-    
-  setTrackerPen(QColor(Qt::white));
-  setTrackerMode(AlwaysOn);
-}
-
-QSizeF PlotZoomer::minZoomSize() const
-{
-  // default uses 10e4
-  return QSizeF(
-    zoomStack()[0].width() / 10e6,
-    zoomStack()[0].height() / 10e6);
-}
-
-QwtText PlotZoomer::trackerTextF( const QPointF &pos ) const
-{
-  QString text;
-
-  switch (rubberBand())
-  {
-    case HLineRubberBand:
-      text.sprintf("%.6f", pos.y());
-      break;
-    case VLineRubberBand:
-      text.sprintf("%.6f", pos.x());
-      break;
-    default:
-      text.sprintf("%.6f, %.6f", pos.x(), pos.y());
-  }
-  
-  return QwtText(text);
-}
-
-void PlotZoomer::widgetMouseDoubleClickEvent(QMouseEvent*)
-{
-  FractalWidget* fw = (FractalWidget *)plot();
-  
-  fw->doubleClicked();
-}
-  
 FractalWidget::FractalWidget(
   QWidget* parent,
   QStatusBar* statusbar,
@@ -550,7 +459,7 @@ void FractalWidget::updatePixmap(const QImage &image, int state)
       zoom();
       m_autoZoom++;
       
-      if (m_autoZoom >= 20)
+      if (m_autoZoom >= 75)
       {
         m_autoZoom = -1;
       }

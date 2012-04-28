@@ -37,7 +37,11 @@ const QSize FractalRenderer::calcStep(int pass, const FractalGeometry& geo) cons
   
   int step;
   
-  if (pass == geo.maxPasses())
+  if (geo.singlePass())
+  {
+    step = 1;
+  }
+  else if (pass == geo.maxPasses())
   { 
     step = 1;
   }
