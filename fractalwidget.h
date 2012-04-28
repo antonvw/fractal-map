@@ -132,7 +132,7 @@ private:
   QLineEdit* m_juliaExponentEdit;
   QLineEdit* m_sizeEdit;
   
-  QLabel* m_maxPassesLabel;
+  QLabel* m_passesLabel;
   QLabel* m_updatesLabel;
   
   QwtPlotGrid* m_grid;

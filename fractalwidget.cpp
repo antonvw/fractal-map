@@ -270,8 +270,8 @@ void FractalWidget::init(bool show_axes)
   m_sizeEdit->setToolTip("fractal size");
   m_sizeEdit->setValidator(new QRegExpValidator(QRegExp(size_regexp)));
   
-  m_maxPassesLabel = new QLabel();
-  m_maxPassesLabel->setToolTip("current pass out of max passes");
+  m_passesLabel = new QLabel();
+  m_passesLabel->setToolTip("current pass out of max passes");
   m_updatesLabel = new QLabel();
   m_updatesLabel->setToolTip("total images rendered");
   
@@ -299,7 +299,7 @@ void FractalWidget::init(bool show_axes)
     this, SLOT(setSize()));
 
   m_statusBar->addPermanentWidget(m_progressBar);
-  m_statusBar->addPermanentWidget(m_maxPassesLabel);
+  m_statusBar->addPermanentWidget(m_passesLabel);
   m_statusBar->addPermanentWidget(m_updatesLabel);
   m_progressBar->hide();
   
@@ -515,7 +515,16 @@ void FractalWidget::updatePass(int line, int /*max */)
 
 void FractalWidget::updatePass(int pass, int max, int iterations)
 {
-  m_maxPassesLabel->setText(QString::number(pass) + "," + QString::number(max));
+  if (pass > 0 && max > 0)
+  {
+    m_passesLabel->show();
+    m_passesLabel->setText(QString::number(pass) + "," + QString::number(max));
+  }
+  else
+  {
+    m_passesLabel->hide();
+  }
+    
   m_statusBar->showMessage(QString("executing %1 iterations")
     .arg(iterations));
   m_time.start();    

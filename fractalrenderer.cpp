@@ -268,7 +268,10 @@ void FractalRenderer::run()
       const QSize inc = calcStep(pass, geo);
       const int max_iterations = 16 + (8 << pass);
       
-      emit rendering(pass, geo.maxPasses(), max_iterations);
+      emit rendering(
+        geo.singlePass()? -1: pass, 
+        geo.singlePass() ? -1: geo.maxPasses(), 
+        max_iterations);
       
       for (
         int y = 0; 
