@@ -478,11 +478,18 @@ void FractalWidget::updatePixmap(const QImage &image, int state)
 
 void FractalWidget::zoom()
 {
-  const double factor = 0.9;
-  const QPointF tl = m_zoom->zoomRect().topLeft();
-  const QPointF br = m_zoom->zoomRect().bottomRight();
-  const QRectF r(tl * factor, br * factor);
+  const double minfactor = 0.9;
   
+  const QPointF center = m_zoom->zoomRect().center();
+  const double width = m_zoom->zoomRect().width() * minfactor;
+  const double height = m_zoom->zoomRect().height() * minfactor;
+  
+  const QRectF r(
+    center.x() - width / 2.0, 
+    center.y() - height / 2.0,
+    width, 
+    height); 
+    
   m_zoom->zoom(r);
 }
 
