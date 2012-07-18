@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Name:      main.cpp
-// Purpose:   main for fractla-map application
+// Purpose:   main for fractal-map application
 // Author:    Anton van Wezenbeek
 // Copyright: (c) 2012 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
   
-  QCoreApplication::setOrganizationName("Coffee Company");
+  QCoreApplication::setOrganizationName("Coffee Tigers");
   QCoreApplication::setApplicationName("fractal-map");
   
   MainWindow win;
