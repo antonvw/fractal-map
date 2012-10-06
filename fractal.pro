@@ -5,12 +5,8 @@
 TEMPLATE = app
 TARGET = 
 DEPENDPATH += .
-#CONFIG += qwt
-INCLUDEPATH += C:/qwt-6.0.1/include
-LIBS += -LC:/qwt-6.0.1/lib -lqwtd
+CONFIG += qwt
 RC_FILE = fractal.rc
-#CXXFLAGS+=-QWT_DLL
-DEFINES += QWT_DLL
 
 # Input
 HEADERS += fractal.h fractalgeometry.h fractalwidget.h mainwindow.h fractalrenderer.h plotitem.h plotzoomer.h
