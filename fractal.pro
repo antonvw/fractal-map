@@ -9,5 +9,21 @@ CONFIG += qwt
 RC_FILE = fractal.rc
 
 # Input
-HEADERS += fractal.h fractalgeometry.h fractalwidget.h mainwindow.h fractalrenderer.h plotitem.h plotzoomer.h
-SOURCES += fractal.cpp fractalgeometry.cpp fractalwidget.cpp main.cpp mainwindow.cpp fractalrenderer.cpp plotitem.cpp plotzoomer.cpp
+HEADERS += \
+  fractal.h \
+  fractalgeometry.h \
+  fractalrenderer.h \
+  fractalwidget.h \
+  mainwindow.h \
+  plotitem.h \
+  plotzoomer.h
+  
+SOURCES += \
+  fractal.cpp \
+  fractalgeometry.cpp \
+  fractalrenderer.cpp \
+  fractalwidget.cpp \
+  main.cpp \
+  mainwindow.cpp \
+  plotitem.cpp \
+  plotzoomer.cpp
