@@ -9,11 +9,11 @@ This project offers a fractal browser.
 # Build process
 
 ## Building qwt 6.0.1
-   `qmake qwt.pro'
-   `make`
-   `make install`
-   `qmake -set QMAKEFEATURES ...`
+   `qmake qwt.pro'   
+   `make`   
+   `make install`   
+   `qmake -set QMAKEFEATURES ...`   
    
 ## Building fractal-map
-   `qmake`
+   `qmake`   
    `make`
