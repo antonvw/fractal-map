@@ -4,6 +4,9 @@
 
 TEMPLATE = app
 TARGET = 
+DEFINES += QWT_DLL
+LIBS += -Lc:/qwt-6.0.1/lib -lqwtd
+INCLUDEPATH += c:/qwt-6.0.1/include
 DEPENDPATH += .
 CONFIG += qwt
 RC_FILE = fractal.rc
