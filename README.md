@@ -11,7 +11,7 @@ This project offers a fractal browser.
 ## Building qwt 6.1.0
    `qmake qwt.pro`   
    `make` or `nmake`  
-   `make install` or `nmake install`
+   `make install` or `nmake install`   
    `qmake -set QMAKEFEATURES ...`   
    
 ## Building fractal-map
