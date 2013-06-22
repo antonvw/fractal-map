@@ -4,16 +4,16 @@ This project offers a fractal browser.
 
 - [Qt 4.8.0](http://qt-project.org/downloads/)
   
-- [qwt 6.0.1](http://sourceforge.net/projects/qwt/)
+- [qwt 6.1.0](http://sourceforge.net/projects/qwt/)
 
 # Build process
 
-## Building qwt 6.0.1
+## Building qwt 6.1.0
    `qmake qwt.pro`   
-   `make`   
-   `make install`   
+   `make` or `nmake`  
+   `make install` or `nmake install`
    `qmake -set QMAKEFEATURES ...`   
    
 ## Building fractal-map
    `qmake`   
-   `make`
+   `make` or `nmake`

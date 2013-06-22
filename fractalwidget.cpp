@@ -2,7 +2,7 @@
 // Name:      fractalwidget.cpp
 // Purpose:   Implementation of class FractalWidget
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2012 Anton van Wezenbeek
+// Copyright: (c) 2013 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <math.h>
@@ -215,8 +215,8 @@ void FractalWidget::init(bool show_axes)
   m_grid = new QwtPlotGrid;
   m_grid->enableXMin(true);
   m_grid->enableYMin(true);
-  m_grid->setMajPen(QPen(Qt::white, 0, Qt::DotLine));
-  m_grid->setMinPen(QPen(Qt::darkGray, 0, Qt::DotLine));
+  m_grid->setMajorPen(QPen(Qt::white, 0, Qt::DotLine));
+  m_grid->setMinorPen(QPen(Qt::darkGray, 0, Qt::DotLine));
   m_grid->setZ(1000); // always on top (last item)
   m_grid->attach(this);
   

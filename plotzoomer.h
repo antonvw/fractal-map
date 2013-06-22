@@ -2,7 +2,7 @@
 // Name:      plotzoomer.cpp
 // Purpose:   Implementation of class PlotZoomer
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2012 Anton van Wezenbeek
+// Copyright: (c) 2013 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #pragma once 
@@ -13,7 +13,7 @@
 class PlotZoomer: public QwtPlotZoomer
 {
 public:
-  PlotZoomer(QwtPlotCanvas* canvas);
+  PlotZoomer(QWidget* widget, bool doReplot = true);
 protected:  
   virtual QSizeF minZoomSize() const;
   virtual QwtText trackerTextF( const QPointF & ) const;

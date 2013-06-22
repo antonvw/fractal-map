@@ -2,15 +2,15 @@
 // Name:      fractalwidget.cpp
 // Purpose:   Implementation of class FractalWidget
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2012 Anton van Wezenbeek
+// Copyright: (c) 2013 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <QtGui>
 #include "plotzoomer.h"
 #include "fractalwidget.h"
 
-PlotZoomer::PlotZoomer(QwtPlotCanvas* canvas)
-  : QwtPlotZoomer(canvas)
+PlotZoomer::PlotZoomer(QWidget* widget, bool doReplot)
+  : QwtPlotZoomer(widget, doReplot)
 {
   setKeyPattern( KeyRedo, Qt::Key_Up );
   setKeyPattern( KeyUndo, Qt::Key_Down );
