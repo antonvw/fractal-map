@@ -2,7 +2,7 @@
 // Name:      fractalgeometry.h
 // Purpose:   Declaration of class FractalGeometry
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2012 Anton van Wezenbeek
+// Copyright: (c) 2013 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef _FRACTALGEOMETRY_H
@@ -13,7 +13,6 @@
 #include <QColorDialog>
 #include <QDir>
 #include <QLineEdit>
-#include <QPointF>
 #include <QSpinBox>
 #include <QToolBar>
 #include <qwt_interval.h>
@@ -58,7 +57,7 @@ public:
   /// Gets colours.
   const std::vector<uint> & colours() const {return m_colours;};
   
-  /// Gets the dir used when using images instead fo colours.
+  /// Gets the dir used when using images instead of colours.
   const QDir& dir() const {return m_dir;};
   
   /// Gets first pass.

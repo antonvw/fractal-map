@@ -2,7 +2,7 @@
 // Name:      fractalwidget.h
 // Purpose:   Declaration of class FractalWidget
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2012 Anton van Wezenbeek
+// Copyright: (c) 2013 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef _FRACTALWIDGET_H
@@ -81,7 +81,7 @@ public:
   const QPixmap& fractalPixmap() const {return m_fractalPixmap;};
   
   /// Access to geometry.
-  FractalGeometry* geometry() {return &m_fractalGeo;};
+  const FractalGeometry& geometry() const {return m_fractalGeo;};
   
   /// Access to renderer.
   FractalRenderer* renderer() {return &m_fractalRenderer;};

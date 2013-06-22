@@ -2,7 +2,7 @@
 // Name:      fractalrenderer.h
 // Purpose:   Declaration of class FractalRenderer
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2012 Anton van Wezenbeek
+// Copyright: (c) 2013 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef _FRACTALRENDERER_H
@@ -13,7 +13,6 @@
 #include <QImage>
 #include <QMutex>
 #include <QPoint>
-#include <QPointF>
 #include <QThread>
 #include <QWaitCondition>
 #include "fractal.h"

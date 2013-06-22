@@ -2,7 +2,7 @@
 // Name:      mainwindow.cpp
 // Purpose:   Implementation of class MainWindow
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2012 Anton van Wezenbeek
+// Copyright: (c) 2013 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <QtGui>
@@ -78,9 +78,9 @@ MainWindow::MainWindow(QWidget* parent, FractalWidget* fw)
   menuButton->setMenu(menu);
   
   connect(about, SIGNAL(triggered()), this, SLOT(about()));    
-  connect(colours_begin, SIGNAL(triggered()), m_fractalWidget->geometry(), SLOT(setColoursDialogBegin()));
-  connect(colours_end, SIGNAL(triggered()), m_fractalWidget->geometry(), SLOT(setColoursDialogEnd()));
-  connect(images, SIGNAL(triggered()), m_fractalWidget->geometry(), SLOT(setImages()));
+  connect(colours_begin, SIGNAL(triggered()), &m_fractalWidget->geometry(), SLOT(setColoursDialogBegin()));
+  connect(colours_end, SIGNAL(triggered()), &m_fractalWidget->geometry(), SLOT(setColoursDialogEnd()));
+  connect(images, SIGNAL(triggered()), &m_fractalWidget->geometry(), SLOT(setImages()));
   connect(copy, SIGNAL(triggered()), m_fractalWidget, SLOT(copy()));
   connect(menu, SIGNAL(clicked()), this, SLOT(menu()));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFractalWidget()));

@@ -2,11 +2,14 @@
 // Name:      fractalgeometry.cpp
 // Purpose:   Implementation of class FractalGeometry
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2012 Anton van Wezenbeek
+// Copyright: (c) 2013 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <QFileDialog>
 #include "fractalgeometry.h"
+
+const int min_wave = 380;
+const int max_wave = 780;
 
 FractalGeometry::FractalGeometry(
   const QwtInterval& xInterval,
@@ -19,8 +22,8 @@ FractalGeometry::FractalGeometry(
   , m_intervalY(yInterval)
   , m_dir(dir)
   , m_imagesSize(32, 32)
-  , m_coloursMinWave(380)
-  , m_coloursMaxWave(780)
+  , m_coloursMinWave(min_wave)
+  , m_coloursMaxWave(max_wave)
   , m_firstPass(firstPass)
   , m_maxPasses(maxPasses)
   , m_singlePass(false)
@@ -63,14 +66,14 @@ void FractalGeometry::addControls(QToolBar* toolbar)
   m_coloursEdit->setToolTip("colours");
   
   m_coloursMinWaveEdit = new QSpinBox();
-  m_coloursMinWaveEdit->setMinimum(380);
-  m_coloursMinWaveEdit->setMaximum(780);
+  m_coloursMinWaveEdit->setMinimum(min_wave);
+  m_coloursMinWaveEdit->setMaximum(max_wave);
   m_coloursMinWaveEdit->setToolTip("min wavelength colour");
   m_coloursMinWaveEdit->setValue(m_coloursMinWave);
   
   m_coloursMaxWaveEdit = new QSpinBox();
-  m_coloursMaxWaveEdit->setMinimum(380);
-  m_coloursMaxWaveEdit->setMaximum(780);
+  m_coloursMaxWaveEdit->setMinimum(min_wave);
+  m_coloursMaxWaveEdit->setMaximum(max_wave);
   m_coloursMaxWaveEdit->setToolTip("max wavelength colour");
   m_coloursMaxWaveEdit->setValue(m_coloursMaxWave);
   
@@ -400,7 +403,7 @@ uint FractalGeometry::wav2RGB(double w) const
   double G = 0.0;
   double B = 0.0;
   
-  if (w >= 380 && w < 440)
+  if (w >= min_wave && w < 440)
   {
     R = -(w - 440) / (440 - 350);
     G = 0.0;
@@ -430,7 +433,7 @@ uint FractalGeometry::wav2RGB(double w) const
     G = -(w - 645) / (645 - 580);
     B = 0.0;
   }
-  else if (w >= 645 && w <= 780)
+  else if (w >= 645 && w <= max_wave)
   {
     R = 1.0;
     G = 0.0;
@@ -440,12 +443,12 @@ uint FractalGeometry::wav2RGB(double w) const
   // intensity correction
   double SSS = 0;
   
-  if (w >= 380 && w < 420)
+  if (w >= min_wave && w < 420)
     SSS = 0.3 + 0.7*(w - 350) / (420 - 350);
   else if (w >= 420 && w <= 700)
     SSS = 1.0;
-  else if (w > 700 && w <= 780)
-    SSS = 0.3 + 0.7*(780 - w) / (780 - 700);
+  else if (w > 700 && w <= max_wave)
+    SSS = 0.3 + 0.7*(max_wave - w) / (max_wave - 700);
       
   SSS *= 255;
 
