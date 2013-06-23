@@ -19,7 +19,7 @@
 
 const QString pointf_regexp("-?[0-9.]+[0-9]*,-?[0-9.]+[0-9]*");
 const QString intervals_regexp = pointf_regexp + "," + pointf_regexp;
-const QString size_regexp("[0-9]+,[0-9]+");
+const QString size_regexp("[1-9][0-9]*,[1-9][0-9]*");
 
 /// This class contains general geometry values for a fractal.
 /// If you want to edit values supplied using the default constructor,
