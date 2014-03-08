@@ -6,6 +6,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <QtGui>
+#include <QMessageBox>
+#include <QMenu>
+#include <QPushButton>
 #include <QSettings>
 #include <qwt_global.h>
 #include "mainwindow.h"

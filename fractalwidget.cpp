@@ -6,6 +6,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <math.h>
+#include <QApplication>
 #include <QtGui>
 #include <QRegExpValidator>
 #include <qwt_plot_grid.h>
@@ -279,7 +280,7 @@ void FractalWidget::save()
   QSettings settings;
   
   settings.setValue("axes", m_axesEdit->isChecked());
-  settings.setValue("colours", m_fractalGeo.colours().size());
+  settings.setValue("colours", (int)m_fractalGeo.colours().size());
   settings.setValue("first pass", m_fractalGeo.firstPass());
   settings.setValue("fractal", QString::fromStdString(name()));
   settings.setValue("julia exponent", juliaExponent());

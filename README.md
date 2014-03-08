@@ -2,7 +2,7 @@ This project offers a fractal browser.
 
 # Dependencies
 
-- [Qt 4.8.0](http://qt-project.org/downloads/)
+- [Qt 5.2.1](http://qt-project.org/downloads/)
   
 - [qwt 6.1.0](http://sourceforge.net/projects/qwt/)
 
