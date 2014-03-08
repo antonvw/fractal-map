@@ -2,7 +2,7 @@
 // Name:      mainwindow.cpp
 // Purpose:   Implementation of class MainWindow
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2013 Anton van Wezenbeek
+// Copyright: (c) 2014 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <QtGui>

@@ -2,7 +2,7 @@
 // Name:      fractalwidget.cpp
 // Purpose:   Implementation of class FractalWidget
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2013 Anton van Wezenbeek
+// Copyright: (c) 2014 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <math.h>
