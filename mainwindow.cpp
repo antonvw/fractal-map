@@ -94,7 +94,10 @@ MainWindow::MainWindow(QWidget* parent, FractalWidget* fw)
   connect(autoZoom, SIGNAL(triggered()), m_fractalWidget, SLOT(autoZoom()));
 
   QToolBar* tb = addToolBar("Control");
+  tb->setObjectName("control");
   QToolBar* tb_julia = new QToolBar("Julia Control");
+  tb->setObjectName("control");
+  tb_julia->setObjectName("julia");
   addToolBar(Qt::BottomToolBarArea, tb_julia);
   tb->addWidget(menuButton);
   m_fractalWidget->addControls(tb);
