@@ -8,6 +8,11 @@ This project offers a fractal browser.
 
 # Build process
 
+## Building Qt 5.2.1
+    `./configure -qt-xcb -opensource -nomake tests`
+   `make` or `nmake`  
+   `make install` or `nmake install`   
+
 ## Building qwt 6.1.0
    `qmake qwt.pro`   
    `make` or `nmake`  
