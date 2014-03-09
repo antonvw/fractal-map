@@ -172,9 +172,12 @@ bool FractalRenderer::render(
   {
     for (int j = 0; j < images[im].height(); j++)
     {
-      image.setPixel(
-        p + QPoint(i, j),
-        images[im].pixel(QPoint(i, j)));
+      const QPoint pos(p + QPoint(i, j));
+      
+      if (image.valid(pos))
+      {
+        image.setPixel(pos, images[im].pixel(QPoint(i, j)));
+      }
     }
   }
   
@@ -203,9 +206,13 @@ bool FractalRenderer::render(
   {
     for (int j = 0; j < inc.height(); j++)
     {
-      image.setPixel(
-        p + QPoint(i, j),
-       (n < max ? colours[n % colours.size()]: colours.back()));
+      const QPoint pos(p + QPoint(i, j));
+      
+      if (image.valid(pos))
+      {
+        image.setPixel(pos,
+         (n < max ? colours[n % colours.size()]: colours.back()));
+      }
     }
   }
   
