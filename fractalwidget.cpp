@@ -109,7 +109,7 @@ void FractalWidget::copy()
   m_statusBar->showMessage("copied to clipboard", 50);
 }
 
-void FractalWidget::doubleClicked()
+bool FractalWidget::doubleClicked()
 {
   if (!m_fractalGeo.useImages())
   {
@@ -121,8 +121,11 @@ void FractalWidget::doubleClicked()
     if (color.isValid())
     {
       m_fractalGeo.setColours(rgb, color.rgb());
+      return true;
     }
   }
+
+  return false;
 }
 
 void FractalWidget::init(bool show_axes)

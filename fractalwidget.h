@@ -2,7 +2,7 @@
 // Name:      fractalwidget.h
 // Purpose:   Declaration of class FractalWidget
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2013 Anton van Wezenbeek
+// Copyright: (c) 2014 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef _FRACTALWIDGET_H
@@ -94,7 +94,7 @@ public slots:
   void copy();
   
   /// Double clicked.
-  void doubleClicked();
+  bool doubleClicked();
   
   /// Saves settings.
   void save();
