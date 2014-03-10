@@ -168,15 +168,15 @@ bool FractalRenderer::render(
   // We have to use image n.
   const int im = (n < max ? (n % images.size()): images.size() - 1);
   
-  for (int i = 0; i < images[im].width(); i++)
+  for (int h = 0; h < images[im].height(); h++)
   {
-    for (int j = 0; j < images[im].height(); j++)
+    for (int w = 0; w < images[im].width(); w++)
     {
-      const QPoint pos(p + QPoint(i, j));
+      const QPoint pos(p + QPoint(w, h));
       
       if (image.valid(pos))
       {
-        image.setPixel(pos, images[im].pixel(QPoint(i, j)));
+        image.setPixel(pos, images[im].pixel(QPoint(w, h)));
       }
     }
   }
@@ -202,11 +202,11 @@ bool FractalRenderer::render(
 
   const bool result = fractal.calc(c, n, max);
   
-  for (int i = 0; i < inc.width(); i++)
+  for (int h = 0; h < inc.height(); h++)
   {
-    for (int j = 0; j < inc.height(); j++)
+    for (int w = 0; w < inc.width(); w++)
     {
-      const QPoint pos(p + QPoint(i, j));
+      const QPoint pos(p + QPoint(w, h));
       
       if (image.valid(pos))
       {
