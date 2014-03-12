@@ -2,7 +2,7 @@
 # Name:      fractal.pro
 # Purpose:   Qt project file
 # Author:    Anton van Wezenbeek
-# Copyright: (c) 2013 Anton van Wezenbeek
+# Copyright: (c) 2014 Anton van Wezenbeek
 ################################################################################
 
 TEMPLATE = app
@@ -16,7 +16,8 @@ HEADERS += \
   fractalwidget.h \
   mainwindow.h \
   plotitem.h \
-  plotzoomer.h
+  plotzoomer.h \
+  scrollbar.h 
   
 SOURCES += \
   fractal.cpp \
@@ -26,4 +27,5 @@ SOURCES += \
   main.cpp \
   mainwindow.cpp \
   plotitem.cpp \
-  plotzoomer.cpp
+  plotzoomer.cpp \
+  scrollbar.cpp
