@@ -14,17 +14,24 @@ class ScrollBar: public QScrollBar
   Q_OBJECT
 
 public:
-  ScrollBar( Qt::Orientation, QWidget* parent);
+  enum ScrollBarPosition
+  {
+    AttachedToScale,
+    OppositeToScale
+  };
 
-  void setInverted( bool );
-
-  double minBaseValue() const;
-  double maxBaseValue() const;
-
-  double minSliderValue() const;
-  double maxSliderValue() const;
+  /// Constructor.
+  ScrollBar( ScrollBarPosition pos, Qt::Orientation, QWidget* parent);
 
   int extent() const;
+
+  /// Access to members.
+  double minBaseValue() const {return m_minBase;};
+  double minSliderValue() const;
+  double maxBaseValue() const {return m_maxBase;};
+  double maxSliderValue() const;
+  Qt::ScrollBarPolicy mode() const {return m_mode;};
+  ScrollBarPosition position() const {return m_position;};
 
 signals:
   void sliderMoved( Qt::Orientation, double, double );
@@ -34,18 +41,20 @@ public slots:
   virtual void setBase( double min, double max );
   virtual void moveSlider( double min, double max );
 
-protected:
-  double mapFromTick( int ) const;
-  int mapToTick( double ) const;
-  void sliderRange( int value, double &min, double &max ) const;
-
 private slots:
   void catchSliderMoved( int value );
   void catchValueChanged( int value );
 
 private:
-  int m_baseTicks;
-  bool m_inverted;
+  double mapFromTick( int ) const;
+  int mapToTick( double ) const;
+  void sliderRange( int value, double &min, double &max ) const;
+
+  const int m_baseTicks;
+  const bool m_inverted;
+  const Qt::ScrollBarPolicy m_mode;
+  const ScrollBarPosition m_position;
+  
   double m_maxBase;
   double m_minBase;
 };
