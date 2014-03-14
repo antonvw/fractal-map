@@ -9,6 +9,7 @@
 
 #include <QScrollBar>
 
+/// This class offers a scrollbar to be used on the plot.
 class ScrollBar: public QScrollBar
 {
   Q_OBJECT
@@ -33,13 +34,12 @@ public:
   Qt::ScrollBarPolicy mode() const {return m_mode;};
   ScrollBarPosition position() const {return m_position;};
 
+  void moveSlider( double min, double max );
+  void setBase( double min, double max );
+
 signals:
   void sliderMoved( Qt::Orientation, double, double );
   void valueChanged( Qt::Orientation, double, double );
-
-public slots:
-  virtual void setBase( double min, double max );
-  virtual void moveSlider( double min, double max );
 
 private slots:
   void catchSliderMoved( int value );

@@ -2,7 +2,7 @@
 // Name:      fractalgeometry.h
 // Purpose:   Declaration of class FractalGeometry
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2013 Anton van Wezenbeek
+// Copyright: (c) 2014 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef _FRACTALGEOMETRY_H
@@ -120,6 +120,7 @@ private slots:
 private:  
   void setColours(int colours);
   void setColoursDialog(bool from_start);
+  void setImages(bool show_dialog);
   uint wav2RGB(double wave) const;
   
   QSpinBox* m_coloursEdit;
@@ -137,6 +138,7 @@ private:
   QwtInterval m_intervalY;
   QDir m_dir;
   QSize m_imagesSize;
+  QStringList m_imagesList;
 
   double m_coloursMinWave;  
   double m_coloursMaxWave;  

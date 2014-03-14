@@ -14,6 +14,7 @@
 
 class ScrollBar;
 
+/// This class offers facility to zoom in on the plot.
 class PlotZoomer: public QwtPlotZoomer
 {
   Q_OBJECT
@@ -23,22 +24,21 @@ public:
   PlotZoomer(QWidget* widget, bool doReplot = true);
   
 protected:  
+  virtual bool eventFilter( QObject *, QEvent * );
   virtual QSizeF minZoomSize() const;
+  virtual void rescale();
   virtual QwtText trackerTextF( const QPointF & ) const;
+  virtual void widgetKeyPressEvent(QKeyEvent *);
   virtual void widgetMouseDoubleClickEvent(QMouseEvent *);
   
-private:  
-  virtual bool eventFilter( QObject *, QEvent * );
-  virtual void layoutScrollBars( const QRect & );
-  virtual void rescale();
-  virtual void updateScrollBars();
-
 private slots:
   void scrollBarValueChanged( Qt::Orientation, double, double );
 
 private:
+  void layoutScrollBars( const QRect & );
   bool needScrollBar( Qt::Orientation ) const;
   int oppositeAxis( int ) const;
+  void updateScrollBars();
 
   QWidget* m_cornerWidget;
   ScrollBar* m_hScrollBar;

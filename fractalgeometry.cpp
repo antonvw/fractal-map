@@ -2,7 +2,7 @@
 // Name:      fractalgeometry.cpp
 // Purpose:   Implementation of class FractalGeometry
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2013 Anton van Wezenbeek
+// Copyright: (c) 2014 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <QFileDialog>
@@ -62,6 +62,7 @@ void FractalGeometry::addControls(QToolBar* toolbar)
 {
   m_coloursEdit = new QSpinBox();
   m_coloursEdit->setMaximum(8192);
+  m_coloursEdit->setMinimum(2);
   m_coloursEdit->setValue(m_colours.size());
   m_coloursEdit->setToolTip("colours");
   
@@ -294,21 +295,29 @@ void FractalGeometry::setFirstPass(int value)
 
 void FractalGeometry::setImages()
 {
-  const QStringList sl = QFileDialog::getOpenFileNames(
-    NULL,
-    "Select Images",
-    m_dir.path(),
-    "Images (*.bmp *.gif  *.ico *.jpg *.png *.xpm)");
+  setImages(true);
+}
 
-  if (!sl.isEmpty())
+void FractalGeometry::setImages(bool show_dialog)
+{
+  if (show_dialog)
+  {
+    m_imagesList = QFileDialog::getOpenFileNames(
+      NULL,
+      "Select Images",
+      m_dir.path(),
+      "Images (*.bmp *.gif  *.ico *.jpg *.png *.xpm)");
+  }
+
+  if (!m_imagesList.isEmpty())
   {
     m_images.clear();
   
-    m_dir = sl[0];
+    m_dir = m_imagesList[0];
     
-    for (int i = 0; i < sl.size(); i++)
+    for (int i = 0; i < m_imagesList.size(); i++)
     {
-      const QImage image(sl[i]);
+      const QImage image(m_imagesList[i]);
       
       if (
         image.width() > m_imagesSize.width() || 
@@ -334,8 +343,8 @@ void FractalGeometry::setImagesSize()
   if (sl.size() == 2)
   {
     m_imagesSize = QSize(sl[0].toInt(), sl[1].toInt());
-    
-    setImages();
+
+    setImages(m_images.empty());
   }
 }
 

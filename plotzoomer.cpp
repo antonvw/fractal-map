@@ -30,10 +30,9 @@ PlotZoomer::PlotZoomer(QWidget* widget, bool doReplot)
     
   setKeyPattern( KeyRedo, Qt::Key_F11 );
   setKeyPattern( KeyUndo, Qt::Key_F12 );
-  setKeyPattern( KeyHome, Qt::Key_Escape );
     
   setTrackerPen(QColor(Qt::white));
-  setTrackerMode(AlwaysOn);
+  setTrackerMode(ActiveOnly);
   
   for ( int axis = 0; axis < QwtPlot::axisCnt; axis++ )
     m_alignCanvasToScales[ axis ] = false;
@@ -362,6 +361,38 @@ void PlotZoomer::updateScrollBars()
 
   layoutScrollBars( canvas()->contentsRect() );
   plot()->updateLayout();
+}
+
+void PlotZoomer::widgetKeyPressEvent(QKeyEvent* event)
+{
+  if (
+    event->key() == Qt::Key_Left || 
+    event->key() == Qt::Key_Right ||
+    event->key() == Qt::Key_Home ||
+    event->key() == Qt::Key_End)
+  {
+    m_hScrollBar->event(event);
+  }
+  else if (
+    event->key() == Qt::Key_Up || 
+    event->key() == Qt::Key_Down ||
+    event->key() == Qt::Key_PageUp || 
+    event->key() == Qt::Key_PageDown)
+  {
+    m_vScrollBar->event(event);
+  }
+  else if (event->key() == Qt::Key_Plus)
+  {
+    zoom(1);
+  }
+  else if (event->key() == Qt::Key_Minus)
+  {
+    zoom(-1);
+  }
+  else
+  {
+    QwtPlotZoomer::widgetKeyPressEvent(event);
+  }
 }
 
 void PlotZoomer::widgetMouseDoubleClickEvent(QMouseEvent*)
