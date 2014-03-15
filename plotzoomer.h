@@ -30,7 +30,9 @@ protected:
   virtual QwtText trackerTextF( const QPointF & ) const;
   virtual void widgetKeyPressEvent(QKeyEvent *);
   virtual void widgetMouseDoubleClickEvent(QMouseEvent *);
-  
+  virtual void widgetMousePressEvent(QMouseEvent *);
+  virtual void widgetMouseReleaseEvent(QMouseEvent *);
+
 private slots:
   void scrollBarValueChanged( Qt::Orientation, double, double );
 
@@ -43,6 +45,7 @@ private:
   QWidget* m_cornerWidget;
   ScrollBar* m_hScrollBar;
   ScrollBar* m_vScrollBar;
+  QPointF m_Point;
 
   bool m_inZoom;
   bool m_alignCanvasToScales[ QwtPlot::axisCnt ];

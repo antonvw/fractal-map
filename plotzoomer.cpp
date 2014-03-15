@@ -210,9 +210,9 @@ void PlotZoomer::rescale()
   QwtScaleWidget *xScale = plot()->axisWidget( xAxis() );
   QwtScaleWidget *yScale = plot()->axisWidget( yAxis() );
 
-  if ( zoomRectIndex() <= 0 )
+  if (zoomRectIndex() <= 0)
   {
-    if ( m_inZoom )
+    if (m_inZoom)
     {
       xScale->setMinBorderDist( 0, 0 );
       yScale->setMinBorderDist( 0, 0 );
@@ -227,7 +227,7 @@ void PlotZoomer::rescale()
   }
   else
   {
-    if ( !m_inZoom )
+    if (!m_inZoom)
     {
       /*
        We set a minimum border distance.
@@ -402,4 +402,32 @@ void PlotZoomer::widgetMouseDoubleClickEvent(QMouseEvent*)
   fw->doubleClicked();
   
   reset();
+}
+
+void PlotZoomer::widgetMousePressEvent(QMouseEvent* event)
+{
+  if (event->button() == Qt::LeftButton)
+  {
+    QwtPlotZoomer::widgetMousePressEvent(event);
+  }
+  else if (event->button() == Qt::RightButton)
+  {
+    m_Point = event->screenPos();
+  }
+}
+
+void PlotZoomer::widgetMouseReleaseEvent(QMouseEvent* event)
+{
+  if (event->button() == Qt::LeftButton)
+  {
+    QwtPlotZoomer::widgetMouseReleaseEvent(event);
+  }
+  else if (event->button() == Qt::RightButton)
+  {
+    const float x = 100 * (event->screenPos().x() - m_Point.x());
+    const float y = 100 * (event->screenPos().y() - m_Point.y());
+    
+    m_hScrollBar->setValue(m_hScrollBar->value() - x); 
+    m_vScrollBar->setValue(m_vScrollBar->value() - y);
+  }
 }
