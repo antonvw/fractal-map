@@ -15,11 +15,12 @@
 #include "fractalwidget.h"
 #include "scrollbar.h"
 
-PlotZoomer::PlotZoomer(QWidget* widget, bool doReplot)
+PlotZoomer::PlotZoomer(QWidget* widget, QStatusBar* bar, bool doReplot)
   : QwtPlotZoomer(widget, doReplot)
   , m_cornerWidget( new QWidget( canvas() ))
   , m_hScrollBar( new ScrollBar( ScrollBar::AttachedToScale, Qt::Horizontal, canvas() ))
   , m_vScrollBar( new ScrollBar( ScrollBar::OppositeToScale, Qt::Vertical, canvas() ))
+  , m_statusBar(bar)
   , m_inZoom( false )
 {
   m_cornerWidget->setAutoFillBackground( true );
@@ -384,10 +385,12 @@ void PlotZoomer::widgetKeyPressEvent(QKeyEvent* event)
   else if (event->key() == Qt::Key_Plus)
   {
     zoom(1);
+    m_statusBar->showMessage(QString("zoom stack: %1").arg(zoomRectIndex()));
   }
   else if (event->key() == Qt::Key_Minus)
   {
     zoom(-1);
+    m_statusBar->showMessage(QString("zoom stack: %1").arg(zoomRectIndex()));
   }
   else
   {
@@ -408,6 +411,8 @@ void PlotZoomer::widgetMousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::LeftButton)
   {
+    m_statusBar->showMessage(QString("zoom stack: %1").arg(zoomRectIndex()));
+    
     QwtPlotZoomer::widgetMousePressEvent(event);
   }
   else if (event->button() == Qt::RightButton)

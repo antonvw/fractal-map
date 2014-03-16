@@ -8,6 +8,7 @@
 #pragma once 
 
 #include <QtGui>
+#include <QStatusBar>
 #include <qglobal.h>
 #include <qwt_plot.h>
 #include <qwt_plot_zoomer.h>
@@ -21,7 +22,7 @@ class PlotZoomer: public QwtPlotZoomer
 
 public:
   /// Constructor.
-  PlotZoomer(QWidget* widget, bool doReplot = true);
+  PlotZoomer(QWidget* widget, QStatusBar* bar, bool doReplot = true);
   
 protected:  
   virtual bool eventFilter( QObject *, QEvent * );
@@ -46,6 +47,7 @@ private:
   ScrollBar* m_hScrollBar;
   ScrollBar* m_vScrollBar;
   QPointF m_Point;
+  QStatusBar* m_statusBar;
 
   bool m_inZoom;
   bool m_alignCanvasToScales[ QwtPlot::axisCnt ];

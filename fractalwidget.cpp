@@ -227,7 +227,7 @@ void FractalWidget::init(bool show_axes)
   FractalPlotItem* fractalitem = new FractalPlotItem();
   fractalitem->attach(this);
   
-  m_zoom = new PlotZoomer(canvas());
+  m_zoom = new PlotZoomer(canvas(), m_statusBar);
   
   connect(&m_fractalGeo, SIGNAL(changedIntervals()),
     this, SLOT(setIntervals()));
