@@ -46,6 +46,8 @@ MainWindow::MainWindow(QWidget* parent, FractalWidget* fw)
       settings.value("julia exponent", 2).toDouble(),
       settings.value("axes", false).toBool());
       
+    resize(QSize(300, 300)); // initial size
+      
     restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
   }
     
@@ -96,11 +98,12 @@ MainWindow::MainWindow(QWidget* parent, FractalWidget* fw)
   QToolBar* tb = addToolBar("Control");
   tb->setObjectName("control");
   QToolBar* tb_julia = new QToolBar("Julia Control");
-  tb->setObjectName("control");
   tb_julia->setObjectName("julia");
   addToolBar(Qt::BottomToolBarArea, tb_julia);
   tb->addWidget(menuButton);
   m_fractalWidget->addControls(tb);
+  addToolBarBreak();
+  m_fractalWidget->addGeometryControls(tb);
   m_fractalWidget->addJuliaControls(tb_julia);
   
   restoreState(QSettings().value("mainWindowState").toByteArray());

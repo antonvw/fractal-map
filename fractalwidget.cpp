@@ -78,13 +78,16 @@ void FractalWidget::addControls(QToolBar* toolbar)
   toolbar->addWidget(m_sizeEdit);
   toolbar->addSeparator();
   
-  m_fractalGeo.addControls(toolbar);
-  
   toolbar->addWidget(m_divergeEdit);
   toolbar->addSeparator();
   toolbar->addWidget(m_axesEdit);
- 
+  
   m_toolBar = toolbar;
+}
+
+void FractalWidget::addGeometryControls(QToolBar* toolbar)
+{
+  m_fractalGeo.addControls(toolbar);
 }
 
 void FractalWidget::addJuliaControls(QToolBar* toolbar)
@@ -93,7 +96,7 @@ void FractalWidget::addJuliaControls(QToolBar* toolbar)
   toolbar->addWidget(m_juliaExponentEdit);
   
   m_juliaToolBar = toolbar;
-  m_juliaToolBar->setEnabled(name() == "julia set");
+  m_juliaToolBar->setVisible(name() == "julia set");
 }
 
 void FractalWidget::autoZoom()
@@ -324,7 +327,7 @@ void FractalWidget::setFractal(const QString& index)
     
     if (m_juliaToolBar != NULL)
     {
-      m_juliaToolBar->setEnabled(name() == "julia set");
+      m_juliaToolBar->setVisible(name() == "julia set");
     }
     
     render();

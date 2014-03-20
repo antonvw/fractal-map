@@ -384,13 +384,25 @@ void PlotZoomer::widgetKeyPressEvent(QKeyEvent* event)
   }
   else if (event->key() == Qt::Key_Plus)
   {
-    zoom(1);
-    m_statusBar->showMessage(QString("zoom stack: %1").arg(zoomRectIndex()));
+    if (zoomRectIndex() < (uint)zoomStack().size() - 1)
+    {
+      zoom(1);
+    }
+    
+    m_statusBar->showMessage(QString("zoom stack: %1 (%2)")
+      .arg(zoomRectIndex())
+      .arg(zoomStack().size()));
   }
   else if (event->key() == Qt::Key_Minus)
   {
-    zoom(-1);
-    m_statusBar->showMessage(QString("zoom stack: %1").arg(zoomRectIndex()));
+    if (zoomRectIndex() > 0)
+    {
+      zoom(-1);
+    }
+  
+    m_statusBar->showMessage(QString("zoom stack: %1 (%2)")
+      .arg(zoomRectIndex())
+      .arg(zoomStack().size()));
   }
   else
   {
@@ -411,7 +423,9 @@ void PlotZoomer::widgetMousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::LeftButton)
   {
-    m_statusBar->showMessage(QString("zoom stack: %1").arg(zoomRectIndex()));
+    m_statusBar->showMessage(QString("zoom stack: %1 (%2)")
+      .arg(zoomRectIndex())
+      .arg(zoomStack().size()));
     
     QwtPlotZoomer::widgetMousePressEvent(event);
   }

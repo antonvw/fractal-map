@@ -74,6 +74,9 @@ public:
   /// Adds controls to a toolbar.
   void addControls(QToolBar* toolbar);
 
+  /// Adds geometry specific controls to a toolbar.
+  void addGeometryControls(QToolBar* toolbar);
+  
   /// Adds julia specific controls to a toolbar.
   void addJuliaControls(QToolBar* toolbar);
   
