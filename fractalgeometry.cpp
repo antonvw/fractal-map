@@ -126,17 +126,17 @@ void FractalGeometry::addControls(QToolBar* toolbar)
   connect(m_useImagesEdit, SIGNAL(stateChanged(int)),
     this, SLOT(setUseImages(int)));
     
-  toolbar->addWidget(m_firstPassEdit);
-  toolbar->addWidget(m_maxPassesEdit);
-  toolbar->addSeparator();
-  toolbar->addWidget(m_intervalsEdit);
-  toolbar->addSeparator();
   toolbar->addWidget(m_coloursEdit);
   toolbar->addWidget(m_coloursMinWaveEdit);
   toolbar->addWidget(m_coloursMaxWaveEdit);
   toolbar->addSeparator();
   toolbar->addWidget(m_useImagesEdit);
   toolbar->addWidget(m_imagesSizeEdit);
+  toolbar->addSeparator();
+  toolbar->addWidget(m_firstPassEdit);
+  toolbar->addWidget(m_maxPassesEdit);
+  toolbar->addSeparator();
+  toolbar->addWidget(m_intervalsEdit);
 }
 
 bool FractalGeometry::isOk() const

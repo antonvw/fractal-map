@@ -77,10 +77,8 @@ void FractalWidget::addControls(QToolBar* toolbar)
   toolbar->addWidget(m_fractalEdit);
   toolbar->addWidget(m_sizeEdit);
   toolbar->addSeparator();
-  
-  toolbar->addWidget(m_divergeEdit);
-  toolbar->addSeparator();
   toolbar->addWidget(m_axesEdit);
+  toolbar->addWidget(m_divergeEdit);
   
   m_toolBar = toolbar;
 }
