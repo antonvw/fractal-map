@@ -2,12 +2,14 @@
 # Name:      fractal.pro
 # Purpose:   Qt project file
 # Author:    Anton van Wezenbeek
-# Copyright: (c) 2014 Anton van Wezenbeek
+# Copyright: (c) 2015 Anton van Wezenbeek
 ################################################################################
 
 TEMPLATE = app
-CONFIG += qwt
+QT += widgets
 RC_FILE = fractal.rc
+
+include ( /usr/local/qwt-6.1.2/features/qwt.prf )
 
 HEADERS += \
   fractal.h \
