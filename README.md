@@ -19,7 +19,6 @@ For gcc use `make` for Visual Studio use `nmake` for mingw use `mingw32-make`
    `qmake`   
    `make`   
    `make install`  
-   `qmake -set QMAKEFEATURES ...`   
    
 ## Building fractal-map
    `qmake`   
