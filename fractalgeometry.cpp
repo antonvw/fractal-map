@@ -2,7 +2,7 @@
 // Name:      fractalgeometry.cpp
 // Purpose:   Implementation of class FractalGeometry
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2014 Anton van Wezenbeek
+// Copyright: (c) 2015 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <QFileDialog>
@@ -34,6 +34,7 @@ FractalGeometry::FractalGeometry(
 }
 
 FractalGeometry::FractalGeometry(const FractalGeometry& geo)
+  : QObject()
 {
   *this = geo;
 }

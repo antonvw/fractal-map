@@ -9,7 +9,13 @@ TEMPLATE = app
 QT += widgets
 RC_FILE = fractal.rc
 
-include ( /usr/local/qwt-6.1.2/features/qwt.prf )
+equals( QMAKE_CXX, cl) {
+  include ( c:\qwt-6.1.2\features\qwt.prf )
+}
+    
+!equals( QMAKE_CXX, cl) {
+  include ( /usr/local/qwt-6.1.2/features/qwt.prf )
+}
 
 HEADERS += \
   fractal.h \

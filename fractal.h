@@ -2,11 +2,10 @@
 // Name:      fractal.h
 // Purpose:   Declaration of class Fractal
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2012 Anton van Wezenbeek
+// Copyright: (c) 2015 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef _FRACTAL_H
-#define _FRACTAL_H
+#pragma once
 
 #include <complex>
 #include <string>
@@ -91,4 +90,3 @@ private:
   std::string m_name;
   static std::vector<std::string> m_names;
 };
-#endif

@@ -2,11 +2,10 @@
 // Name:      mainwindow.h
 // Purpose:   Declaration of class MainWindow
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2012 Anton van Wezenbeek
+// Copyright: (c) 2015 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef _MAINWINDOW_H
-#define _MAINWINDOW_H
+#pragma once
 
 #include <QMainWindow>
 
@@ -28,4 +27,3 @@ private:
   void closeEvent(QCloseEvent *event); 
   FractalWidget* m_fractalWidget;
 };
-#endif

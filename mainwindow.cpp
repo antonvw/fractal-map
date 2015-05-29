@@ -2,7 +2,7 @@
 // Name:      mainwindow.cpp
 // Purpose:   Implementation of class MainWindow
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2014 Anton van Wezenbeek
+// Copyright: (c) 2015 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <QtGui>
@@ -123,7 +123,7 @@ void MainWindow::about()
       .arg(QWT_VERSION_STR));
 }
 
-void MainWindow::closeEvent(QCloseEvent *event) 
+void MainWindow::closeEvent(QCloseEvent* /* event */) 
 {
   QSettings settings;
   settings.setValue("mainWindowGeometry", saveGeometry());

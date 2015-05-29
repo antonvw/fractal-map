@@ -2,11 +2,10 @@
 // Name:      fractalwidget.h
 // Purpose:   Declaration of class FractalWidget
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2014 Anton van Wezenbeek
+// Copyright: (c) 2015 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef _FRACTALWIDGET_H
-#define _FRACTALWIDGET_H
+#pragma once
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -151,4 +150,3 @@ private:
   QStatusBar* m_statusBar;
   QToolBar* m_toolBar;
 };
-#endif

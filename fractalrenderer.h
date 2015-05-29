@@ -2,11 +2,10 @@
 // Name:      fractalrenderer.h
 // Purpose:   Declaration of class FractalRenderer
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2013 Anton van Wezenbeek
+// Copyright: (c) 2015 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef _FRACTALRENDERER_H
-#define _FRACTALRENDERER_H
+#pragma once
 
 #include <complex>
 #include <vector>
@@ -164,4 +163,3 @@ private:
   Fractal m_fractal;
   FractalGeometry m_geo;
 };
-#endif

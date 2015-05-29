@@ -2,11 +2,10 @@
 // Name:      fractalgeometry.h
 // Purpose:   Declaration of class FractalGeometry
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2014 Anton van Wezenbeek
+// Copyright: (c) 2015 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef _FRACTALGEOMETRY_H
-#define _FRACTALGEOMETRY_H
+#pragma once
 
 #include <vector>
 #include <QCheckBox>
@@ -159,4 +158,3 @@ private:
   
   QColorDialog* m_colourDialog;
 };
-#endif
