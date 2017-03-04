@@ -2,12 +2,11 @@
 // Name:      fractalrenderer.h
 // Purpose:   Declaration of class FractalRenderer
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2015 Anton van Wezenbeek
+// Copyright: (c) 2017 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
-#include <complex>
 #include <vector>
 #include <QImage>
 #include <QMutex>
@@ -24,10 +23,8 @@ enum RenderingState
   RENDERING_ACTIVE,    /// ACTIVE state
   RENDERING_INTERRUPT, /// INTERRUPT state
   RENDERING_PAUSED,    /// PAUSED state
-  RENDERING_RESET,     /// RESET state
   RENDERING_STOPPED,   /// STOPPED state
   RENDERING_START,     /// START state
-  RENDERING_SKIP,      /// SKIP state
   RENDERING_SNAPSHOT,  /// SNAPSHOT state
 };
 
@@ -56,9 +53,6 @@ enum RenderingState
 ///   PAUSED    -> READY     [ label = "cont" ];
 ///   PAUSED    -> STOPPED   [ label = "stop" ];
 ///   INTERRUPT -> ACTIVE    [ label = "cont" ];
-///   INTERRUPT -> RESET     [ label = "reset" ];
-///   RESET     -> START     [ label = "render" ];
-///   SKIP      -> ACTIVE;
 ///   SNAPSHOT  -> ACTIVE;
 ///  }
 /// \enddot
@@ -73,27 +67,13 @@ public:
   /// Destructor, stops rendering.
  ~FractalRenderer();
  
-  /// Returns true if rendering is allowed.
-  bool allowRender() const;
- 
   /// Interrupts rendering.
   /// Call render or cont to render again.
   void interrupt();
  
   /// Process is interrupted.
   bool interrupted() const;
-      
-  /// Resets after interrupt.
-  /// The current pass is not finished, and no rendered sigal is emitted.
-  void reset();
 public slots:
-  /// Continues rendering from where it was interrupted.
-  void cont();
-  
-  /// Pauses rendering.
-  /// Calling render after pause will have no effect, until you call cont.
-  void pause();
-  
   /// Pauses or continues rendering.
   void pause(bool checked) {checked ? pause(): cont();};
   
@@ -111,54 +91,41 @@ public slots:
     /// using this geometry
     const FractalGeometry& geometry);
     
-  /// Skips current pass.
-  void skip();
+  /// Restarts rendering.
+  void restart();
   
   /// Starts process.
-  void start();
+  void start() {QThread::start();};
 signals:
   /// If an image is available, this signal is emitted.
-  void rendered(const QImage &image, int state);
+  void rendered(const QImage image, int state);
   
-  /// During rendering, this signal is emitted,
-  /// allowing you to observe progress.
-  void rendering(int pass, int max, int iterations);
-  
-  /// During rendering, this signal is emitted as well.
+  /// During rendering, this signal is emitted.
   /// It signals current busy on line out of max lines.
   void rendering(int line, int max);
 protected:
   /// Overriden from base class.
-  void run();
+  virtual void run() override;
 private:
-  const QSize calcStep(int pass, const FractalGeometry& geo) const;
-  // End current state.
-  bool end() const;
+  const QSize calcStep(const FractalGeometry& geo) const;
+  void cont();
   bool nextStateForCalcEnd(const QImage& image);
+  void pause();
   bool render(
     const Fractal& fractal,
     const std::complex<double> & c, 
-    int max, 
+    const FractalGeometry& geo,
     QImage& image, 
     const QPoint& p, 
-    const std::vector<QImage> & images);
-  bool render(
-    const Fractal& fractal,
-    const std::complex<double> & c, 
-    int max, 
-    QImage& image, 
-    const QPoint& p, 
-    const QSize& inc,
-    const std::vector<uint> & colours);
-  // Stops rendering.
+    const QSize& inc);
   void stop();
   
   QWaitCondition m_condition;
   QImage m_image;
   QMutex m_mutex;
   
-  int m_state;
-  int m_oldState;
+  int m_state = RENDERING_INIT;
+  int m_oldState = RENDERING_INIT;
   
   Fractal m_fractal;
   FractalGeometry m_geo;

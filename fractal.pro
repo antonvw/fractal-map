@@ -2,7 +2,7 @@
 # Name:      fractal.pro
 # Purpose:   Qt project file
 # Author:    Anton van Wezenbeek
-# Copyright: (c) 2015 Anton van Wezenbeek
+# Copyright: (c) 2017 Anton van Wezenbeek
 ################################################################################
 
 TEMPLATE = app
@@ -10,15 +10,16 @@ QT += widgets
 RC_FILE = fractal.rc
 
 equals( QMAKE_CXX, cl) {
-  include ( c:\qwt-6.1.2\features\qwt.prf )
+  include ( c:\qwt\features\qwt.prf )
 }
     
 !equals( QMAKE_CXX, cl) {
-  include ( /usr/local/qwt-6.1.2/features/qwt.prf )
+  include ( /usr/local/qwt/features/qwt.prf )
 }
 
 HEADERS += \
   fractal.h \
+  fractalcontrol.h \
   fractalgeometry.h \
   fractalrenderer.h \
   fractalwidget.h \
@@ -29,6 +30,7 @@ HEADERS += \
   
 SOURCES += \
   fractal.cpp \
+  fractalcontrol.cpp \
   fractalgeometry.cpp \
   fractalrenderer.cpp \
   fractalwidget.cpp \

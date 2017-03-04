@@ -2,7 +2,7 @@
 // Name:      scrollbar.cpp
 // Purpose:   Implementation of class ScrollBar
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2014 Anton van Wezenbeek
+// Copyright: (c) 2017 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <QStyle>
@@ -11,12 +11,8 @@
 
 ScrollBar::ScrollBar( ScrollBarPosition pos, Qt::Orientation o, QWidget *parent )
   : QScrollBar( o, parent )
-  , m_baseTicks( 1000000 )
   , m_inverted( orientation() == Qt::Vertical)
-  , m_mode( Qt::ScrollBarAsNeeded )
   , m_position( pos )
-  , m_maxBase( 1.0 )
-  , m_minBase( 0.0 )
 {
   moveSlider( m_minBase, m_maxBase );
   
@@ -43,6 +39,7 @@ void ScrollBar::catchSliderMoved( int value )
 int ScrollBar::extent() const
 {
   QStyleOptionSlider opt;
+
   opt.init( this );
   opt.subControls = QStyle::SC_None;
   opt.activeSubControls = QStyle::SC_None;
@@ -54,6 +51,7 @@ int ScrollBar::extent() const
   opt.singleStep = singleStep();
   opt.pageStep = pageStep();
   opt.upsideDown = invertedAppearance();
+
   if ( orientation() == Qt::Horizontal )
     opt.state |= QStyle::State_Horizontal;
       

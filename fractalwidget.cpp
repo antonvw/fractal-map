@@ -2,7 +2,7 @@
 // Name:      fractalwidget.cpp
 // Purpose:   Implementation of class FractalWidget
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2014 Anton van Wezenbeek
+// Copyright: (c) 2017 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <math.h>
@@ -24,8 +24,7 @@ FractalWidget::FractalWidget(
   double diverge,
   const QwtInterval& xInterval,
   const QwtInterval& yInterval,
-  int first_pass,
-  int passes,
+  int depth,
   double julia_real,
   double julia_imag,
   double julia_exponent,
@@ -35,18 +34,12 @@ FractalWidget::FractalWidget(
       diverge,
       std::complex<double>(julia_real, julia_imag),
       julia_exponent)
-  , m_fractalGeo(xInterval, yInterval,
-      first_pass,
-      passes,
+  , m_fractalControl(xInterval, yInterval,
+      depth,
       colours,
       dir)
-  , m_fractalPixmap(100, 100)
-  , m_autoZoom(-1)
-  , m_updates(0)
-  , m_juliaToolBar(NULL)
   , m_progressBar(new QProgressBar())
   , m_statusBar(statusbar)
-  , m_toolBar(NULL)
 {
   init(show_axes);
 }
@@ -55,9 +48,8 @@ FractalWidget::FractalWidget(
   const FractalWidget& fw, QStatusBar* statusbar)
   : QwtPlot(fw.parentWidget())
   , Fractal(fw)
-  , m_fractalGeo(fw.m_fractalGeo)
+  , m_fractalControl(fw.m_fractalControl.geo())
   , m_autoZoom(fw.m_autoZoom)
-  , m_updates(0)
   , m_juliaToolBar(fw.m_juliaToolBar)
   , m_progressBar(new QProgressBar())
   , m_statusBar(statusbar)
@@ -75,17 +67,17 @@ FractalWidget::FractalWidget(
 void FractalWidget::addControls(QToolBar* toolbar)
 {
   toolbar->addWidget(m_fractalEdit);
+  toolbar->addWidget(m_divergeEdit);
   toolbar->addWidget(m_sizeEdit);
   toolbar->addSeparator();
   toolbar->addWidget(m_axesEdit);
-  toolbar->addWidget(m_divergeEdit);
   
   m_toolBar = toolbar;
 }
 
 void FractalWidget::addGeometryControls(QToolBar* toolbar)
 {
-  m_fractalGeo.addControls(toolbar);
+  m_fractalControl.addControls(toolbar);
 }
 
 void FractalWidget::addJuliaControls(QToolBar* toolbar)
@@ -100,8 +92,12 @@ void FractalWidget::addJuliaControls(QToolBar* toolbar)
 void FractalWidget::autoZoom()
 {
   m_autoZoom = 0;
-  
-  zoom();
+  zoomIn();
+}
+
+void FractalWidget::autoZoomStop()
+{
+  m_autoZoom = -1;
 }
 
 void FractalWidget::copy()
@@ -112,7 +108,7 @@ void FractalWidget::copy()
 
 bool FractalWidget::doubleClicked()
 {
-  if (!m_fractalGeo.useImages())
+  if (!m_fractalControl.geo().useImages())
   {
     QImage image(m_fractalPixmap.toImage());
     QRgb rgb = image.pixel(m_zoom->trackerPosition());
@@ -121,7 +117,7 @@ bool FractalWidget::doubleClicked()
     
     if (color.isValid())
     {
-      m_fractalGeo.setColours(rgb, color.rgb());
+      m_fractalControl.setColours(rgb, color.rgb());
       return true;
     }
   }
@@ -135,29 +131,22 @@ void FractalWidget::init(bool show_axes)
   setMinimumSize(32, 32);
   
   setAxisScale(xBottom, 
-    m_fractalGeo.intervalX().minValue(), 
-    m_fractalGeo.intervalX().maxValue());
+    m_fractalControl.geo().intervalX().minValue(), 
+    m_fractalControl.geo().intervalX().maxValue());
     
   setAxisScale(yLeft, 
-    m_fractalGeo.intervalY().minValue(), 
-    m_fractalGeo.intervalY().maxValue());
+    m_fractalControl.geo().intervalY().minValue(), 
+    m_fractalControl.geo().intervalY().maxValue());
 
   m_axesEdit = new QCheckBox("Axes");
   m_axesEdit->setToolTip("toggle axes");
   m_axesEdit->setChecked(show_axes);
   
-  m_divergeEdit = new QLineEdit();
-  m_divergeEdit->setText(QString::number(diverge()));
-  m_divergeEdit->setValidator(new QDoubleValidator());
-  m_divergeEdit->setFixedWidth(25);
-  m_divergeEdit->setToolTip("diverge");
-
   m_fractalEdit = new QComboBox();
   
-  for (uint i = 0; i < Fractal::names().size(); i++)
+  for (const auto& i : Fractal::names())
   {
-    m_fractalEdit->addItem(
-      QString::fromStdString(Fractal::names()[i]));
+    m_fractalEdit->addItem(QString::fromStdString(i));
   }  
   
   const int index = m_fractalEdit->findText(QString::fromStdString(name()));
@@ -169,6 +158,12 @@ void FractalWidget::init(bool show_axes)
   
   m_fractalEdit->setToolTip("fractal to observe");
   
+  m_divergeEdit = new QLineEdit();
+  m_divergeEdit->setText(QString::number(diverge()));
+  m_divergeEdit->setValidator(new QDoubleValidator());
+  m_divergeEdit->setFixedWidth(25);
+  m_divergeEdit->setToolTip("diverge");
+
   m_juliaEdit = new QLineEdit();
   m_juliaEdit->setText(
     QString::number(julia().real()) + "," + QString::number(julia().imag()));
@@ -184,20 +179,16 @@ void FractalWidget::init(bool show_axes)
   m_sizeEdit->setToolTip("fractal size");
   m_sizeEdit->setValidator(new QRegExpValidator(QRegExp(size_regexp)));
   
-  m_passesLabel = new QLabel();
-  m_passesLabel->setToolTip("current pass out of max passes");
   m_updatesLabel = new QLabel();
   m_updatesLabel->setToolTip("total images rendered");
   
-  connect(&m_fractalGeo, SIGNAL(changed()),
+  connect(&m_fractalControl, SIGNAL(changed()),
     this, SLOT(render()));
     
   connect(&m_fractalRenderer, SIGNAL(rendered(QImage,int)),
     this, SLOT(updatePixmap(QImage,int)));
-  connect(&m_fractalRenderer, SIGNAL(rendering(int,int,int)),
-    this, SLOT(updatePass(int,int,int)));
   connect(&m_fractalRenderer, SIGNAL(rendering(int,int)),
-    this, SLOT(updatePass(int,int)));
+    this, SLOT(updateProgress(int,int)));
     
   connect(m_axesEdit, SIGNAL(stateChanged(int)),
     this, SLOT(setAxes(int)));
@@ -213,7 +204,6 @@ void FractalWidget::init(bool show_axes)
     this, SLOT(setSize()));
 
   m_statusBar->addPermanentWidget(m_progressBar);
-  m_statusBar->addPermanentWidget(m_passesLabel);
   m_statusBar->addPermanentWidget(m_updatesLabel);
   m_progressBar->hide();
   
@@ -225,12 +215,12 @@ void FractalWidget::init(bool show_axes)
   m_grid->setZ(1000); // always on top (last item)
   m_grid->attach(this);
   
-  FractalPlotItem* fractalitem = new FractalPlotItem();
+  auto* fractalitem = new FractalPlotItem();
   fractalitem->attach(this);
   
   m_zoom = new PlotZoomer(canvas(), m_statusBar);
   
-  connect(&m_fractalGeo, SIGNAL(changedIntervals()),
+  connect(&m_fractalControl, SIGNAL(changedIntervals()),
     this, SLOT(setIntervals()));
   connect(m_zoom, SIGNAL(zoomed(const QRectF&)),
     this, SLOT(zoomed()));
@@ -243,28 +233,15 @@ void FractalWidget::init(bool show_axes)
 
 void FractalWidget::render()
 {
-  m_fractalGeo.setIntervals(
+  m_fractalControl.setIntervals(
     axisInterval(xBottom), axisInterval(yLeft));
 
-  if (m_autoZoom >= 0)
-  {
-    // Cannot in autoZoom, as geo setIntervals
-    // resets single pass.
-    m_fractalGeo.setSinglePass();
-  }
-  
   if (m_fractalRenderer.render(*this, 
-    QImage(size(), QImage::Format_RGB32), 
-    m_fractalGeo))
+    QImage(size(), QImage::Format_RGB32), m_fractalControl.geo()))
   {
     m_progressBar->setMinimum(0);
     m_progressBar->setMaximum(size().height());
     m_progressBar->show();
-  }
-  else if (m_fractalRenderer.allowRender())
-  {
-    // we could not render, but it is allowed, this is an error
-    m_statusBar->showMessage("rendering failed");
   }
 }
 
@@ -284,15 +261,14 @@ void FractalWidget::save()
   QSettings settings;
   
   settings.setValue("axes", m_axesEdit->isChecked());
-  settings.setValue("colours", (int)m_fractalGeo.colours().size());
-  settings.setValue("first pass", m_fractalGeo.firstPass());
+  settings.setValue("colours", (int)m_fractalControl.geo().colours().size());
+  settings.setValue("depth", m_fractalControl.geo().depth());
   settings.setValue("fractal", QString::fromStdString(name()));
   settings.setValue("julia exponent", juliaExponent());
   settings.setValue("julia real", julia().real());
   settings.setValue("julia imag", julia().imag());
-  settings.setValue("last pass", m_fractalGeo.maxPasses());
   settings.setValue("diverge", diverge());
-  settings.setValue("dir", m_fractalGeo.dir().absolutePath());
+  settings.setValue("dir", m_fractalControl.geo().dir().absolutePath());
 }
 
 void FractalWidget::setAxes(int state)
@@ -323,7 +299,7 @@ void FractalWidget::setFractal(const QString& index)
   {
     setName(index.toStdString());
     
-    if (m_juliaToolBar != NULL)
+    if (m_juliaToolBar != nullptr)
     {
       m_juliaToolBar->setVisible(name() == "julia set");
     }
@@ -335,12 +311,12 @@ void FractalWidget::setFractal(const QString& index)
 void FractalWidget::setIntervals()
 {
   setAxisScale(xBottom, 
-    m_fractalGeo.intervalX().minValue(), 
-    m_fractalGeo.intervalX().maxValue());
+    m_fractalControl.geo().intervalX().minValue(), 
+    m_fractalControl.geo().intervalX().maxValue());
     
   setAxisScale(yLeft, 
-    m_fractalGeo.intervalY().minValue(), 
-    m_fractalGeo.intervalY().maxValue());
+    m_fractalControl.geo().intervalY().minValue(), 
+    m_fractalControl.geo().intervalY().maxValue());
     
   m_zoom->setZoomBase();
     
@@ -380,7 +356,7 @@ void FractalWidget::setSize()
   int height = 0;
   int width = 0;
   
-  if (m_toolBar != NULL)
+  if (m_toolBar != nullptr)
   {
     if (
       m_toolBar->isVisible() && 
@@ -397,7 +373,7 @@ void FractalWidget::setSize()
     }
   }
   
-  if (m_juliaToolBar != NULL)
+  if (m_juliaToolBar != nullptr)
   {
     if (
       m_juliaToolBar->isVisible() && 
@@ -422,58 +398,31 @@ void FractalWidget::setSize()
   }
 }
 
-void FractalWidget::updatePass(int line, int /*max */)
-{
-  m_progressBar->setValue(line);
-}
-
-void FractalWidget::updatePass(int pass, int max, int iterations)
-{
-  if (pass > 0 && max > 0)
-  {
-    m_passesLabel->show();
-    m_passesLabel->setText(QString::number(pass) + "," + QString::number(max));
-  }
-  else
-  {
-    m_passesLabel->hide();
-  }
-    
-  m_statusBar->showMessage(QString("executing %1 iterations")
-    .arg(iterations));
-  m_time.start();    
-}
-
-void FractalWidget::updatePixmap(const QImage &image, int state)
+void FractalWidget::updatePixmap(const QImage image, int state)
 {
   m_updates++;
   m_updatesLabel->setText(QString::number(m_updates));
     
-  switch (state)
+  if (state == RENDERING_READY)
   {
-  case RENDERING_ACTIVE:
-    break;
-  
-  case RENDERING_READY:
     m_progressBar->hide();
     m_statusBar->showMessage("ready");
-    m_statusBar->setToolTip(QString::number((double)m_time.elapsed() / 1000 ));
-    
+      
     if (m_autoZoom >= 0)
     {
-      zoom();
+      zoomIn();
       m_autoZoom++;
       
+      // TODO: make a parameter
       if (m_autoZoom >= 75)
       {
         m_autoZoom = -1;
       }
     }
-    break;
-    
-  case RENDERING_SNAPSHOT:
+  }
+  else if (state == RENDERING_SNAPSHOT)
+  {
     m_statusBar->showMessage("refreshed", 50);
-    break;
   }
     
   m_fractalPixmap = QPixmap::fromImage(image);
@@ -481,13 +430,16 @@ void FractalWidget::updatePixmap(const QImage &image, int state)
   replot();
 }
 
-void FractalWidget::zoom()
+void FractalWidget::updateProgress(int line, int /*max */)
 {
-  const double minfactor = 0.9;
-  
+  m_progressBar->setValue(line);
+}
+
+void FractalWidget::zoom(double factor)
+{
   const QPointF center = m_zoom->zoomRect().center();
-  const double width = m_zoom->zoomRect().width() * minfactor;
-  const double height = m_zoom->zoomRect().height() * minfactor;
+  const double width = m_zoom->zoomRect().width() * factor;
+  const double height = m_zoom->zoomRect().height() * factor;
   
   const QRectF r(
     center.x() - width / 2.0, 

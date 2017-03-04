@@ -2,7 +2,7 @@
 // Name:      scrollbar.h
 // Purpose:   Declaration of class ScrollBar
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2014 Anton van Wezenbeek
+// Copyright: (c) 2017 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #pragma once 
@@ -27,16 +27,15 @@ public:
   int extent() const;
 
   /// Access to members.
-  double minBaseValue() const {return m_minBase;};
+  auto minBaseValue() const {return m_minBase;};
   double minSliderValue() const;
-  double maxBaseValue() const {return m_maxBase;};
+  auto maxBaseValue() const {return m_maxBase;};
   double maxSliderValue() const;
-  Qt::ScrollBarPolicy mode() const {return m_mode;};
-  ScrollBarPosition position() const {return m_position;};
+  auto mode() const {return m_mode;};
+  auto position() const {return m_position;};
 
   void moveSlider( double min, double max );
   void setBase( double min, double max );
-
 signals:
   void sliderMoved( Qt::Orientation, double, double );
   void valueChanged( Qt::Orientation, double, double );
@@ -50,11 +49,11 @@ private:
   int mapToTick( double ) const;
   void sliderRange( int value, double &min, double &max ) const;
 
-  const int m_baseTicks;
+  const int m_baseTicks = 1000000;
   const bool m_inverted;
-  const Qt::ScrollBarPolicy m_mode;
+  const Qt::ScrollBarPolicy m_mode = Qt::ScrollBarAsNeeded;
   const ScrollBarPosition m_position;
   
-  double m_maxBase;
-  double m_minBase;
+  double m_maxBase = 1.0;
+  double m_minBase = 0.0;
 };

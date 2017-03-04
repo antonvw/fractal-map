@@ -2,32 +2,26 @@
 // Name:      fractalgeometry.h
 // Purpose:   Declaration of class FractalGeometry
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2015 Anton van Wezenbeek
+// Copyright: (c) 2017 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
 #include <vector>
-#include <QCheckBox>
-#include <QColorDialog>
 #include <QDir>
-#include <QLineEdit>
-#include <QSpinBox>
-#include <QToolBar>
+#include <QImage>
+#include <QSize>
 #include <qwt_interval.h>
 
-const QString pointf_regexp("-?[0-9.]+[0-9]*,-?[0-9.]+[0-9]*");
-const QString intervals_regexp = pointf_regexp + "," + pointf_regexp;
-const QString size_regexp("[1-9][0-9]*,[1-9][0-9]*");
+const int min_wave = 380;
+const int max_wave = 780;
+
+class FractalControl;
 
 /// This class contains general geometry values for a fractal.
-/// If you want to edit values supplied using the default constructor,
-/// call addControls with you toolbar, then the right
-/// controls will be put on the toolbar. 
-class FractalGeometry : public QObject
+class FractalGeometry
 {
-  Q_OBJECT
-
+  friend class FractalControl;
 public:
   /// Default constructor.
   FractalGeometry(
@@ -35,126 +29,84 @@ public:
     const QwtInterval& xInterval = QwtInterval(-2,2),
     /// using this y interval
     const QwtInterval& yInterval = QwtInterval(-2,2),
-    /// pass to start with
-    int firstPass = 0,
-    /// using max number of passes
-    int maxPasses = 0,
-    /// using max colours,
-    int colours = 0,
+    /// iteration depth
+    int depth = 2,
     /// dir for images
     const QString& dir = QString());
-    
-  /// Copy constructor.
-  FractalGeometry(const FractalGeometry& geo);
-  
-  /// Assignment.
-  FractalGeometry& operator= (const FractalGeometry& geo);
-  
-  /// Constructs and adds all edit controls to toolbar.
-  void addControls(QToolBar* toolbar);
+
+  /// Returns current colour.
+  const auto & colour() const {return m_colours[m_colourIndex];};
+
+  /// Returns colour.
+  const auto & colour(int i) const {return m_colours[i];};
+
+  /// Returns colour index.
+  auto colourIndex() const {return m_colourIndex;};
   
   /// Gets colours.
-  const std::vector<uint> & colours() const {return m_colours;};
+  const auto & colours() const {return m_colours;};
+
+  /// Gets iteration depth.
+  auto depth() const {return m_depth;};
   
   /// Gets the dir used when using images instead of colours.
-  const QDir& dir() const {return m_dir;};
+  const auto & dir() const {return m_dir;};
+
+  /// Returns true if finished setColour.
+  bool finished() const {return m_finished;};
   
-  /// Gets first pass.
-  int firstPass() const {return m_firstPass;};
-  
-  /// Gets the x interval.
-  const QwtInterval& intervalX() const {return m_intervalX;};
-  
-  /// Gets the y interval.
-  const QwtInterval& intervalY() const {return m_intervalY;};
+  /// Gets image.
+  const auto & image(int i) const {return m_images[i];};
   
   /// Gets images.
-  const std::vector<QImage> & images() const {return m_images;};
+  const auto & images() const {return m_images;};
+  
+  /// Gets the x interval.
+  const auto & intervalX() const {return m_intervalX;};
+  
+  /// Gets the y interval.
+  const auto & intervalY() const {return m_intervalY;};
   
   /// Returns true if parameters are ok.
   bool isOk() const;
   
-  /// Gets max passes.
-  int maxPasses() const {return m_maxPasses;};
-  
-  /// Sets all old colours into new colour.
-  void setColours(uint old, uint colour);
-  
-  /// Sets intervals.
-  void setIntervals(const QwtInterval& x, const QwtInterval& y);
-  
-  /// Sets single pass (for auto zooming).
-  void setSinglePass() {m_singlePass = true;};
-  
-  /// Gets single pass.
-  bool singlePass() const {return m_singlePass;};
-  
+  /// Prepares colour index to be used from start or from end.  
+  void prepare(bool from_start) {
+    m_colourIndex = (from_start ? 0: m_colours.size() - 1);
+    m_colourIndexFromStart = from_start;};
+
+  /// Sets colour(s).
+  bool setColour(const QColor& color);
+
+  /// Sets colours.
+  void setColours(int size);
+
   /// Gets use images.
   bool useImages() const {return m_useImages;};
-signals:
-  /// Whenever a control is changed, this signal is emitted.
-  void changed();
-  
-  /// Whenever interval is changed manually, this signal is emitted.
-  void changedIntervals();
-public slots:  
-  /// Sets colours from begin.
-  void setColoursDialogBegin() {setColoursDialog(true);};
-  
-  /// Sets colours from end.
-  void setColoursDialogEnd() {setColoursDialog(false);};
-  
-  /// Sets images.
-  void setImages();
-private slots:  
-  void setColour(const QColor& color);
-  void setColoursMinWave(int value);
-  void setColoursMax(int value);
-  void setColoursMaxWave(int value);
-  void setFirstPass(int value);
-  void setImagesSize();
-  void setIntervals();
-  void setMaxPasses(int value);
-  void setUseImages(int state);
-private:  
-  void setColours(int colours);
-  void setColoursDialog(bool from_start);
-  void setImages(bool show_dialog);
+private:
   uint wav2RGB(double wave) const;
-  
-  QSpinBox* m_coloursEdit;
-  QSpinBox* m_coloursMaxWaveEdit;
-  QSpinBox* m_coloursMinWaveEdit;
-  QSpinBox* m_firstPassEdit;
-  QLineEdit* m_imagesSizeEdit;
-  QLineEdit* m_intervalsEdit;
-  QSpinBox* m_maxPassesEdit;
-  QCheckBox* m_useImagesEdit;
-  
-  bool m_colourIndexFromStart;
-  
+
   QwtInterval m_intervalX;
   QwtInterval m_intervalY;
+
   QDir m_dir;
-  QSize m_imagesSize;
+  QSize m_imagesSize = QSize(32, 32);
   QStringList m_imagesList;
 
   double m_coloursMinWave;  
   double m_coloursMaxWave;  
   
-  int m_colourIndex;
-  int m_firstPass;
-  int m_maxPasses;
+  int m_colourIndex = 0;
+  int m_depth;
   
-  bool m_singlePass;
+  bool m_colourIndexFromStart = true;
+  bool m_finished = false;
   // use images instead of colours for rendering
-  bool m_useImages;
+  bool m_useImages = false;
   
   // the last colour is used for converge
   std::vector<uint> m_colours;
   
   // the last image is used for convergence
   std::vector<QImage> m_images;
-  
-  QColorDialog* m_colourDialog;
 };

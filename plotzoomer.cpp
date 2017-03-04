@@ -2,7 +2,7 @@
 // Name:      plotzoomer.cpp
 // Purpose:   Implementation of class PlotZoomer
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2014 Anton van Wezenbeek
+// Copyright: (c) 2017 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <QtGui>
@@ -21,7 +21,6 @@ PlotZoomer::PlotZoomer(QWidget* widget, QStatusBar* bar, bool doReplot)
   , m_hScrollBar( new ScrollBar( ScrollBar::AttachedToScale, Qt::Horizontal, canvas() ))
   , m_vScrollBar( new ScrollBar( ScrollBar::OppositeToScale, Qt::Vertical, canvas() ))
   , m_statusBar(bar)
-  , m_inZoom( false )
 {
   m_cornerWidget->setAutoFillBackground( true );
   m_cornerWidget->setPalette( plot()->palette() );
@@ -431,7 +430,9 @@ void PlotZoomer::widgetMousePressEvent(QMouseEvent* event)
   }
   else if (event->button() == Qt::RightButton)
   {
+#if QT_VERSION >= 0x050100
     m_Point = event->screenPos();
+#endif
   }
 }
 
@@ -443,10 +444,12 @@ void PlotZoomer::widgetMouseReleaseEvent(QMouseEvent* event)
   }
   else if (event->button() == Qt::RightButton)
   {
+#if QT_VERSION >= 0x050100
     const float x = 100 * (event->screenPos().x() - m_Point.x());
     const float y = 100 * (event->screenPos().y() - m_Point.y());
     
     m_hScrollBar->setValue(m_hScrollBar->value() - x); 
     m_vScrollBar->setValue(m_vScrollBar->value() - y);
+#endif
   }
 }

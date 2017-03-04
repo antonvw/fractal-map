@@ -2,7 +2,7 @@
 // Name:      fractalwidget.h
 // Purpose:   Declaration of class FractalWidget
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2015 Anton van Wezenbeek
+// Copyright: (c) 2017 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
@@ -14,13 +14,12 @@
 #include <QPixmap>
 #include <QProgressBar>
 #include <QStatusBar>
-#include <QTime>
 #include <QToolBar>
 #include <QWidget>
 #include <qwt_interval.h>
 #include <qwt_plot.h>
 #include "fractal.h"
-#include "fractalgeometry.h"
+#include "fractalcontrol.h"
 #include "fractalrenderer.h"
 
 class PlotZoomer;
@@ -51,9 +50,7 @@ public:
     /// using this y interval
     const QwtInterval& yInterval,
     /// first pass
-    int first_pass,
-    /// number of passes
-    int passes,
+    int depth,
     /// julia arg real component
     double julia_real,
     /// julia imag component
@@ -79,33 +76,39 @@ public:
   /// Adds julia specific controls to a toolbar.
   void addJuliaControls(QToolBar* toolbar);
   
-  /// Access to fractal pixmap.
-  const QPixmap& fractalPixmap() const {return m_fractalPixmap;};
+  /// Access to fractal control.
+  const auto & fractalControl() const {return m_fractalControl;};
   
-  /// Access to geometry.
-  const FractalGeometry& geometry() const {return m_fractalGeo;};
+  /// Access to fractal pixmap.
+  const auto & fractalPixmap() const {return m_fractalPixmap;};
   
   /// Access to renderer.
-  FractalRenderer* renderer() {return &m_fractalRenderer;};
+  auto * renderer() {return &m_fractalRenderer;};
   
 public slots:
   /// Zooms in a number of times.
   void autoZoom();
+  
+  /// Stops auto zooming.
+  void autoZoomStop();
   
   /// Copies pixmap to clipboard.
   void copy();
   
   /// Double clicked.
   bool doubleClicked();
-  
+ 
   /// Saves settings.
   void save();
   
   /// Zooms in.
-  void zoom();
+  void zoomIn() {zoom(0.9);};
+
+  /// Zooms out.
+  void zoomOut() {zoom(1.1);};
 protected:
   /// Handles resize event.
-  void resizeEvent(QResizeEvent *event);
+  virtual void resizeEvent(QResizeEvent *event) override;
 private slots:
   /// Renders (starts with) fractal pixmap.
   void render();
@@ -116,37 +119,29 @@ private slots:
   void setJulia();
   void setJuliaExponent(const QString& text);
   void setSize();
-  void updatePass(int line, int max);
-  void updatePass(int pass, int numberOfPasses, int iterations);
-  void updatePixmap(const QImage &image, int state);
+  void updatePixmap(const QImage image, int state);
+  void updateProgress(int line, int max);
   void zoomed();
 private:
   void init(bool show_axes);
+  void zoom(double factor);
 
-  FractalGeometry m_fractalGeo;
-  QPixmap m_fractalPixmap;
+  FractalControl m_fractalControl;
   FractalRenderer m_fractalRenderer;
+  QPixmap m_fractalPixmap = QPixmap(100, 100);
   
   QCheckBox* m_axesEdit;
-  QLineEdit* m_divergeEdit;
   QComboBox* m_fractalEdit;
-  QLineEdit* m_juliaEdit;
-  QLineEdit* m_juliaExponentEdit;
-  QLineEdit* m_sizeEdit;
-  
-  QLabel* m_passesLabel;
-  QLabel* m_updatesLabel;
-  
+  QLabel *m_updatesLabel;
+  QLineEdit *m_divergeEdit, *m_juliaEdit, *m_juliaExponentEdit, *m_sizeEdit;
   QwtPlotGrid* m_grid;
   PlotZoomer* m_zoom;
-  
-  QTime m_time;
 
-  int m_autoZoom;
-  int m_updates;
+  int m_autoZoom = -1;
+  int m_updates = 0;
   
-  QToolBar* m_juliaToolBar;
+  QToolBar* m_juliaToolBar = nullptr;
   QProgressBar* m_progressBar;
   QStatusBar* m_statusBar;
-  QToolBar* m_toolBar;
+  QToolBar* m_toolBar = nullptr;
 };

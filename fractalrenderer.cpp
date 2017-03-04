@@ -2,7 +2,7 @@
 // Name:      fractalrenderer.cpp
 // Purpose:   Implementation of class FractalRenderer
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2012 Anton van Wezenbeek
+// Copyright: (c) 2017 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "fractalrenderer.h"
@@ -10,8 +10,6 @@
 
 FractalRenderer::FractalRenderer(QObject *parent)
   : QThread(parent)
-  , m_state(RENDERING_INIT)
-  , m_oldState(RENDERING_INIT)
 {
 }
 
@@ -20,45 +18,14 @@ FractalRenderer::~FractalRenderer()
   stop();
 }
 
-bool FractalRenderer::allowRender() const
-{
-  return
-    m_state == RENDERING_READY || 
-    m_state == RENDERING_ACTIVE ||
-    m_state == RENDERING_RESET;
-}
-
-const QSize FractalRenderer::calcStep(int pass, const FractalGeometry& geo) const
+const QSize FractalRenderer::calcStep(const FractalGeometry& geo) const
 {
   if (geo.useImages())
   {
     return QSize(geo.images().front().width(), geo.images().front().height());
   }
   
-  int step;
-  
-  if (geo.singlePass())
-  {
-    step = 1;
-  }
-  else if (pass == geo.maxPasses())
-  { 
-    step = 1;
-  }
-  else if (pass == geo.maxPasses() - 1)
-  {
-    step = 2;
-  }
-  else if (pass == geo.firstPass())
-  {
-    step = 9;
-  }
-  else
-  {
-    step = 7;
-  }
-
-  return QSize(step, step);
+  return QSize(1, 1);
 }
 
 void FractalRenderer::cont()
@@ -69,16 +36,6 @@ void FractalRenderer::cont()
     m_state = m_oldState;
     m_condition.wakeOne();
   }
-}
-
-bool FractalRenderer::end() const
-{
-  return 
-    m_state == RENDERING_START || 
-    m_state == RENDERING_INTERRUPT || 
-    m_state == RENDERING_PAUSED || 
-    m_state == RENDERING_RESET || 
-    m_state == RENDERING_SKIP;
 }
 
 void FractalRenderer::interrupt()
@@ -97,9 +54,6 @@ bool FractalRenderer::interrupted() const
   return 
     m_state == RENDERING_PAUSED || 
     m_state == RENDERING_INTERRUPT || 
-    m_state == RENDERING_RESET || 
-    m_state == RENDERING_START || 
-    m_state == RENDERING_SKIP || 
     m_state == RENDERING_SNAPSHOT || 
     m_state == RENDERING_STOPPED;
 }
@@ -118,7 +72,6 @@ bool FractalRenderer::nextStateForCalcEnd(const QImage& image)
       
   case RENDERING_SNAPSHOT:
     {
-    emit rendered(image, m_state);
     QMutexLocker locker(&m_mutex);
     m_image = image;
     m_state = RENDERING_ACTIVE;
@@ -145,73 +98,50 @@ void FractalRenderer::pause()
 
 void FractalRenderer::refresh()
 {
-  if (m_state == RENDERING_ACTIVE)
-  {
-    QMutexLocker locker(&m_mutex);
-    m_state = RENDERING_SNAPSHOT;
-    m_condition.wakeOne();
-  }
+  QMutexLocker locker(&m_mutex);
+  m_state = RENDERING_SNAPSHOT;
+  m_condition.wakeOne();
 }
 
 bool FractalRenderer::render(
   const Fractal& fractal,
   const std::complex<double> & c, 
-  int max, 
-  QImage& image, 
-  const QPoint& p, 
-  const std::vector<QImage> & images)
-{
-  int n = 0;
-
-  const bool result = fractal.calc(c, n, max);
-  
-  // We have to use image n.
-  const int im = (n < max ? (n % images.size()): images.size() - 1);
-  
-  for (int h = 0; h < images[im].height(); h++)
-  {
-    for (int w = 0; w < images[im].width(); w++)
-    {
-      const QPoint pos(p + QPoint(w, h));
-      
-      if (image.valid(pos))
-      {
-        image.setPixel(pos, images[im].pixel(QPoint(w, h)));
-      }
-    }
-  }
-  
-  if (!result)
-  {
-    return nextStateForCalcEnd(image);
-  }
-   
-  return true;
-}
-
-bool FractalRenderer::render(
-  const Fractal& fractal,
-  const std::complex<double> & c, 
-  int max,
+  const FractalGeometry& geo,
   QImage& image,
   const QPoint& p,
-  const QSize& inc,
-  const std::vector<uint> & colours)
+  const QSize& inc)
 {
+  if (geo.useImages())
+  {
+    if (geo.images().empty()) return false;
+  }
+  else
+  {
+    if (geo.colours().empty()) return false;
+  }
+
   int n = 0;
 
-  const bool result = fractal.calc(c, n, max);
+  const bool result = fractal.calc(c, n, geo.depth());
+  const int ii = (geo.useImages() ? 
+    (n < geo.depth() ? (n % geo.images().size()): geo.images().size() - 1): 0);
+  const auto height(!geo.useImages() ? inc.height(): geo.image(ii).height());
+  const auto width(!geo.useImages() ? inc.width(): geo.image(ii).width());
   
-  for (int h = 0; h < inc.height(); h++)
+  for (int h = 0; h < height; h++)
   {
-    for (int w = 0; w < inc.width(); w++)
+    for (int w = 0; w < width; w++)
     {
       const QPoint pos(p + QPoint(w, h));
       
       if (image.valid(pos))
       {
-        image.setPixel(pos,
-         (n < max ? colours[n % colours.size()]: colours.back()));
+        image.setPixel(pos, 
+          geo.useImages() ? 
+            geo.image(ii).pixel(QPoint(w, h)):
+             (n < geo.depth() ? 
+               geo.colour(n % geo.colours().size()): 
+               geo.colours().back()));
       }
     }
   }
@@ -229,10 +159,7 @@ bool FractalRenderer::render(
   const QImage& image,
   const FractalGeometry& geometry)
 {
-  if (
-    !fractal.isOk() ||
-    !geometry.isOk() ||
-    !allowRender())
+  if (!fractal.isOk() || !geometry.isOk())
   {
     return false;
   }
@@ -249,21 +176,18 @@ bool FractalRenderer::render(
   return true;
 }
 
-void FractalRenderer::reset()
+void FractalRenderer::restart()
 {
-  if (m_state == RENDERING_INTERRUPT)
-  {
-    QMutexLocker locker(&m_mutex);
-    m_state = RENDERING_RESET;
-    m_condition.wakeOne();
-  }
+  QMutexLocker locker(&m_mutex);
+  m_state = RENDERING_START;
+  m_condition.wakeOne();
 }
 
 void FractalRenderer::run()
 {
-  m_state = RENDERING_READY;
-  
-  forever 
+  m_state = RENDERING_ACTIVE;
+
+  forever
   {
     m_mutex.lock();
     QImage image = m_image;
@@ -271,91 +195,45 @@ void FractalRenderer::run()
     const Fractal fractal(m_fractal);
     m_mutex.unlock();
     
-    for (
-      int pass = (!geo.singlePass() ? geo.firstPass(): geo.maxPasses()); 
-      pass <= geo.maxPasses() && m_state == RENDERING_ACTIVE; 
-      pass++)
+    std::complex<double> c;
+    const QSize inc = calcStep(geo);
+
+    for (int y = 0; y < image.height() && !interrupted(); y+= inc.height())
     {
-      const QSize inc = calcStep(pass, geo);
-      const int max_iterations = 16 + (8 << pass);
+      emit rendering(y, image.height());
       
-      emit rendering(
-        geo.singlePass()? -1: pass, 
-        geo.singlePass() ? -1: geo.maxPasses(), 
-        max_iterations);
-      
-      for (
-        int y = 0; 
-        y < image.height() && !end();
-        y+= inc.height())
+      c.imag(geo.intervalY().maxValue() - 
+        (((double)y / image.height()) * geo.intervalY().width()));
+
+      for (int x = 0; x < image.width() && !interrupted(); x+= inc.width()) 
       {
-        emit rendering(y, image.height());
+        c.real(geo.intervalX().minValue() + 
+          (((double)x / image.width()) * geo.intervalX().width()));
         
-        const double cy = geo.intervalY().maxValue() - 
-          (((double)y / image.height()) * geo.intervalY().width());
-
-        for (
-          int x = 0; 
-          x < image.width() && !end();
-          x+= inc.width()) 
+        if (!render(fractal, c, geo, image, QPoint(x, y), inc))
         {
-          const double cx = 
-            geo.intervalX().minValue() + 
-            (((double)x / image.width()) * geo.intervalX().width());
-          
-          if (!geo.useImages())
-          {
-            if (!render(
-              fractal, 
-              std::complex<double>(cx, cy), 
-              max_iterations, 
-              image, 
-              QPoint(x, y),
-              inc,
-              geo.colours()))
-            {
-              return;
-            }
-          }
-          else
-          {
-            if (!render(
-              fractal, 
-              std::complex<double>(cx, cy), 
-              max_iterations, 
-              image, 
-              QPoint(x, y),
-              geo.images()))
-            {
-              return;
-            }
-          }
+          return;
         }
-      }
-
-      if (!end() || m_state == RENDERING_START)
-      {
-        if (pass == geo.maxPasses())
-        {
-          switch (m_state)
-          {
-            case RENDERING_START: break;
-            default : m_state = RENDERING_READY;
-          }
-        }
-         
-        emit rendered(image, m_state);
       }
     }
 
     m_mutex.lock();
-    
+
+    if (!interrupted())
+    {
+      m_state = RENDERING_READY;
+    }
+
+    if (!image.isNull())
+    {
+      emit rendered(image, m_state);
+    }
+
     switch (m_state)
     {
       case RENDERING_INTERRUPT:
       case RENDERING_PAUSED:
       case RENDERING_READY:
-      case RENDERING_RESET:
         m_condition.wait(&m_mutex);
         break;
       case RENDERING_STOPPED:
@@ -368,21 +246,6 @@ void FractalRenderer::run()
         
     m_mutex.unlock();
   }
-}
-
-void FractalRenderer::skip()
-{
-  if (m_state == RENDERING_ACTIVE)
-  {
-    QMutexLocker locker(&m_mutex);
-    m_state = RENDERING_SKIP;
-    m_condition.wakeOne();
-  }
-}
-
-void FractalRenderer::start()
-{
-  QThread::start();
 }
 
 void FractalRenderer::stop()

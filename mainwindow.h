@@ -2,7 +2,7 @@
 // Name:      mainwindow.h
 // Purpose:   Declaration of class MainWindow
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2015 Anton van Wezenbeek
+// Copyright: (c) 2017 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
@@ -18,12 +18,13 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 public:
-  // Constructor.
-  MainWindow(QWidget* parent = NULL, FractalWidget* fractalwidget = NULL);
+  // Default constructor.
+  MainWindow(
+    QWidget* parent = nullptr, FractalWidget* fractalwidget = nullptr);
 private slots:
   void about();
   void newFractalWidget();
 private:
-  void closeEvent(QCloseEvent *event); 
+  virtual void closeEvent(QCloseEvent *event) override; 
   FractalWidget* m_fractalWidget;
 };

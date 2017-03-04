@@ -2,7 +2,7 @@
 // Name:      plotitem.cpp
 // Purpose:   Implementation of class FractalPlotItem
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2012 Anton van Wezenbeek
+// Copyright: (c) 2017 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
@@ -18,7 +18,7 @@ public:
   virtual void draw(QPainter *p,
     const QwtScaleMap&, 
     const QwtScaleMap&,
-    const QRectF &rect) const;
+    const QRectF &rect) const override;
     
-  virtual int rtti() const;
+  virtual int rtti() const override;
 };

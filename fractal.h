@@ -2,7 +2,7 @@
 // Name:      fractal.h
 // Purpose:   Declaration of class Fractal
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2015 Anton van Wezenbeek
+// Copyright: (c) 2017 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
@@ -39,19 +39,19 @@ public:
     int max) const;
     
   /// Gets diverge.
-  double diverge() const {return m_diverge;};
+  auto diverge() const {return m_diverge;};
     
   /// Gets julia.
-  const std::complex<double> & julia() const {return m_julia;};
+  const auto & julia() const {return m_julia;};
     
   /// Gets julia exponent.
-  double juliaExponent() const {return m_juliaExponent;};
+  auto juliaExponent() const {return m_juliaExponent;};
     
   /// Is this fractal ok?
   bool isOk() const;
   
   /// Gets the name.
-  const std::string& name() const {return m_name;};
+  const auto & name() const {return m_name;};
   
   /// Sets diverge.
   void setDiverge(double diverge) {m_diverge = diverge;};
@@ -82,7 +82,7 @@ private:
     int& n, 
     int max) const;
   
-  FractalRenderer* m_renderer;
+  FractalRenderer* m_renderer = nullptr;
   
   double m_diverge;
   std::complex<double> m_julia;

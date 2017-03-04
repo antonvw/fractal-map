@@ -2,7 +2,7 @@
 // Name:      fractal.cpp
 // Purpose:   Implementation of class Fractal
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2012 Anton van Wezenbeek
+// Copyright: (c) 2017 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "fractal.h"
@@ -31,8 +31,7 @@ Fractal::Fractal(
   double diverge,
   const std::complex<double> & c,
   double exp)
-  : m_renderer(NULL)
-  , m_diverge(diverge)
+  : m_diverge(diverge)
   , m_julia(c)
   , m_juliaExponent(exp)
 {
@@ -80,18 +79,18 @@ bool Fractal::juliaset(
   {
     z = pow(z, exp) + m_julia;
         
-    if (abs(z) > m_diverge)
+    if (std::abs(z) > m_diverge)
     {
       break;
     }
     
-    if (m_renderer != NULL && m_renderer->interrupted())
+    if (m_renderer != nullptr && m_renderer->interrupted())
     {
       break;
     }
   }
   
-  if (m_renderer != NULL)
+  if (m_renderer != nullptr)
   {
     return !m_renderer->interrupted();
   }
@@ -108,20 +107,20 @@ bool Fractal::mandelbrotset(
     
   for (n = 0; n < max; n++)
   {
-    z = z * z - c;
+    z = std::pow(z, 2) - c;
         
-    if (abs(z) > m_diverge)
+    if (std::abs(z) > m_diverge)
     {
       break;
     }
     
-    if (m_renderer != NULL && m_renderer->interrupted())
+    if (m_renderer != nullptr && m_renderer->interrupted())
     {
       break;
     }
   }
   
-  if (m_renderer != NULL)
+  if (m_renderer != nullptr)
   {
     return !m_renderer->interrupted();
   }
