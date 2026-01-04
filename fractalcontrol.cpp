@@ -2,10 +2,11 @@
 // Name:      fractalcontrol.cpp
 // Purpose:   Implementation of class FractalControl
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2017 Anton van Wezenbeek
+// Copyright: (c) 2017-2026 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <QFileDialog>
+
 #include "fractalcontrol.h"
 #include "fractalwidget.h"
 
@@ -55,14 +56,14 @@ void FractalControl::addControls(QToolBar* toolbar)
   
   m_imagesSizeEdit = new QLineEdit();
   m_imagesSizeEdit->setToolTip("images max size");
-  m_imagesSizeEdit->setValidator(new QRegExpValidator(QRegExp(size_regexp)));
+  m_imagesSizeEdit->setValidator(new QRegularExpressionValidator(QRegularExpression(size_regexp)));
   m_imagesSizeEdit->setEnabled(false);
   m_imagesSizeEdit->setText(
     QString::number(m_geo.m_imagesSize.width()) + "," + QString::number(m_geo.m_imagesSize.height()));
 
   m_intervalsEdit = new QLineEdit();
   m_intervalsEdit->setToolTip("interval x,y");
-  m_intervalsEdit->setValidator(new QRegExpValidator(QRegExp(intervals_regexp)));
+  m_intervalsEdit->setValidator(new QRegularExpressionValidator(QRegularExpression(intervals_regexp)));
   m_intervalsEdit->setText(
     QString::number(m_geo.m_intervalX.minValue()) + "," + QString::number(m_geo.m_intervalX.maxValue()) + "," +
     QString::number(m_geo.m_intervalY.minValue()) + "," + QString::number(m_geo.m_intervalY.maxValue()));

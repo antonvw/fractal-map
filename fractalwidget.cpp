@@ -2,14 +2,15 @@
 // Name:      fractalwidget.cpp
 // Purpose:   Implementation of class FractalWidget
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2017 Anton van Wezenbeek
+// Copyright: (c) 2017-2026 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <math.h>
 #include <QApplication>
 #include <QtGui>
-#include <QRegExpValidator>
+#include <QRegularExpressionValidator>
 #include <qwt_plot_grid.h>
+
 #include "fractalwidget.h"
 #include "fractal.h"
 #include "plotitem.h"
@@ -168,7 +169,7 @@ void FractalWidget::init(bool show_axes)
   m_juliaEdit->setText(
     QString::number(julia().real()) + "," + QString::number(julia().imag()));
   m_juliaEdit->setToolTip("julia real,imag");
-  m_juliaEdit->setValidator(new QRegExpValidator(QRegExp(pointf_regexp)));
+  m_juliaEdit->setValidator(new QRegularExpressionValidator(QRegularExpression(pointf_regexp)));
   
   m_juliaExponentEdit = new QLineEdit();
   m_juliaExponentEdit->setText(QString::number(juliaExponent()));
@@ -177,7 +178,7 @@ void FractalWidget::init(bool show_axes)
 
   m_sizeEdit = new QLineEdit();
   m_sizeEdit->setToolTip("fractal size");
-  m_sizeEdit->setValidator(new QRegExpValidator(QRegExp(size_regexp)));
+  m_sizeEdit->setValidator(new QRegularExpressionValidator(QRegularExpression(size_regexp)));
   
   m_updatesLabel = new QLabel();
   m_updatesLabel->setToolTip("total images rendered");
@@ -194,7 +195,7 @@ void FractalWidget::init(bool show_axes)
     this, SLOT(setAxes(int)));
   connect(m_divergeEdit, SIGNAL(textEdited(const QString&)),
     this, SLOT(setDiverge(const QString&)));
-  connect(m_fractalEdit, SIGNAL(currentIndexChanged(const QString&)),
+  connect(m_fractalEdit, SIGNAL(currentTextChanged(const QString&)),
     this, SLOT(setFractal(const QString&)));
   connect(m_juliaEdit, SIGNAL(returnPressed()),
     this, SLOT(setJulia()));

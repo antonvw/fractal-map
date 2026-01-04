@@ -1,25 +1,35 @@
 This project offers a fractal browser.
 
-# Dependencies
+# Requirements
 
-- [Qt](http://qt-project.org/downloads/)
-  
-- [qwt 6.1.3](http://sourceforge.net/projects/qwt/)
+- [Qt 6.9.3](http://qt-project.org/downloads/)
+
+- [qwt 6.3.0](http://sourceforge.net/projects/qwt/)
 
 # Build process
-Building depends on the compiler:  
-For gcc use `make` for Visual Studio use `nmake` for mingw use `mingw32-make`   
+
+Building depends on the compiler:
+For gcc use `make` for Visual Studio use `nmake` for mingw use `mingw32-make`
 
 ## Building Qt
-   `./configure -qt-xcb -opensource -nomake tests`   
-   `make`    
-   `make install` 
+
+```bash
+./configure -qt-xcb -opensource -nomake tests
+make
+make install
+```
 
 ## Building qwt
-   `qmake`   
-   `make`   
-   `make install`  
-   
+
+```bash
+qmake
+make
+make install
+```
+
 ## Building fractal-map
-   `qmake`   
-   `make` 
+
+```bash
+qmake
+make
+```

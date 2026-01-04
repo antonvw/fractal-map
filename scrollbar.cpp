@@ -2,11 +2,12 @@
 // Name:      scrollbar.cpp
 // Purpose:   Implementation of class ScrollBar
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2017 Anton van Wezenbeek
+// Copyright: (c) 2017-2026 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <QStyle>
 #include <QStyleOption>
+
 #include "scrollbar.h"
 
 ScrollBar::ScrollBar( ScrollBarPosition pos, Qt::Orientation o, QWidget *parent )
@@ -40,7 +41,6 @@ int ScrollBar::extent() const
 {
   QStyleOptionSlider opt;
 
-  opt.init( this );
   opt.subControls = QStyle::SC_None;
   opt.activeSubControls = QStyle::SC_None;
   opt.orientation = orientation();

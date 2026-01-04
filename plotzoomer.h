@@ -2,7 +2,7 @@
 // Name:      plotzoomer.h
 // Purpose:   Declaration of class PlotZoomer
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2017 Anton van Wezenbeek
+// Copyright: (c) 2017-2026 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #pragma once 
@@ -25,7 +25,6 @@ public:
   PlotZoomer(QWidget* widget, QStatusBar* bar, bool doReplot = true);
   
 protected:  
-  virtual bool eventFilter( QObject *, QEvent * ) override;
   virtual QSizeF minZoomSize() const override;
   virtual void rescale() override;
   virtual QwtText trackerTextF( const QPointF & ) const override;

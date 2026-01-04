@@ -2,7 +2,7 @@
 // Name:      plotzoomer.cpp
 // Purpose:   Implementation of class PlotZoomer
 // Author:    Anton van Wezenbeek
-// Copyright: (c) 2017 Anton van Wezenbeek
+// Copyright: (c) 2017-2026 Anton van Wezenbeek
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <QtGui>
@@ -11,6 +11,7 @@
 #include <qwt_plot_layout.h>
 #include <qwt_scale_engine.h>
 #include <qwt_scale_widget.h>
+
 #include "plotzoomer.h"
 #include "fractalwidget.h"
 #include "scrollbar.h"
@@ -46,32 +47,6 @@ PlotZoomer::PlotZoomer(QWidget* widget, QStatusBar* bar, bool doReplot)
     SLOT( scrollBarValueChanged( Qt::Orientation, double, double ) ) );
     
   updateScrollBars();
-}
-
-bool PlotZoomer::eventFilter( QObject *object, QEvent *event )
-{
-  if ( object == canvas() )
-  {
-    switch( event->type() )
-    {
-      case QEvent::Resize:
-      {
-        int left, top, right, bottom;
-        canvas()->getContentsMargins( &left, &top, &right, &bottom );
-
-        QRect rect;
-        rect.setSize( static_cast<QResizeEvent *>( event )->size() );
-        rect.adjust( left, top, -right, -bottom );
-
-        layoutScrollBars( rect );
-        break;
-      }
-      default:
-        break;
-    }
-  }
-
-  return QwtPlotZoomer::eventFilter( object, event );
 }
 
 void PlotZoomer::layoutScrollBars( const QRect &rect )
@@ -283,13 +258,13 @@ QwtText PlotZoomer::trackerTextF( const QPointF &pos ) const
   switch (rubberBand())
   {
     case HLineRubberBand:
-      text.sprintf("%.6f", pos.y());
+      text.asprintf("%.6f", pos.y());
       break;
     case VLineRubberBand:
-      text.sprintf("%.6f", pos.x());
+      text.asprintf("%.6f", pos.x());
       break;
     default:
-      text.sprintf("%.6f, %.6f", pos.x(), pos.y());
+      text.asprintf("%.6f, %.6f", pos.x(), pos.y());
   }
   
   return QwtText(text);
@@ -430,9 +405,7 @@ void PlotZoomer::widgetMousePressEvent(QMouseEvent* event)
   }
   else if (event->button() == Qt::RightButton)
   {
-#if QT_VERSION >= 0x050100
     m_Point = event->screenPos();
-#endif
   }
 }
 
@@ -444,12 +417,10 @@ void PlotZoomer::widgetMouseReleaseEvent(QMouseEvent* event)
   }
   else if (event->button() == Qt::RightButton)
   {
-#if QT_VERSION >= 0x050100
     const float x = 100 * (event->screenPos().x() - m_Point.x());
     const float y = 100 * (event->screenPos().y() - m_Point.y());
     
     m_hScrollBar->setValue(m_hScrollBar->value() - x); 
     m_vScrollBar->setValue(m_vScrollBar->value() - y);
-#endif
   }
 }

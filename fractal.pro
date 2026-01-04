@@ -2,19 +2,23 @@
 # Name:      fractal.pro
 # Purpose:   Qt project file
 # Author:    Anton van Wezenbeek
-# Copyright: (c) 2017 Anton van Wezenbeek
+# Copyright: (c) 2017-2026 Anton van Wezenbeek
 ################################################################################
 
 TEMPLATE = app
 QT += widgets
 RC_FILE = fractal.rc
 
-equals( QMAKE_CXX, cl) {
+win32 {
   include ( c:\qwt\features\qwt.prf )
 }
-    
-!equals( QMAKE_CXX, cl) {
+
+linux-g++ {
   include ( /usr/local/qwt/features/qwt.prf )
+}
+
+macx {
+  include ( /usr/local/Cellar/homebrew/Cellar/qwt/6.3.0/features/qwt.prf )
 }
 
 HEADERS += \
@@ -26,8 +30,8 @@ HEADERS += \
   mainwindow.h \
   plotitem.h \
   plotzoomer.h \
-  scrollbar.h 
-  
+  scrollbar.h
+
 SOURCES += \
   fractal.cpp \
   fractalcontrol.cpp \
